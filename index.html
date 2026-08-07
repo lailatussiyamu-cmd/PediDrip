@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PediDrip — Kalkulator Infus Pediatrik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#2563EB; --primary-dark:#1D4ED8; --primary-light:#DBEAFE;
+  --secondary:#7C3AED; --secondary-light:#EDE9FE;
+  --accent:#0EA5E9; --success:#059669; --success-light:#D1FAE5;
+  --warning:#B45309; --warning-light:#FEF3C7;
+  --danger:#DC2626; --danger-light:#FEE2E2;
+  --pink:#DB2777; --pink-light:#FCE7F3;
+  --paper:#F8FAFC; --surface:#FFFFFF; --sunken:#F1F5F9;
+  --line:#E2E8F0; --line2:#F1F5F9;
+  --ink:#0F172A; --ink2:#475569; --ink3:#94A3B8;
+  --r:12px;
+  --gradient-primary:linear-gradient(135deg,#2563EB 0%,#7C3AED 100%);
+  --shadow:0 4px 6px -1px rgba(0,0,0,.07);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.08);
+  --transition:.2s cubic-bezier(.4,0,.2,1);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#0F172A; --surface:#1E293B; --sunken:#172033;
+    --line:#334155; --line2:#1E293B;
+    --ink:#F8FAFC; --ink2:#94A3B8; --ink3:#64748B;
+    --primary:#3B82F6; --primary-dark:#2563EB; --primary-light:#1E3A5F;
+    --secondary:#8B5CF6; --secondary-light:#2D1B4E; --accent:#38BDF8;
+    --success:#10B981; --success-light:#064E3B;
+    --warning:#F59E0B; --warning-light:#78350F;
+    --danger:#EF4444; --danger-light:#7F1D1D;
+    --pink:#EC4899; --pink-light:#831843;
+  }
+}
+/* Palet di bawah ini warna antarmuka, BUKAN kode warna label syringe.
+   Kode ISO 26825 punya petak warnanya sendiri di tiap kartu (lihat const ISO). */
+:root{
+  --benzo:var(--primary); --opioid:var(--pink); --induksi:var(--accent);
+  --alpha:var(--success); --vaso:var(--secondary); --diur:var(--ink2);
+  --relax:var(--danger);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);
+  font-family:"Public Sans",system-ui,-apple-system,sans-serif;
+  font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px 64px}
+input,select,button{font-size:16px;font-family:inherit}
+
+.topbar{position:sticky;top:0;z-index:20;background:var(--surface);
+  border-bottom:2px solid var(--primary);box-shadow:var(--shadow)}
+.topbar .wrap{padding:14px 20px;display:flex;flex-wrap:wrap;gap:14px 22px;
+  align-items:flex-end;justify-content:space-between}
+.mark{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.mark .word{font-family:"Archivo",sans-serif;font-weight:800;font-size:40px;letter-spacing:-.045em;
+  line-height:.85;background:var(--gradient-primary);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}
+.mark .exp{font-family:"Archivo",sans-serif;font-weight:600;font-size:11px;text-transform:uppercase;
+  letter-spacing:.2em;color:var(--ink3);border-left:2px solid var(--line);padding-left:12px;
+  max-width:180px;line-height:1.35}
+.brand p{margin:6px 0 0;color:var(--ink2);font-size:12.5px}
+.bbbox{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap}
+.bbbox label{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;
+  letter-spacing:.16em;font-size:10.5px;color:var(--ink3);display:block;margin-bottom:5px}
+#bb{width:124px;background:var(--paper);border:2px solid var(--line);border-radius:var(--r);
+  color:var(--ink);font-family:"JetBrains Mono",monospace;font-weight:700;font-size:28px;
+  padding:6px 11px;text-align:right;transition:border-color var(--transition)}
+#bb:focus,input:focus,select:focus,button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.kg{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;color:var(--ink3);padding-bottom:11px}
+.btn{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.11em;
+  font-size:11.5px;background:var(--surface);color:var(--ink);border:2px solid var(--line);
+  border-radius:var(--r);padding:11px 14px;cursor:pointer;min-height:46px;transition:all var(--transition)}
+.btn:hover:not(:disabled){border-color:var(--primary);background:var(--primary-light)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn-primary{background:var(--gradient-primary);color:#fff;border-color:transparent}
+.btn-primary:hover:not(:disabled){background:var(--primary-dark);color:#fff}
+.btn-danger{background:transparent;color:var(--danger);border-color:var(--danger)}
+.btn-danger:hover:not(:disabled){background:var(--danger-light);border-color:var(--danger)}
+
+.patient{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:14px;margin:24px 0 4px}
+.patient div{display:flex;flex-direction:column;gap:4px}
+.patient label{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;
+  letter-spacing:.16em;font-size:10.5px;color:var(--ink3)}
+.patient input{background:transparent;border:0;border-bottom:2px solid var(--line);
+  color:var(--ink);padding:8px 2px;transition:border-color var(--transition)}
+.patient input:focus{border-color:var(--primary)}
+.hint{margin:22px 0 4px;padding:14px 18px;border:2px solid var(--primary-light);border-radius:var(--r);
+  color:var(--ink2);font-size:13.5px;background:var(--primary-light)}
+
+.gjudul{font-family:"Archivo",sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:.2em;font-size:11.5px;color:var(--ink2);margin:38px 0 14px;
+  padding-bottom:9px;border-bottom:3px solid var(--primary)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:20px}
+.card{position:relative;background:var(--surface);border:2px solid var(--line);
+  border-radius:var(--r);padding:20px 20px 18px 24px;overflow:hidden;box-shadow:var(--shadow)}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--band)}
+.card.idle{opacity:.6}
+.card.relax{border-color:var(--danger)}
+.card-error{background:var(--danger-light);border-color:var(--danger)}
+.chead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:15px}
+.chead h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:21px;letter-spacing:-.02em;
+  margin:0 0 6px;line-height:1.05}
+.badge{font-family:"Archivo",sans-serif;font-size:9.5px;font-weight:700;padding:3px 9px;
+  border-radius:20px;text-transform:uppercase;letter-spacing:.1em;display:inline-block}
+.badge-benzo{background:var(--primary-light);color:var(--primary)}
+.badge-opioid{background:var(--pink-light);color:var(--pink)}
+.badge-induksi{background:var(--primary-light);color:var(--accent)}
+.badge-alpha{background:var(--success-light);color:var(--success)}
+.badge-vaso{background:var(--secondary-light);color:var(--secondary)}
+.badge-diur{background:var(--sunken);color:var(--ink2)}
+.badge-relax{background:var(--danger-light);color:var(--danger)}
+.tick{display:flex;align-items:center;gap:7px;font-size:10.5px;color:var(--ink3);
+  font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.11em;
+  cursor:pointer;white-space:nowrap;padding:8px 10px;min-height:44px;border-radius:8px}
+.tick:hover{background:var(--primary-light)}
+.tick input{accent-color:var(--primary);width:20px;height:20px;margin:0;cursor:pointer}
+.lbl{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.16em;
+  font-size:10px;color:var(--ink3);margin:0 0 6px}
+/* petak kode warna ISO 26825 — dipakai di kartu layar dan kartu titrasi cetak */
+.isoline{display:flex;align-items:center;gap:8px;margin:9px 0 0;font-size:11.5px;color:var(--ink2)}
+.isoline .sw{width:24px;height:13px;border:1px solid var(--ink3);border-radius:3px;flex:none}
+.isoline b{color:var(--ink);font-weight:700}
+.prep{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.prep input{width:88px;background:var(--paper);border:2px solid var(--line);border-radius:8px;
+  color:var(--ink);font-family:"JetBrains Mono",monospace;font-size:14px;padding:12px 8px;text-align:right}
+.prep input:focus{border-color:var(--primary)}
+.prep input:disabled{color:var(--ink3);opacity:1}
+.prep span{font-size:12.5px;color:var(--ink2)}
+select{width:100%;background:var(--paper);border:2px solid var(--line);border-radius:8px;
+  color:var(--ink);padding:12px 9px;margin-bottom:9px;min-height:46px}
+select:focus{border-color:var(--primary)}
+.conc{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink3);margin-top:8px}
+.dosebar{display:flex;align-items:center;gap:10px;margin-top:6px}
+.dosebar input{width:104px;background:var(--paper);border:2px solid var(--line);border-radius:8px;
+  color:var(--ink);font-family:"JetBrains Mono",monospace;font-weight:700;font-size:17px;
+  padding:12px 8px;text-align:right}
+.dosebar input:focus{border-color:var(--primary)}
+.dosebar .u{font-size:11.5px;color:var(--ink2);font-family:"JetBrains Mono",monospace}
+input[type=range]{width:100%;accent-color:var(--primary);margin:14px 0 4px;height:30px;touch-action:pan-y;cursor:pointer}
+.gauge{position:relative;height:6px;background:var(--sunken);border-radius:99px;margin:2px 0 7px}
+.gauge .band{position:absolute;top:0;bottom:0;background:var(--band);opacity:.4;border-radius:99px}
+.gauge .pin{position:absolute;top:-4px;width:3px;height:14px;background:var(--ink);border-radius:2px}
+.range-note{font-size:11.5px}
+.range-note.in,.range-note.low{color:var(--ink3)}
+.range-note.high{color:var(--warning);font-weight:600}
+.range-note.over{color:var(--danger);font-weight:700}
+.readbox{margin:15px 0 2px;background:var(--gradient-primary);border-radius:var(--r);
+  padding:15px 18px;display:flex;align-items:baseline;justify-content:space-between;gap:8px;color:#fff}
+.readout{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:38px;color:#fff;
+  line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.readunit{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;
+  letter-spacing:.17em;font-size:11px;color:rgba(255,255,255,.85)}
+.meta{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink3);line-height:1.8;margin-top:9px}
+.meta b{color:var(--ink);font-weight:700}
+details{margin-top:13px;border-top:2px solid var(--line2);padding-top:8px}
+summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;
+  letter-spacing:.15em;font-size:10px;color:var(--primary);padding:8px 0;min-height:34px}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;margin-top:8px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;font-variant-numeric:tabular-nums}
+th{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.11em;
+  font-size:9.5px;color:var(--ink3);text-align:right;padding:5px 6px;
+  border-bottom:2px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line2);white-space:nowrap}
+tfoot td{border-bottom:0;border-top:3px solid var(--primary);padding-top:9px;font-weight:700}
+.note{font-size:12px;color:var(--ink2);margin-top:11px;line-height:1.6;padding:10px 12px;
+  background:var(--sunken);border-radius:8px;border-left:4px solid var(--band)}
+.sum{margin-top:40px;border:3px solid var(--primary);border-radius:var(--r);padding:24px 26px;
+  background:var(--surface);box-shadow:var(--shadow-lg)}
+.sum h3{font-family:"Archivo",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.14em;
+  font-size:17px;margin:0 0 4px;color:var(--ink)}
+.sum p.sub{color:var(--ink3);font-size:12px;margin:0 0 15px}
+.sum table td:first-child{text-align:left;font-family:"Public Sans",sans-serif;font-weight:600;white-space:normal}
+.sum .rate{font-weight:700;color:var(--primary)}
+.empty{color:var(--ink3);font-size:13.5px}
+.sign{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:26px;margin-top:28px}
+.sign div{border-top:2px solid var(--line);padding-top:8px;font-size:11px;color:var(--ink3);
+  font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.13em}
+footer{margin-top:36px;color:var(--ink2);font-size:12px;line-height:1.75;
+  border-top:2px solid var(--line);padding-top:18px}
+footer b{color:var(--ink)}
+.relaxwarn{color:var(--danger);font-weight:600;border-left:4px solid var(--danger);
+  background:var(--danger-light);padding:12px 16px;border-radius:8px}
+.noscript{background:var(--warning-light);border:3px solid var(--warning);padding:20px;margin:20px;
+  text-align:center;border-radius:var(--r)}
+.error-boundary{margin:12px 0;padding:16px;border:2px solid var(--danger);border-radius:8px;
+  background:var(--danger-light);color:var(--danger)}
+.error-boundary pre{white-space:pre-wrap;word-break:break-word;font-size:12px;margin:0 0 10px}
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;
+  flex-direction:column;gap:10px;max-width:380px;width:90%}
+.toast{padding:14px 18px;border-radius:var(--r);background:var(--surface);border:2px solid var(--line);
+  box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:12px;animation:slideIn .3s ease-out}
+.toast.success{border-color:var(--success);background:var(--success-light)}
+.toast.error{border-color:var(--danger);background:var(--danger-light)}
+.toast.warning{border-color:var(--warning);background:var(--warning-light)}
+.toast.info{border-color:var(--primary);background:var(--primary-light)}
+.toast .msg{flex:1;font-size:13px;color:var(--ink)}
+.toast .close-btn{background:transparent;border:0;cursor:pointer;font-size:18px;color:var(--ink2);padding:0 4px}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@media (max-width:640px){
+  .wrap{padding:0 14px 56px}
+  .mark .word{font-size:32px}
+  .mark .exp{font-size:9.5px;letter-spacing:.14em;max-width:130px;padding-left:10px}
+  #bb{font-size:25px;width:112px;min-height:50px}
+  .grid{grid-template-columns:1fr}
+  .prep input,.dosebar input{min-height:48px}
+  .btn,select{min-height:48px}
+  .topbar .wrap{padding:10px 14px;gap:10px}
+  .chead h2{font-size:19px}
+  .readbox{padding:13px 15px}
+  .readout{font-size:30px}
+  .sum{padding:18px 16px}
+  .toast-container{width:94%;right:3%;bottom:12px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ==== kartu titrasi untuk ditempel di syringe — hanya tampil saat cetak ====
+   Kelasnya .tcard, bukan .lbl: .lbl dipakai label kecil di kartu obat dan
+   memaksa HURUF BESAR SEMUA, yang ikut terbawa ke kartu titrasi saat dicetak. */
+#labels{display:none}
+@media print{
+  #labels{display:grid!important;grid-template-columns:repeat(2,1fr);gap:6mm;margin-top:8mm;
+          page-break-before:always}
+  .tcard{border:1px dashed #000;border-radius:2mm;padding:3mm;page-break-inside:avoid;
+         font-family:"Public Sans",sans-serif;font-size:8.5pt;line-height:1.3;color:#000}
+  /* identitas menyatu dengan kartu — kartu yang sudah digunting tetap punya pemilik */
+  .tcard .tid{display:flex;gap:3mm;border-bottom:1px solid #000;
+              padding-bottom:1.5mm;margin-bottom:2mm}
+  .tcard .tid-nm{flex:1.7 1 0;min-width:0}
+  .tcard .tid-rm{flex:1 1 0;min-width:0}
+  .tcard .tid-k{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:6.5pt;
+                text-transform:uppercase;letter-spacing:.12em;color:#333}
+  .tcard .tid-v{display:block;font-size:9pt;font-weight:700;line-height:1.25;
+                min-height:4.4mm;word-break:break-word}
+  .tcard .tid-v.kosong{border-bottom:1px solid #000}
+  .tcard h4{margin:0 0 1mm;font-size:10.5pt;font-weight:800;text-transform:uppercase}
+  .tcard .cx{margin:0 0 2mm;font-size:8pt;color:#333}
+  /* Warna dicetak sebagai petak; nama warnanya tetap ditulis supaya kartu
+     yang tercetak hitam-putih atau tanpa "background graphics" tetap terbaca. */
+  .tcard .iso{display:flex;align-items:center;gap:1.6mm;margin:0 0 2mm;font-size:7.5pt;color:#000}
+  .tcard .iso .sw{width:7mm;height:3.6mm;border:0.5pt solid #000;border-radius:0.8mm;flex:none;
+                  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tcard .iso b{font-weight:800;letter-spacing:.04em}
+  .tcard table{width:100%;border-collapse:collapse}
+  .tcard th{font-size:7.5pt;text-align:left;border-bottom:1px solid #000;padding:0.6mm 1mm}
+  .tcard td{padding:0.6mm 1mm;border-bottom:1px solid #ccc}
+  .tcard td:last-child{text-align:right;font-weight:700}
+  .tcard .dc{margin:2mm 0 0;font-size:7pt;color:#333}
+}
+@media print{
+  :root{--paper:#fff;--surface:#fff;--sunken:#fff;--ink:#000;--ink2:#333;--ink3:#555;
+        --line:#999;--line2:#ccc;--primary:#000}
+  #cards,.hint,.btn,.toast-container,footer .noprint,noscript{display:none!important}
+  .topbar{position:static;border-color:#000;box-shadow:none}
+  .mark .word{-webkit-text-fill-color:#000;color:#000}
+  .sum{border-color:#000;box-shadow:none;page-break-inside:avoid}
+  .sum .rate{color:#000}
+  .patient input{border-bottom:1px solid #000;color:#000}
+  footer{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<noscript><div class="noscript"><h2>JavaScript diperlukan</h2>
+<p>Kalkulator ini memerlukan JavaScript. Mohon aktifkan JavaScript di browser Anda.</p></div></noscript>
+
+<div class="toast-container" id="toastContainer"></div>
+<div id="global-error" style="display:none"></div>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <div class="mark">
+        <span class="word">PediDrip</span>
+        <span class="exp">Kalkulator Infus Pediatrik</span>
+      </div>
+      <p>Laju syringe pump berbasis berat badan &middot; PICU</p>
+    </div>
+    <div class="bbbox">
+      <div>
+        <label for="bb">Berat badan</label>
+        <input id="bb" type="text" inputmode="decimal" placeholder="0,0" autocomplete="off" aria-label="Berat badan dalam kilogram">
+      </div>
+      <span class="kg">kg</span>
+      <button class="btn" id="filter">Hanya yang dicentang (0)</button>
+      <button class="btn btn-primary" id="cetak">Cetak</button>
+      <button class="btn btn-danger" id="reset">Pasien baru</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="patient">
+    <div><label for="pn">Nama pasien</label><input id="pn" type="text" autocomplete="off"></div>
+    <div><label for="prm">No. rekam medis</label><input id="prm" type="text" autocomplete="off"></div>
+    <div><label for="ptl">Tanggal lahir</label><input id="ptl" type="text" inputmode="numeric" placeholder="hh/bb/tttt" autocomplete="off"></div>
+    <div><label for="pt">Tanggal / jam</label><input id="pt" type="text" autocomplete="off"></div>
+  </div>
+
+  <p class="hint" id="hint">Isi berat badan untuk mengaktifkan perhitungan. Setiap kartu bisa diatur sediaan dan dosisnya; centang <em>Ringkasan</em> untuk memasukkan obat ke lembar terapi di bawah.</p>
+
+  <div id="cards"></div>
+
+  <section class="sum">
+    <h3>Lembar terapi infus kontinu</h3>
+    <p class="sub" id="sumsub">Belum ada obat yang dicentang.</p>
+    <div id="sumbody"><p class="empty">Centang <em>Ringkasan</em> pada kartu obat untuk menampilkannya di sini.</p></div>
+    <div class="sign">
+      <div>Disiapkan oleh</div>
+      <div>Diperiksa ulang oleh</div>
+      <div>DPJP</div>
+    </div>
+  </section>
+
+  <div id="labels"></div>
+
+  <footer>
+    <p><b>Alat bantu hitung, bukan pengganti verifikasi.</b> Rentang dosis yang ditampilkan adalah rentang lazim pediatrik untuk infus kontinu dan bisa berbeda dari protokol unit. Selalu cocokkan dengan instruksi DPJP dan panduan dosis yang berlaku di unit, dan lakukan <i>double check</i> oleh dua perawat sebelum obat diberikan.</p>
+    <p class="relaxwarn">Vekuronium dan rokuronium melumpuhkan otot tanpa memberi sedasi maupun analgesia. Pastikan sedasi dan analgesia sudah adekuat dan pasien terpasang ventilasi mekanik sebelum relaksan dijalankan.</p>
+    <p>Halaman ini tidak menyimpan data pasien. Nama dan nomor rekam medis hanya ada di memori peramban selama halaman terbuka &mdash; tidak dikirim ke mana pun dan tidak tersimpan di perangkat. Menutup atau memuat ulang halaman akan mengosongkan semua isian, dan tombol <b>Pasien baru</b> melakukan hal yang sama secara sengaja &mdash; supaya identitas dan berat badan pasien sebelumnya tidak pernah terbawa ke perhitungan pasien berikutnya.</p>
+    <p>Petak warna pada kartu titrasi mengikuti kode warna golongan obat <b>ISO 26825</b> dan hanya berfungsi sebagai pengingat &mdash; label fisik pada syringe tetap dipasang sesuai kebijakan unit. Bila kartu dicetak hitam-putih atau tanpa <i>background graphics</i>, pakai nama warna yang tertulis di sebelah petak.</p>
+    <p class="noprint">Vasoaktif diberikan lewat akses sentral bila memungkinkan; epinefrin, norepinefrin, dan dopamin berisiko nekrosis bila ekstravasasi. Norepinefrin dihitung sebagai basa &mdash; periksa apakah sediaan Anda tertulis basa atau bitartrat. Vasopresin dihitung dalam unit/kg/jam. Label fisik syringe tetap mengikuti kode warna ISO 26825.</p>
+  </footer>
+</div>
+<script>
+/* ==== definisi obat: satuan dibuat generik supaya mcg/kg/jam, mcg/kg/menit, dan unit/kg/jam ikut tertampung ==== */
+const DRUGS = [
+/* --- sedasi, analgesia, relaksan --- */
+  { id:"midazolam", badge:"benzo", nama:"Midazolam", klass:"Benzodiazepin — sedasi", band:"var(--benzo)", grup:"sedasi",
+    amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
+    lo:1, hi:4, cap:10, step:0.1, start:1, tstep:0.5,
+    presets:[
+      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
+      {t:"0,5 mg/mL — 25 mg dalam 50 mL", amt:25, ml:50},
+      {t:"Tanpa pengenceran — 5 mg/mL", amt:50, ml:10}],
+    note:"Sedasi 1–4 mcg/kg/menit (setara 0,06–0,24 mg/kg/jam), titrasi sesuai skor sedasi. Awasi depresi napas dan hipotensi, terutama bila dikombinasi opioid. Neonatus lebih sensitif — mulai dari dosis terendah." },
+
+  { id:"fentanil", badge:"opioid", nama:"Fentanil", klass:"Opioid — analgesia", band:"var(--opioid)", grup:"sedasi",
+    amtUnit:"mcg", numer:"mcg", perMin:false, conv:1,
+    lo:1, hi:5, cap:10, step:0.1, start:1, tstep:1,
+    presets:[
+      {t:"10 mcg/mL — 500 mcg dalam 50 mL", amt:500, ml:50},
+      {t:"20 mcg/mL — 1000 mcg dalam 50 mL", amt:1000, ml:50},
+      {t:"5 mcg/mL — 250 mcg dalam 50 mL", amt:250, ml:50},
+      {t:"Tanpa pengenceran — 50 mcg/mL", amt:500, ml:10}],
+    note:"Infus kontinu 1–5 mcg/kg/jam, titrasi sesuai skor nyeri dan sedasi. Dosis bolus (1–2 mcg/kg) diberikan terpisah. Bolus cepat dapat memicu rigiditas dinding dada. Pemakaian lama menimbulkan toleransi dan gejala putus obat — turunkan bertahap." },
+
+  { id:"morfin", badge:"opioid", nama:"Morfin", klass:"Opioid — analgesia", band:"var(--opioid)", grup:"sedasi",
+    amtUnit:"mg", numer:"mcg", perMin:false, conv:0.001,
+    lo:10, hi:40, cap:60, step:1, start:10, tstep:5,
+    presets:[
+      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
+      {t:"0,5 mg/mL — 25 mg dalam 50 mL", amt:25, ml:50},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
+      {t:"0,1 mg/mL — 5 mg dalam 50 mL (neonatus)", amt:5, ml:50}],
+    note:"Infus kontinu 10–40 mcg/kg/jam (0,01–0,04 mg/kg/jam). Neonatus mulai 5–10 mcg/kg/jam karena klirens belum matang. Awasi depresi napas, hipotensi, dan pelepasan histamin. Turunkan bertahap setelah pemakaian lama." },
+
+  { id:"deksmedetomidin", badge:"alpha", nama:"Deksmedetomidin", klass:"Agonis alfa-2 — sedasi", band:"var(--alpha)", grup:"sedasi",
+    amtUnit:"mcg", numer:"mcg", perMin:false, conv:1,
+    lo:0.2, hi:1, cap:1.5, step:0.05, start:0.4, tstep:0.1,
+    presets:[
+      {t:"4 mcg/mL — 200 mcg dalam 50 mL", amt:200, ml:50},
+      {t:"8 mcg/mL — 400 mcg dalam 50 mL", amt:400, ml:50},
+      {t:"2 mcg/mL — 100 mcg dalam 50 mL", amt:100, ml:50}],
+    note:"Rumatan 0,2–1 mcg/kg/jam. Dosis muat (0,5–1 mcg/kg selama 10 menit) sering dilewati pada anak karena memicu bradikardia dan hipotensi. Pantau laju jantung dan tekanan darah; sedasi tanpa depresi napas berarti." },
+
+  { id:"ketamin", badge:"induksi", nama:"Ketamin", klass:"Sedasi — analgesia", band:"var(--induksi)", grup:"sedasi",
+    amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
+    lo:8, hi:33, cap:60, step:0.5, start:10, tstep:5,
+    presets:[
+      {t:"10 mg/mL — 500 mg dalam 50 mL", amt:500, ml:50},
+      {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
+      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50}],
+    note:"Sedasi dan analgesia 8–33 mcg/kg/menit (setara 0,5–2 mg/kg/jam). Relatif mempertahankan tekanan darah dan bersifat bronkodilator, berguna pada status asmatikus dan syok. Hipersalivasi dan fenomena emergensi mungkin muncul; pertimbangkan kombinasi benzodiazepin." },
+
+  { id:"vekuronium", badge:"relax", nama:"Vekuronium", klass:"Relaksan otot", band:"var(--relax)", grup:"sedasi",
+    amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
+    lo:0.8, hi:1.7, cap:3, step:0.1, start:1, tstep:0.2,
+    presets:[
+      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
+      {t:"0,4 mg/mL — 20 mg dalam 50 mL", amt:20, ml:50},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50}],
+    note:"WAJIB disertai sedasi dan analgesia adekuat serta ventilasi mekanik — relaksan tidak memberi efek sedasi maupun analgesia. Rumatan 0,8–1,7 mcg/kg/menit (0,05–0,1 mg/kg/jam). Pantau kedalaman blokade dengan TOF dan hentikan berkala untuk menilai kesadaran." },
+
+  { id:"rokuronium", badge:"relax", nama:"Rokuronium", klass:"Relaksan otot", band:"var(--relax)", grup:"sedasi",
+    amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
+    lo:3, hi:12, cap:20, step:0.5, start:5, tstep:1,
+    presets:[
+      {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
+      {t:"Tanpa pengenceran — 10 mg/mL", amt:500, ml:50}],
+    note:"WAJIB disertai sedasi dan analgesia adekuat serta ventilasi mekanik. Rumatan 3–12 mcg/kg/menit (0,18–0,72 mg/kg/jam). Pantau TOF. Awasi akumulasi pada gangguan hati dan ginjal." },
+
+/* --- vasoaktif & inotropik --- */
+  { id:"epinefrin", badge:"vaso", nama:"Epinefrin", klass:"Vasopresor / inotropik", band:"var(--vaso)", grup:"vaso",
+    amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
+    lo:0.05, hi:0.3, cap:1, step:0.01, start:0.05, tstep:0.05,
+    presets:[
+      {t:"Rule of 0,6 — 1 mL/jam = 0,1 mcg/kg/menit", amtPerKg:0.3, ml:50},
+      {t:"20 mcg/mL — 1 mg dalam 50 mL", amt:1, ml:50},
+      {t:"40 mcg/mL — 2 mg dalam 50 mL", amt:2, ml:50},
+      {t:"80 mcg/mL — 4 mg dalam 50 mL", amt:4, ml:50}],
+    note:"Mulai 0,05 mcg/kg/menit dan titrasi naik; rentang lazim 0,05–0,3 mcg/kg/menit, dapat dinaikkan sampai 1 mcg/kg/menit pada syok refrakter. Utamakan akses sentral. Dosis bolus henti jantung (0,01 mg/kg) berbeda dan tidak dihitung di sini." },
+
+  { id:"norepinefrin", badge:"vaso", nama:"Norepinefrin", klass:"Vasopresor", band:"var(--vaso)", grup:"vaso",
+    amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
+    lo:0.05, hi:0.5, cap:2, step:0.01, start:0.05, tstep:0.1,
+    presets:[
+      {t:"Rule of 0,6 — 1 mL/jam = 0,1 mcg/kg/menit", amtPerKg:0.3, ml:50},
+      {t:"80 mcg/mL — 4 mg dalam 50 mL", amt:4, ml:50},
+      {t:"160 mcg/mL — 8 mg dalam 50 mL", amt:8, ml:50},
+      {t:"40 mcg/mL — 2 mg dalam 50 mL", amt:2, ml:50}],
+    note:"Mulai 0,05 mcg/kg/menit, titrasi sesuai target MAP menurut usia; rentang lazim 0,05–0,5 mcg/kg/menit. Berikan lewat akses sentral bila memungkinkan karena risiko nekrosis bila ekstravasasi." },
+
+  { id:"dopamin", badge:"vaso", nama:"Dopamin", klass:"Vasopresor / inotropik", band:"var(--vaso)", grup:"vaso",
+    amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
+    lo:3, hi:20, cap:30, step:0.5, start:5, tstep:2.5,
+    presets:[
+      {t:"Rule of 6 — 1 mL/jam = 1 mcg/kg/menit", amtPerKg:3, ml:50},
+      {t:"4 mg/mL — 200 mg dalam 50 mL", amt:200, ml:50},
+      {t:"8 mg/mL — 400 mg dalam 50 mL", amt:400, ml:50},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50}],
+    note:"Rentang lazim 3–20 mcg/kg/menit; efek bergeser dari inotropik ke vasokonstriksi seiring naiknya dosis. Di atas 20 mcg/kg/menit vasokonstriksi dominan. Ekstravasasi berisiko nekrosis — utamakan akses sentral." },
+
+  { id:"dobutamin", badge:"vaso", nama:"Dobutamin", klass:"Inotropik", band:"var(--vaso)", grup:"vaso",
+    amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
+    lo:3, hi:20, cap:40, step:0.5, start:5, tstep:2.5,
+    presets:[
+      {t:"Rule of 6 — 1 mL/jam = 1 mcg/kg/menit", amtPerKg:3, ml:50},
+      {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50},
+      {t:"10 mg/mL — 500 mg dalam 50 mL", amt:500, ml:50},
+      {t:"2,5 mg/mL — 125 mg dalam 50 mL", amt:125, ml:50}],
+    note:"Rentang lazim 3–20 mcg/kg/menit. Di atas 20 mcg/kg/menit risiko takiaritmia meningkat. Pantau nadi, irama, dan perfusi." },
+
+  { id:"milrinon", badge:"vaso", nama:"Milrinon", klass:"Inodilator", band:"var(--vaso)", grup:"vaso",
+    amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
+    lo:0.25, hi:0.75, cap:1, step:0.05, start:0.5, tstep:0.1,
+    presets:[
+      {t:"200 mcg/mL — 10 mg dalam 50 mL", amt:10, ml:50},
+      {t:"100 mcg/mL — 5 mg dalam 50 mL", amt:5, ml:50},
+      {t:"400 mcg/mL — 20 mg dalam 50 mL", amt:20, ml:50}],
+    note:"Rumatan 0,25–0,75 mcg/kg/menit. Bersifat vasodilator — hipotensi mungkin muncul, terutama bila volume intravaskular kurang. Ekskresi lewat ginjal: turunkan dosis pada gangguan fungsi ginjal karena mudah menumpuk." },
+
+  { id:"vasopresin", badge:"vaso", nama:"Vasopresin", klass:"Vasopresor", band:"var(--vaso)", grup:"vaso",
+    amtUnit:"unit", numer:"unit", perMin:false, conv:1,
+    lo:0.05, hi:0.15, cap:0.3, step:0.01, start:0.05, tstep:0.05,
+    presets:[
+      {t:"1 unit/mL — 50 unit dalam 50 mL", amt:50, ml:50},
+      {t:"0,4 unit/mL — 20 unit dalam 50 mL", amt:20, ml:50},
+      {t:"2 unit/mL — 100 unit dalam 50 mL", amt:100, ml:50}],
+    note:"Dosis dinyatakan dalam unit/kg/jam: rentang lazim 0,05–0,15 unit/kg/jam. Dipakai sebagai tambahan pada syok vasodilatasi yang tidak responsif katekolamin. Pantau perfusi distal, natrium, dan keluaran urine; risiko iskemia jari dan kulit." },
+
+/* --- diuretik --- */
+  { id:"furosemide", badge:"diur", nama:"Furosemide", klass:"Diuretik loop", band:"var(--diur)", grup:"lain",
+    amtUnit:"mg", numer:"mg", perMin:false, conv:1,
+    lo:0.1, hi:0.4, cap:0.6, step:0.01, start:0.1, tstep:0.1,
+    presets:[
+      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
+      {t:"0,5 mg/mL — 25 mg dalam 50 mL", amt:25, ml:50},
+      {t:"Tanpa pengenceran — 10 mg/mL", amt:100, ml:10}],
+    note:"Infus kontinu 0,1–0,4 mg/kg/jam. Dosis bolus awal (0,5–1 mg/kg) diberikan terpisah dan tidak dihitung di sini. Pantau balans cairan, kalium, natrium, dan fungsi ginjal." }
+];
+
+/* Kode warna label syringe ISO 26825. Golongan yang tidak diatur standar
+   sengaja tidak diberi warna karangan sendiri — lebih baik kosong daripada
+   mengarahkan petugas ke warna yang keliru. */
+const ISO = {
+  induksi:{ warna:"Kuning", hex:"#F5E14B", gol:"Agen induksi" },
+  benzo:  { warna:"Oranye", hex:"#FF8200", gol:"Benzodiazepin" },
+  opioid: { warna:"Biru",   hex:"#71C5E8", gol:"Opioid" },
+  relax:  { warna:"Merah",  hex:"#FF3C5F", gol:"Relaksan otot" },
+  vaso:   { warna:"Ungu",   hex:"#C9A0DC", gol:"Vasopresor / vasoaktif" }
+};
+const isoOf = d => ISO[d.badge] || null;
+
+const GRUP = [
+  { id:"sedasi", judul:"Sedasi, analgesia & relaksan" },
+  { id:"vaso",   judul:"Vasoaktif & inotropik" },
+  { id:"lain",   judul:"Diuretik" }
+];
+/* ============================================================
+   Aturan yang dipegang berkas ini:
+   1. Tidak ada data pasien yang disimpan di perangkat.
+   2. Dosis yang diketik tidak pernah diubah diam-diam.
+   3. Kolom kosong tampil sebagai kosong, bukan sebagai angka lama.
+   ============================================================ */
+const byId = id => DRUGS.find(d => d.id === id);
+const el   = id => document.getElementById(id);
+
+const state = {};
+DRUGS.forEach(d => {
+  const p = d.presets[0];
+  state[d.id] = { preset:0, amt:p.amt ?? 0, ml:p.ml, dose:d.start, on:false };
+});
+let hanyaDicentang = false, rafId = null, sedangUpdate = false;
+
+/* ---------- pesan singkat ---------- */
+const Toast = {
+  box(){ return el("toastContainer"); },
+  show(pesan, jenis = "info", lama = 4000){
+    const c = this.box(); if (!c) return;
+    const t = document.createElement("div");
+    t.className = "toast " + jenis;
+    const m = document.createElement("span"); m.className = "msg"; m.textContent = pesan;
+    const b = document.createElement("button");
+    b.className = "close-btn"; b.type = "button";
+    b.setAttribute("aria-label", "Tutup pesan"); b.textContent = "\u2715";
+    b.addEventListener("click", () => t.remove());
+    t.append(m, b); c.appendChild(t);
+    setTimeout(() => t.remove(), lama);
+  },
+  sukses(m){ this.show(m, "success"); },
+  galat(m){ this.show(m, "error", 7000); }
+};
+
+/* ---------- angka ---------- */
+function num(v){
+  if (v === null || v === undefined) return NaN;
+  const t = String(v).trim().replace(/\s/g, "").replace(",", ".");
+  if (t === "" || !/^[0-9]*\.?[0-9]*$/.test(t)) return NaN;
+  const n = parseFloat(t);
+  return isFinite(n) ? n : NaN;
+}
+/* saring ketikan: hanya angka, satu koma, tanpa tanda minus */
+function saring(v){
+  let t = String(v).replace(/[^0-9.,]/g, "").replace(/,/g, ".");
+  const p = t.split(".");
+  if (p.length > 2) t = p[0] + "." + p.slice(1).join("");
+  if (t.startsWith(".")) t = "0" + t;
+  return t.replace(".", ",");
+}
+const fmt = (v, dec) => isFinite(v) ? v.toFixed(dec).replace(".", ",") : "—";
+/* untuk jumlah sediaan: 50 tetap "50", bukan "50,000" yang mudah terbaca keliru */
+function rapi(v){
+  if (!isFinite(v) || v <= 0) return "";
+  return String(Math.round(v * 1000) / 1000).replace(".", ",");
+}
+/* isian pasien masuk ke innerHTML — selalu disaring dulu */
+function esc(v){
+  return String(v).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+/* konsentrasi tanpa nol di belakang koma: "1 mg/mL", bukan "1,000 mg/mL" yang
+   mudah terbaca sebagai seribu. Aturan ISMP: jangan pakai trailing zero. */
+function konsen(v){
+  if (!isFinite(v) || v <= 0) return "—";
+  const b = Math.round(v * 1000) / 1000;
+  return (b > 0 ? String(b) : v.toPrecision(2)).replace(".", ",");
+}
+const bbVal = () => { const v = num(el("bb").value); return isFinite(v) && v > 0 ? v : 0; };
+const dec = d => d.step >= 1 ? 0 : (d.step >= 0.1 ? 1 : 2);
+const nd = v => { const t = String(v); return t.includes(".") ? t.split(".")[1].length : 0; };
+const tdec = d => Math.min(3, Math.max(nd(d.tstep || d.step), nd(d.lo), nd(d.hi)));
+function titrasiDoses(d){
+  const t = d.tstep || d.step, out = [];
+  const r = v => Math.round(v * 1000) / 1000;
+  if (d.lo % t !== 0) out.push(r(d.lo));
+  for (let v = Math.ceil(r(d.lo / t)) * t; r(v) <= r(d.hi) + 1e-9; v += t){
+    const x = r(v);
+    if (x >= d.lo - 1e-9 && !out.includes(x)) out.push(x);
+  }
+  if (!out.includes(r(d.hi))) out.push(r(d.hi));
+  return out.sort((a,b) => a - b);
+}
+const doseUnit   = d => `${d.numer}/kg/${d.perMin ? "menit" : "jam"}`;
+const setaraUnit = d => `${d.numer}/kg/${d.perMin ? "jam" : "menit"}`;
+
+function hitung(d, s, bb){
+  const amt = num(s.amt), ml = num(s.ml), dose = num(s.dose), w = num(bb);
+  if (!(w > 0) || !(amt > 0) || !(ml > 0) || !(dose >= 0)) return null;
+  const conc = amt / ml;
+  if (!(conc > 0) || !isFinite(conc)) return null;
+  const perJamNum = dose * w * (d.perMin ? 60 : 1);
+  const perJamAmt = perJamNum * d.conv;
+  const laju = perJamAmt / conc;
+  if (!isFinite(laju) || laju < 0) return null;
+  return { amt, ml, conc, perJamNum, perJamAmt, laju,
+           setara: d.perMin ? dose * 60 : dose / 60,
+           habis: laju > 0 ? ml / laju : Infinity };
+}
+
+function status(d, dose){
+  if (!isFinite(dose)) return ["low", "Dosis belum diisi"];
+  if (dose < d.lo)   return ["low",  "Di bawah rentang lazim"];
+  if (dose <= d.hi)  return ["in",   "Dalam rentang lazim"];
+  if (dose <= d.cap) return ["high", "Di atas rentang lazim — verifikasi instruksi"];
+  return ["over", "Melebihi batas kalkulator"];
+}
+
+function concText(d, r){
+  if (!r) return "Konsentrasi — menunggu berat badan";
+  let s = `Konsentrasi ${konsen(r.conc)} ${d.amtUnit}/mL`;
+  if (d.amtUnit === "mg")   s += ` &nbsp;·&nbsp; ${fmt(r.conc * 1000, 0)} mcg/mL`;
+  if (d.amtUnit === "unit") s += ` &nbsp;·&nbsp; ${fmt(r.conc * 1000, 0)} mU/mL`;
+  return s;
+}
+
+/* Satu sumber untuk layar dan cetak supaya keduanya tidak pernah berbeda. */
+function isoLine(d, cetak){
+  const i = isoOf(d);
+  const kelas = cetak ? "iso" : "isoline";
+  if (!i){
+    return `<p class="${kelas}"><span class="sw" style="background:transparent"></span>`
+         + `Golongan ini tidak diatur ISO 26825 &mdash; ikuti kebijakan unit.</p>`;
+  }
+  return `<p class="${kelas}"><span class="sw" style="background:${i.hex}"></span>`
+       + `Label syringe <b>${cetak ? i.warna.toUpperCase() : i.warna}</b>`
+       + ` &middot; ${i.gol}</p>`;
+}
+
+function cardHTML(d){
+  const s = state[d.id];
+  const bandL = (d.lo / d.cap) * 100;
+  const bandW = Math.max(0, ((Math.min(d.hi, d.cap) - d.lo) / d.cap) * 100);
+  return `
+  <article class="card idle${d.badge === "relax" ? " relax" : ""}" id="card-${d.id}" style="--band:${d.band}">
+    <div class="chead">
+      <div>
+        <h2>${d.nama}</h2>
+        <span class="badge badge-${d.badge}">${d.klass}</span>
+        ${isoLine(d, false)}
+      </div>
+      <label class="tick"><input type="checkbox" data-on="${d.id}"> Ringkasan</label>
+    </div>
+
+    <p class="lbl">Sediaan dalam syringe</p>
+    <select id="sel-${d.id}" data-preset="${d.id}" aria-label="Sediaan ${d.nama}">
+      ${d.presets.map((x, i) => `<option value="${i}">${x.t}</option>`).join("")}
+      <option value="-1">Sediaan lain (isi sendiri)</option>
+    </select>
+    <div class="prep">
+      <input id="amt-${d.id}" type="text" inputmode="decimal" data-amt="${d.id}" value="${rapi(s.amt)}" placeholder="0" aria-label="Jumlah ${d.nama} dalam ${d.amtUnit}">
+      <span>${d.amtUnit} dalam</span>
+      <input id="ml-${d.id}" type="text" inputmode="decimal" data-ml="${d.id}" value="${rapi(s.ml)}" placeholder="0" aria-label="Volume pelarut ${d.nama} dalam mL">
+      <span>mL</span>
+    </div>
+    <p class="conc" id="conc-${d.id}">Konsentrasi — menunggu berat badan</p>
+
+    <p class="lbl" style="margin-top:16px">Dosis</p>
+    <div class="dosebar">
+      <input id="dose-${d.id}" type="text" inputmode="decimal" data-dose="${d.id}" value="${fmt(s.dose, dec(d))}" placeholder="0" aria-label="Dosis ${d.nama}">
+      <span class="u">${doseUnit(d)}</span>
+    </div>
+    <input id="sl-${d.id}" type="range" min="0" max="${d.cap}" step="${d.step}" value="${s.dose}" data-slider="${d.id}" aria-label="Geser dosis ${d.nama}">
+    <div class="gauge">
+      <div class="band" style="left:${bandL}%;width:${bandW}%"></div>
+      <div class="pin" id="pin-${d.id}" style="left:0%"></div>
+    </div>
+    <p class="range-note" id="note-${d.id}"></p>
+
+    <div class="readbox">
+      <span class="readout" id="read-${d.id}">––,––</span>
+      <span class="readunit">mL / jam</span>
+    </div>
+    <p class="meta" id="meta-${d.id}"></p>
+
+    <details>
+      <summary>Tabel titrasi</summary>
+      <div class="tscroll"><table>
+        <thead><tr><th>Dosis (${doseUnit(d)})</th><th>mL/jam</th><th>${d.amtUnit}/jam</th></tr></thead>
+        <tbody id="tbl-${d.id}"></tbody>
+      </table></div>
+    </details>
+    <p class="note">${d.note}</p>
+  </article>`;
+}
+
+function update(d){
+  if (!d) return;
+  try{
+    const s = state[d.id], bb = bbVal();
+    const p = s.preset >= 0 ? d.presets[s.preset] : null;
+    const wb = !!(p && p.amtPerKg !== undefined);
+    const amtEl = el(`amt-${d.id}`);
+
+    if (wb){
+      s.amt = bb ? +(p.amtPerKg * bb).toFixed(3) : 0;
+      amtEl.value = rapi(s.amt);
+      amtEl.disabled = true;
+    } else {
+      amtEl.disabled = false;
+    }
+
+    const r = hitung(d, s, bb), D = dec(d);
+    el(`card-${d.id}`).classList.toggle("idle", !bb);
+    el(`conc-${d.id}`).innerHTML = concText(d, r);
+
+    const [cls, txt] = status(d, s.dose);
+    const note = el(`note-${d.id}`);
+    note.className = "range-note " + cls;
+    note.textContent = `${txt} · lazim ${fmt(d.lo, D)}–${fmt(d.hi, D)} ${doseUnit(d)}`;
+    el(`pin-${d.id}`).style.left =
+      Math.min(100, Math.max(0, ((isFinite(s.dose) ? s.dose : 0) / d.cap) * 100)) + "%";
+
+    el(`read-${d.id}`).textContent = r ? fmt(r.laju, 2) : "––,––";
+    el(`meta-${d.id}`).innerHTML =
+        `Setara <b>${r ? fmt(r.setara, r.setara < 0.01 ? 5 : (r.setara < 1 ? 3 : 2)) : "—"} ${setaraUnit(d)}</b><br>`
+      + `Total <b>${r ? fmt(r.perJamAmt, 3) : "—"} ${d.amtUnit}/jam</b> · `
+      + `${r ? fmt(r.perJamAmt * 24, 2) : "—"} ${d.amtUnit}/24 jam<br>`
+      + `Syringe ${rapi(s.ml) || "—"} mL habis dalam `
+      + `<b>${r && isFinite(r.habis) ? fmt(r.habis, 1) : "—"} jam</b>`;
+
+    let rows = "";
+    const TD = tdec(d);
+    for (const dose of titrasiDoses(d)){
+      const rr = hitung(d, { ...s, dose }, bb);
+      rows += `<tr><td>${fmt(dose, TD)}</td><td>${rr ? fmt(rr.laju, 2) : "—"}</td>`
+            + `<td>${rr ? fmt(rr.perJamAmt, 3) : "—"}</td></tr>`;
+    }
+    el(`tbl-${d.id}`).innerHTML = rows;
+  } catch(e){
+    console.error("Gagal memperbarui kartu " + d.id, e);
+    const card = el(`card-${d.id}`);
+    if (card) card.classList.add("card-error");
+    const rd = el(`read-${d.id}`);
+    if (rd) rd.textContent = "—";
+  }
+}
+
+function sumHTML(){
+  const bb = bbVal();
+  const aktif = DRUGS.filter(d => state[d.id].on);
+  const sub = el("sumsub"), body = el("sumbody");
+  if (!aktif.length){
+    sub.textContent = "Belum ada obat yang dicentang.";
+    body.innerHTML = `<p class="empty">Centang <em>Ringkasan</em> pada kartu obat untuk menampilkannya di sini.</p>`;
+    const lb = el("labels"); if (lb) lb.innerHTML = "";
+    return;
+  }
+  sub.textContent = `Berat badan ${bb ? fmt(bb, 1) : "—"} kg · ${aktif.length} obat`;
+  let rows = "", total = 0;
+  aktif.forEach(d => {
+    const s = state[d.id], r = hitung(d, s, bb);
+    if (r) total += r.laju;
+    rows += `<tr><td>${d.nama}</td>`
+          + `<td>${rapi(s.amt) || "—"} ${d.amtUnit} / ${rapi(s.ml) || "—"} mL</td>`
+          + `<td>${r ? konsen(r.conc) : "—"} ${d.amtUnit}/mL</td>`
+          + `<td>${isFinite(s.dose) ? fmt(s.dose, dec(d)) : "—"} ${doseUnit(d)}</td>`
+          + `<td class="rate">${r ? fmt(r.laju, 2) : "—"} mL/jam</td></tr>`;
+  });
+  body.innerHTML = `<div class="tscroll"><table>`
+    + `<thead><tr><th>Obat</th><th>Sediaan</th><th>Konsentrasi</th><th>Dosis</th><th>Laju pump</th></tr></thead>`
+    + `<tbody>${rows}</tbody>`
+    + `<tfoot><tr><td colspan="4">Total cairan dari infus kontinu</td>`
+    + `<td class="rate">${fmt(total, 2)} mL/jam</td></tr></tfoot></table></div>`;
+  labelHTML(aktif, bb);
+}
+
+/* Identitas pasien di kepala tiap kartu titrasi. Kartu ini digunting dan
+   ditempel di syringe, terpisah dari lembar terapi, jadi harus bisa berdiri
+   sendiri. Kolom yang belum diisi dicetak sebagai garis kosong supaya tetap
+   bisa ditulis tangan — bukan dibiarkan hilang. */
+function idPasien(){
+  const isi = (judul, nilai, kelas) =>
+      `<span class="${kelas}"><span class="tid-k">${judul}</span>`
+    + `<span class="tid-v${nilai ? "" : " kosong"}">${nilai ? esc(nilai) : ""}</span></span>`;
+  return `<div class="tid">`
+    + isi("Nama pasien", el("pn").value.trim(), "tid-nm")
+    + isi("No. RM", el("prm").value.trim(), "tid-rm")
+    + `</div>`;
+}
+
+/* label titrasi per obat — dicetak, digunting, ditempel di syringe */
+function labelHTML(aktif, bb){
+  const box = el("labels");
+  if (!box) return;
+  if (!aktif.length || !bb){ box.innerHTML = ""; return; }
+  box.innerHTML = aktif.map(d => {
+    const s = state[d.id], r0 = hitung(d, s, bb);
+    const TD = tdec(d);
+    const baris = titrasiDoses(d).map(dose => {
+      const rr = hitung(d, { ...s, dose }, bb);
+      return `<tr><td>${fmt(dose, TD)}</td><td>${rr ? fmt(rr.laju, 2) : "—"}</td></tr>`;
+    }).join("");
+    return `<div class="tcard">`
+      + idPasien()
+      + `<h4>${d.nama}</h4>`
+      + isoLine(d, true)
+      + `<p class="cx">${rapi(s.amt)} ${d.amtUnit} / ${rapi(s.ml)} mL`
+      + ` &middot; ${r0 ? konsen(r0.conc) : "—"} ${d.amtUnit}/mL`
+      + ` &middot; BB ${fmt(bb, 1)} kg</p>`
+      + `<table><thead><tr><th>Dosis (${doseUnit(d)})</th><th style="text-align:right">mL/jam</th></tr></thead>`
+      + `<tbody>${baris}</tbody></table>`
+      + `<p class="dc">Berlaku hanya untuk sediaan & BB di atas. Double check 2 perawat.</p>`
+      + `</div>`;
+  }).join("");
+}
+
+function updateAll(){
+  if (sedangUpdate) return;
+  sedangUpdate = true;
+  try{
+    DRUGS.forEach(update);
+    el("hint").style.display = bbVal() ? "none" : "block";
+    DRUGS.forEach(d => {
+      el(`card-${d.id}`).style.display = (hanyaDicentang && !state[d.id].on) ? "none" : "";
+    });
+    GRUP.forEach(g => {
+      const ada = DRUGS.some(d => d.grup === g.id && (!hanyaDicentang || state[d.id].on));
+      el(`grup-${g.id}`).style.display = ada ? "" : "none";
+    });
+    const n = DRUGS.filter(d => state[d.id].on).length;
+    const f = el("filter");
+    f.textContent = hanyaDicentang ? "Tampilkan semua obat" : `Hanya yang dicentang (${n})`;
+    f.disabled = !hanyaDicentang && n === 0;
+    sumHTML();
+  } catch(e){
+    console.error(e);
+    Toast.galat("Terjadi kesalahan saat menghitung. Muat ulang halaman dan periksa hasilnya secara manual.");
+  } finally {
+    sedangUpdate = false;
+  }
+}
+
+function jadwalkan(){
+  if (rafId !== null) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(() => { rafId = null; updateAll(); });
+}
+
+/* ---------- pasang kartu ---------- */
+el("cards").innerHTML = GRUP.map(g => `
+  <section id="grup-${g.id}">
+    <h2 class="gjudul">${g.judul}</h2>
+    <div class="grid">${DRUGS.filter(d => d.grup === g.id).map(cardHTML).join("")}</div>
+  </section>`).join("");
+
+/* ---------- kejadian ---------- */
+document.addEventListener("input", e => {
+  const t = e.target, ds = t.dataset;
+  if (t.id === "bb"){ t.value = saring(t.value); jadwalkan(); return; }
+  /* nama & no. RM ikut tercetak di kartu titrasi — segarkan saat diketik */
+  if (t.id === "pn" || t.id === "prm"){ jadwalkan(); return; }
+  if (ds.amt !== undefined){
+    t.value = saring(t.value);
+    const d = byId(ds.amt), s = state[d.id], v = num(t.value);
+    s.amt = isFinite(v) && v > 0 ? v : 0;
+    s.preset = -1; el(`sel-${d.id}`).value = "-1";
+    jadwalkan(); return;
+  }
+  if (ds.ml !== undefined){
+    t.value = saring(t.value);
+    const v = num(t.value);
+    state[ds.ml].ml = isFinite(v) && v > 0 ? v : 0;
+    jadwalkan(); return;
+  }
+  if (ds.dose !== undefined){
+    t.value = saring(t.value);
+    const d = byId(ds.dose), s = state[d.id], v = num(t.value);
+    s.dose = isFinite(v) && v >= 0 ? v : 0;          /* kolom dikosongkan = 0, bukan angka lama */
+    el(`sl-${d.id}`).value = Math.min(s.dose, d.cap);
+    jadwalkan(); return;
+  }
+  if (ds.slider !== undefined){
+    const d = byId(ds.slider), s = state[d.id];
+    s.dose = parseFloat(t.value);
+    el(`dose-${d.id}`).value = fmt(s.dose, dec(d));
+    jadwalkan(); return;
+  }
+});
+
+document.addEventListener("focusout", e => {
+  const t = e.target, ds = t.dataset;
+  if (ds.dose !== undefined){
+    const d = byId(ds.dose), s = state[d.id];
+    /* hanya dibatasi ke batas atas; angka yang diketik tidak dibulatkan */
+    if (s.dose > d.cap){
+      s.dose = d.cap;
+      Toast.show(`Dosis ${d.nama} dibatasi ke ${fmt(d.cap, dec(d))} ${doseUnit(d)} — batas atas kalkulator.`, "warning", 6000);
+    }
+    if (!(s.dose >= 0)) s.dose = 0;
+    t.value = fmt(s.dose, dec(d));
+    el(`sl-${d.id}`).value = Math.min(s.dose, d.cap);
+    jadwalkan(); return;
+  }
+  if (ds.amt !== undefined && !t.disabled){ t.value = rapi(state[ds.amt].amt); jadwalkan(); return; }
+  if (ds.ml !== undefined){ t.value = rapi(state[ds.ml].ml); jadwalkan(); return; }
+  if (t.id === "bb"){ const v = bbVal(); t.value = v ? fmt(v, 1) : ""; jadwalkan(); }
+});
+
+document.addEventListener("change", e => {
+  const t = e.target, ds = t.dataset;
+  if (ds.preset !== undefined && t.tagName === "SELECT"){
+    const d = byId(ds.preset), s = state[d.id], i = parseInt(t.value, 10);
+    s.preset = i;
+    if (i >= 0){
+      const p = d.presets[i];
+      s.ml = p.ml; el(`ml-${d.id}`).value = rapi(p.ml);
+      if (p.amt !== undefined){ s.amt = p.amt; el(`amt-${d.id}`).value = rapi(p.amt); }
+    }
+    jadwalkan(); return;
+  }
+  if (ds.on !== undefined && t.type === "checkbox"){
+    state[ds.on].on = t.checked; jadwalkan();
+  }
+});
+
+el("filter").addEventListener("click", () => { hanyaDicentang = !hanyaDicentang; updateAll(); });
+el("cetak").addEventListener("click", () => window.print());
+
+el("reset").addEventListener("click", () => {
+  if (!confirm("Kosongkan semua isian untuk pasien baru?")) return;
+  DRUGS.forEach(d => {
+    const p = d.presets[0];
+    state[d.id] = { preset:0, amt:p.amt ?? 0, ml:p.ml, dose:d.start, on:false };
+    el(`sel-${d.id}`).value = "0";
+    el(`amt-${d.id}`).value = rapi(state[d.id].amt);
+    el(`ml-${d.id}`).value  = rapi(p.ml);
+    el(`dose-${d.id}`).value = fmt(d.start, dec(d));
+    el(`sl-${d.id}`).value = d.start;
+    el(`card-${d.id}`).classList.remove("card-error");
+    const cb = document.querySelector(`[data-on="${d.id}"]`);
+    if (cb) cb.checked = false;
+  });
+  hanyaDicentang = false;
+  ["bb", "pn", "prm", "ptl", "pt"].forEach(id => { el(id).value = ""; });
+  updateAll();
+  el("bb").focus();
+  Toast.sukses("Semua isian dikosongkan. Masukkan berat badan pasien baru.");
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") document.querySelectorAll("details[open]").forEach(d => d.removeAttribute("open"));
+});
+
+window.addEventListener("error", ev => {
+  console.error(ev.error || ev.message);
+  Toast.galat("Terjadi kesalahan. Periksa hasil hitung secara manual sebelum dipakai.");
+});
+
+updateAll();
+</script>
+</body>
+</html>

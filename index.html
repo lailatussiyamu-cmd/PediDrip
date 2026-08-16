@@ -340,7 +340,7 @@ const DRUGS = [
 /* --- sedasi, analgesia, relaksan --- */
   { id:"midazolam", badge:"benzo", nama:"Midazolam", klass:"Benzodiazepin — sedasi", band:"var(--benzo)", grup:"sedasi",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
-    lo:1, hi:4, cap:10, step:0.1, start:1, tstep:0.5,
+    lo:1, hi:6, cap:10, step:0.1, start:1, tstep:1,
     presets:[
       {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
       {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
@@ -448,7 +448,7 @@ const DRUGS = [
 
   { id:"milrinon", badge:"vaso", nama:"Milrinon", klass:"Inodilator", band:"var(--vaso)", grup:"vaso",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
-    lo:0.25, hi:0.75, cap:1, step:0.05, start:0.5, tstep:0.1,
+    lo:0.25, hi:2, cap:2.5, step:0.05, start:0.25, tstep:0.25,
     presets:[
       {t:"200 mcg/mL — 10 mg dalam 50 mL", amt:10, ml:50},
       {t:"100 mcg/mL — 5 mg dalam 50 mL", amt:5, ml:50},
@@ -467,13 +467,39 @@ const DRUGS = [
 /* --- diuretik --- */
   { id:"furosemide", badge:"diur", nama:"Furosemide", klass:"Diuretik loop", band:"var(--diur)", grup:"lain",
     amtUnit:"mg", numer:"mg", perMin:false, conv:1,
-    lo:0.1, hi:0.4, cap:0.6, step:0.01, start:0.1, tstep:0.1,
+    lo:0.1, hi:0.7, cap:0.8, step:0.01, start:0.1, tstep:0.1,
     presets:[
       {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
       {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
       {t:"0,5 mg/mL — 25 mg dalam 50 mL", amt:25, ml:50},
       {t:"Tanpa pengenceran — 10 mg/mL", amt:100, ml:10}],
-    note:"Infus kontinu 0,1–0,4 mg/kg/jam. Dosis bolus awal (0,5–1 mg/kg) diberikan terpisah dan tidak dihitung di sini. Pantau balans cairan, kalium, natrium, dan fungsi ginjal." }
+    note:"Infus kontinu 0,1–0,4 mg/kg/jam. Dosis bolus awal (0,5–1 mg/kg) diberikan terpisah dan tidak dihitung di sini. Pantau balans cairan, kalium, natrium, dan fungsi ginjal." },
+
+/* --- endokrin / metabolik --- */
+  { id:"insulin", badge:"horm", nama:"Insulin", klass:"Hormon — kontrol glukosa", band:"var(--diur)", grup:"lain",
+    amtUnit:"unit", numer:"unit", perMin:false, conv:1,
+    lo:0.05, hi:0.3, cap:1, step:0.01, start:0.05, tstep:0.05,
+    presets:[
+      {t:"1 unit/mL — 50 unit dalam 50 mL", amt:50, ml:50},
+      {t:"0,5 unit/mL — 25 unit dalam 50 mL", amt:25, ml:50},
+      {t:"0,1 unit/mL — 5 unit dalam 50 mL", amt:5, ml:50}],
+    note:"Dosis dinyatakan dalam unit/kg/jam: mulai 0,05 unit/kg/jam, titrasi sesuai protokol dan target gula darah unit. Insulin melekat pada dinding selang plastik — bilas/priming set infus sebelum disambung ke pasien. Pantau gula darah berkala dan kalium; obat kewaspadaan tinggi, double check 2 perawat." },
+
+  { id:"aminofilin", badge:"resp", nama:"Aminofilin", klass:"Bronkodilator — metilxantin", band:"var(--diur)", grup:"lain",
+    amtUnit:"mg", numer:"mg", perMin:false, conv:1,
+    lo:0.5, hi:1.75, cap:2, step:0.05, start:0.5, doses:[0.5,0.75,1,1.5,1.75],
+    presets:[
+      {t:"Tanpa pengenceran — 24 mg/mL (ampul 240 mg/10 mL)", amt:240, ml:10}],
+    note:"Rumatan mulai 0,5 mg/kg/jam, titrasi tiap 0,5 mg/kg/jam sesuai respons dan kadar teofilin bila tersedia. Dosis muat (loading dose) diberikan terpisah dan tidak dihitung di sini. Awasi takikardia, aritmia, mual, dan kejang pada kadar toksik; jendela terapi sempit." },
+
+  { id:"nicardipin", badge:"vaso", nama:"Nicardipin", klass:"Antihipertensi — CCB", band:"var(--vaso)", grup:"vaso",
+    amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
+    lo:0.5, hi:4, cap:5, step:0.05, start:0.5, tstep:0.5,
+    presets:[
+      {t:"Tanpa pengenceran — 1000 mcg/mL (ampul 25 mg/25 mL)", amt:25, ml:25},
+      {t:"1:400 (bayi) — 400 mcg/mL, 20 mg dalam 50 mL", amt:20, ml:50},
+      {t:"1:500 (bayi) — 500 mcg/mL, 25 mg dalam 50 mL", amt:25, ml:50}],
+    note:"Mulai 0,5 mcg/kg/menit, titrasi sesuai target tekanan darah. Pada bayi pengenceran 1:400 atau 1:500 mcg/mL lazim dipakai agar laju infus lebih terukur. Utamakan akses sentral bila memungkinkan; ekstravasasi berisiko iritasi jaringan." }
 ];
 
 /* Kode warna label syringe ISO 26825. Golongan yang tidak diatur standar
@@ -491,7 +517,7 @@ const isoOf = d => ISO[d.badge] || null;
 const GRUP = [
   { id:"sedasi", judul:"Sedasi, analgesia & relaksan" },
   { id:"vaso",   judul:"Vasoaktif & inotropik" },
-  { id:"lain",   judul:"Diuretik" }
+  { id:"lain",   judul:"Diuretik & lainnya" }
 ];
 /* ============================================================
    Aturan yang dipegang berkas ini:
@@ -565,8 +591,11 @@ function konsen(v){
 const bbVal = () => { const v = num(el("bb").value); return isFinite(v) && v > 0 ? v : 0; };
 const dec = d => d.step >= 1 ? 0 : (d.step >= 0.1 ? 1 : 2);
 const nd = v => { const t = String(v); return t.includes(".") ? t.split(".")[1].length : 0; };
-const tdec = d => Math.min(3, Math.max(nd(d.tstep || d.step), nd(d.lo), nd(d.hi)));
+const tdec = d => d.doses
+  ? Math.min(3, Math.max(...d.doses.map(nd)))
+  : Math.min(3, Math.max(nd(d.tstep || d.step), nd(d.lo), nd(d.hi)));
 function titrasiDoses(d){
+  if (d.doses) return d.doses.slice().sort((a,b) => a - b);
   const t = d.tstep || d.step, out = [];
   const r = v => Math.round(v * 1000) / 1000;
   if (d.lo % t !== 0) out.push(r(d.lo));

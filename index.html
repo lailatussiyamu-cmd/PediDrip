@@ -379,13 +379,13 @@ const DRUGS = [
 
   { id:"ketamin", badge:"induksi", nama:"Ketamin", klass:"Sedasi — analgesia", band:"var(--induksi)", grup:"sedasi",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
-    lo:8, hi:33, cap:60, step:0.5, start:10, tstep:5,
+    lo:1, hi:6, cap:10, step:1, start:1, doses:[1,2,3,4,5,6],
     presets:[
       {t:"10 mg/mL — 500 mg dalam 50 mL", amt:500, ml:50},
       {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50},
       {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
       {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50}],
-    note:"Sedasi dan analgesia 8–33 mcg/kg/menit (setara 0,5–2 mg/kg/jam). Relatif mempertahankan tekanan darah dan bersifat bronkodilator, berguna pada status asmatikus dan syok. Hipersalivasi dan fenomena emergensi mungkin muncul; pertimbangkan kombinasi benzodiazepin." },
+    note:"Sedasi dan analgesia 1–6 mcg/kg/menit (setara 0,06–0,36 mg/kg/jam). Relatif mempertahankan tekanan darah dan bersifat bronkodilator, berguna pada status asmatikus dan syok. Hipersalivasi dan fenomena emergensi mungkin muncul; pertimbangkan kombinasi benzodiazepin." },
 
   { id:"vekuronium", badge:"relax", nama:"Vekuronium", klass:"Relaksan otot", band:"var(--relax)", grup:"sedasi",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,

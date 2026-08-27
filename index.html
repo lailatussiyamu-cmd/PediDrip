@@ -227,8 +227,9 @@ footer .credit{margin-top:14px;font-size:10.5px;letter-spacing:.08em;color:var(-
 #labels{display:none}
 @media print{
   #labels{display:grid!important;grid-template-columns:repeat(2,1fr);gap:10mm;margin:5mm}
-  .tcard{position:relative;border:1px dashed #000;border-radius:2mm;padding:3mm;page-break-inside:avoid;
-         font-family:"Public Sans",sans-serif;font-size:8.5pt;line-height:1.3;color:#000}
+  .tcard{position:relative;border:2pt solid var(--tcband,#000);border-radius:2mm;padding:3mm;page-break-inside:avoid;
+         font-family:"Public Sans",sans-serif;font-size:8.5pt;line-height:1.3;color:#000;
+         -webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* tanda potong presisi — garis siku 4mm di tiap sudut, sedikit di luar
      garis putus-putus, supaya gunting/cutter bisa dipandu tepat di sudut
      kartu walau garis putus-putus meleset saat dicetak */
@@ -247,20 +248,27 @@ footer .credit{margin-top:14px;font-size:10.5px;letter-spacing:.08em;color:var(-
   .tcard .tid-v{display:block;font-size:9pt;font-weight:700;line-height:1.25;
                 min-height:4.4mm;word-break:break-word}
   .tcard .tid-v.kosong{border-bottom:1px solid #000}
+  /* Header kini berupa pita warna penuh (bukan sekadar petak kecil) supaya
+     obat bisa dikenali dari kejauhan — warna mengikuti ISO 26825, dan nama
+     warna tetap ditulis agar tetap terbaca bila dicetak tanpa background graphics. */
   .tcard h4{display:flex;align-items:center;flex-wrap:wrap;gap:1.5mm;
-            margin:0 0 1.5mm;font-size:10.5pt;font-weight:800;text-transform:uppercase}
-  .tcard h4 .sw{width:6mm;height:3.4mm;border:0.5pt solid #000;border-radius:0.8mm;flex:none;
-                -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .tcard h4 .warna{font-size:8pt;font-weight:800;letter-spacing:.03em}
-  .tcard h4 .klass{font-size:7.5pt;font-weight:600;text-transform:none;color:#333}
+            margin:-3mm -3mm 2mm -3mm;padding:2.2mm 3mm;font-size:12.5pt;font-weight:800;
+            text-transform:uppercase;border-radius:1.5mm 1.5mm 0 0;
+            background:var(--tcband,#eee);color:var(--tctext,#000);
+            -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tcard h4 .sw{width:7mm;height:4mm;border:0.75pt solid #000;border-radius:0.8mm;flex:none;
+                background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tcard h4 .warna{font-size:8.5pt;font-weight:800;letter-spacing:.03em}
+  .tcard h4 .klass{font-size:7.5pt;font-weight:600;text-transform:none;opacity:.85}
   .tcard .cx{margin:0 0 2mm;font-size:8pt;color:#333}
-  .tcard .cx-bold{font-size:10pt;font-weight:800;color:#000}
+  .tcard .cx-bold{font-size:11pt;font-weight:800;color:#000}
   /* Warna dicetak sebagai petak; nama warnanya tetap ditulis supaya kartu
      yang tercetak hitam-putih atau tanpa "background graphics" tetap terbaca. */
   .tcard table{width:100%;border-collapse:collapse}
   .tcard th{font-size:7.5pt;text-align:left;border-bottom:1px solid #000;padding:0.6mm 1mm}
   .tcard td{padding:0.6mm 1mm;border-bottom:1px solid #ccc}
   .tcard td:last-child{text-align:right;font-weight:700}
+  .tcard tr.tcard-ext td{background:#fff8e1}
   .tcard .dc{margin:2mm 0 0;font-size:7pt;color:#333}
 }
 @media print{
@@ -418,7 +426,7 @@ const DRUGS = [
 
   { id:"norepinefrin", badge:"vaso", nama:"Norepinefrin", klass:"Vasopresor", band:"var(--vaso)", grup:"vaso",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
-    lo:0.05, hi:0.3, cap:1, step:0.01, start:0.05, tstep:0.05,
+    lo:0.05, hi:0.3, cap:1, step:0.01, start:0.05, tstep:0.05, tblHi:0.5,
     presets:[
       {t:"Rule of 0,6 — 1 mL/jam = 0,1 mcg/kg/menit", amtPerKg:0.3, ml:50},
       {t:"80 mcg/mL — 4 mg dalam 50 mL", amt:4, ml:50},
@@ -594,16 +602,21 @@ const nd = v => { const t = String(v); return t.includes(".") ? t.split(".")[1].
 const tdec = d => d.doses
   ? Math.min(3, Math.max(...d.doses.map(nd)))
   : Math.min(3, Math.max(nd(d.tstep || d.step), nd(d.lo), nd(d.hi)));
-function titrasiDoses(d){
+/* Tabel titrasi tampilan layar/ringkasan berhenti di d.hi (rentang lazim).
+   Untuk kartu cetak, beberapa obat (mis. norepinefrin) punya d.tblHi supaya
+   opsi dosis di atas rentang lazim — yang memang dipakai pada syok refrakter —
+   ikut tercetak, tanpa mengubah definisi "rentang lazim" itu sendiri. */
+function titrasiDoses(d, sampai){
+  const batas = sampai ?? d.hi;
   if (d.doses) return d.doses.slice().sort((a,b) => a - b);
   const t = d.tstep || d.step, out = [];
   const r = v => Math.round(v * 1000) / 1000;
   if (d.lo % t !== 0) out.push(r(d.lo));
-  for (let v = Math.ceil(r(d.lo / t)) * t; r(v) <= r(d.hi) + 1e-9; v += t){
+  for (let v = Math.ceil(r(d.lo / t)) * t; r(v) <= r(batas) + 1e-9; v += t){
     const x = r(v);
     if (x >= d.lo - 1e-9 && !out.includes(x)) out.push(x);
   }
-  if (!out.includes(r(d.hi))) out.push(r(d.hi));
+  if (!out.includes(r(batas))) out.push(r(batas));
   return out.sort((a,b) => a - b);
 }
 const doseUnit   = d => `${d.numer}/kg/${d.perMin ? "menit" : "jam"}`;
@@ -804,7 +817,11 @@ function idPasien(){
     + `</div>`;
 }
 
-/* label titrasi per obat — dicetak, digunting, ditempel di syringe */
+/* label titrasi per obat — dicetak, digunting, ditempel di syringe.
+   Header (h4) dijadikan pita warna penuh + border kartu ikut mengikuti
+   warna ISO obatnya, supaya kartu bisa dibedakan sekilas dari kejauhan —
+   bukan hanya lewat petak kecil. Nama warna tetap ditulis untuk cetakan
+   hitam-putih / tanpa background graphics. */
 function labelHTML(aktif, bb){
   const box = el("labels");
   if (!box) return;
@@ -812,25 +829,29 @@ function labelHTML(aktif, bb){
   box.innerHTML = aktif.map(d => {
     const s = state[d.id], r0 = hitung(d, s, bb);
     const TD = tdec(d);
-    const baris = titrasiDoses(d).map(dose => {
+    const batasTabel = d.tblHi ?? d.hi;
+    const baris = titrasiDoses(d, batasTabel).map(dose => {
       const rr = hitung(d, { ...s, dose }, bb);
-      return `<tr><td>${fmt(dose, TD)}</td><td>${rr ? fmt(rr.laju, 2) : "—"}</td></tr>`;
+      const ext = dose > d.hi ? ' class="tcard-ext"' : "";
+      return `<tr${ext}><td>${fmt(dose, TD)}</td><td>${rr ? fmt(rr.laju, 2) : "—"}</td></tr>`;
     }).join("");
     const ratio = r0 ? r0.conc / d.conv : null;
     const ratioTD = ratio !== null && ratio < 10 ? 1 : 0;
     const i = isoOf(d);
+    const bandStyle = i ? `--tcband:${i.hex};--tctext:#000;` : `--tcband:#eee;--tctext:#000;`;
     const swatch = i
-      ? `<span class="sw" style="background:${i.hex}"></span><span class="warna">${i.warna.toUpperCase()}</span>`
-      : `<span class="sw" style="background:transparent"></span><span class="warna">TIDAK DIATUR</span>`;
-    return `<div class="tcard">`
+      ? `<span class="sw"></span><span class="warna">${i.warna.toUpperCase()}</span>`
+      : `<span class="sw"></span><span class="warna">TIDAK DIATUR</span>`;
+    return `<div class="tcard" style="${bandStyle}">`
       + `<span class="crop tl"></span><span class="crop tr"></span>`
       + `<span class="crop bl"></span><span class="crop br"></span>`
-      + idPasien()
       + `<h4>${d.nama} ${swatch} <span class="klass">${d.klass}</span></h4>`
+      + idPasien()
       + `<p class="cx cx-bold">BB : ${fmt(bb, 1)} kg`
       + ` &middot; Titrasi 1 mL : ${ratio !== null ? fmt(ratio, ratioTD) : "—"} ${d.numer}</p>`
       + `<table><thead><tr><th>Dosis (${doseUnit(d)})</th><th style="text-align:right">mL/jam</th></tr></thead>`
       + `<tbody>${baris}</tbody></table>`
+      + (batasTabel > d.hi ? `<p class="dc">Dosis di atas ${fmt(d.hi, TD)} ${doseUnit(d)} (baris bertanda) adalah rentang syok refrakter — hanya sesuai instruksi DPJP eksplisit.</p>` : "")
       + `<p class="dc">Berlaku hanya untuk sediaan & BB di atas. Double check 2 perawat. Potong tepat di tanda siku.</p>`
       + `</div>`;
   }).join("");

@@ -1,0 +1,34 @@
+{
+  "summary": "Frontend-only regression + new-feature testing for PediDrip on mobile viewport (430x900). All 8 flows in the review request passed: base readout, bolus helper (Midazolam & Epinefrin), save preset, recall, persistence across reload, delete, summary toggle + filter count, and print (no crash).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "regression_read_midazolam": "0,72 (expected 0,72) PASS",
+    "bolus_vol_midazolam_default_0.05": "0,60 mL (expected 0,60) PASS",
+    "bolus_vol_midazolam_at_0.1": "1,20 mL (expected 1,20) PASS",
+    "epinefrin_bolus_opens_no_crash": "dose=10 mcg/kg, vol=1,67 mL PASS",
+    "save_preset_midazolam": "saved-midazolam-0 shows '25 mg / 50 mL' PASS",
+    "recall_saved_preset": "amt=25, ml=50 applied; read-midazolam updates to 1,44 PASS",
+    "persistence_after_reload": "saved entry still present after page reload (localStorage key pedidrip_saved_presets_v1) PASS",
+    "delete_saved_preset": "entry removed from list and localStorage now {midazolam:[]} PASS",
+    "summary_toggle_and_filter_count": "filter-btn text = 'HANYA YANG DICENTANG (1)' PASS",
+    "print_btn": "no exception thrown PASS"
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "App.js deleteSaved leaves an empty array in the persisted map (e.g., {midazolam:[]}); consider pruning empty keys to keep storage tidy. Not a bug.",
+    "DrugCard bolus/summary rows share the styles.summaryRow border-top; visually fine but the 'summaryTxt' color override for bolus row relies on inline color prop; readable but consider dedicated style for clarity.",
+    "makeInitial uses BOLUS[d.id].lo as default bolusDose; for epinefrin lo=10 (henti jantung). Confirm this is the intended default vs a lower 'RJP dose' — currently OK per spec."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "seed_data_creation": "Seeded localStorage key 'pedidrip_saved_presets_v1' with {midazolam:[{amt:25,ml:50}]} to test persistence/recall/delete deterministically.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "react-native-web renders testID as data-testid; cards are collapsed by default — tap the drug name text to expand. Preset modal option 'Sediaan lain (isi sendiri)' can be intercepted by other list items when multiple modals stack; prefer force=True clicks or reload the page between modal interactions. Numeric readouts use Indonesian commas."
+}

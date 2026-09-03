@@ -31,10 +31,19 @@ label cards. Fully client-side; no patient data is stored.
 
 ## Implemented (2026-06)
 - Full port of the PediDrip calculator to a native/Expo app with the original blue→purple clinical theme.
-- Weight-driven live pump-rate calc for all 18 drugs, presets (incl. weight-based Rule-of-6/0.6), dose slider + manual entry, range status (lazim / di atas / melebihi), titration tables.
+- Weight-driven live pump-rate calc for all 18 drugs, presets (incl. weight-based Rule-of-6/0.6), dose slider + manual entry, range status, titration tables.
 - Expandable drug cards grouped (sedasi/analgesia/relaksan, vasoaktif/inotropik, diuretik & lainnya).
 - "Masukkan ke lembar terapi" checkbox → live therapy summary sheet with total fluid rate.
-- Filter (only-checked), patient identity (not persisted), "Pasien baru" reset, and **Cetak** (print/PDF therapy sheet + syringe titration label cards with ISO colours).
+- Filter (only-checked), patient identity (not persisted), "Pasien baru" reset, and Cetak (print/PDF therapy sheet + syringe titration label cards with ISO colours).
+- Offline-ready: all math client-side; fonts bundled locally (native via @expo-google-fonts, web via /public/fonts @font-face — no CDN). Custom app icon, Android adaptive icon, splash screen.
+- **Device install**: `eas.json` (development/preview/production profiles) + `frontend/INSTALL.md` guide (Expo Go quick-try + EAS APK/iOS build). Bundle id `com.pedidrip.app`.
+- **Unit presets**: save/recall/delete favourite syringe preparations per drug, persisted offline via AsyncStorage key `pedidrip_saved_presets_v1`.
+- **Bolus/loading-dose helper**: per-drug bolus section (11 drugs in `src/data/bolus.js`) computing total dose + mL to push from the current concentration, with usual-range hints and DPJP-verify disclaimer.
+
+All verified by testing agent — iteration_1: 12/12 after fix; iteration_2 (new features + regression): 100%.
+
+## Notes / limitations
+- EAS cloud build must be run by the user (needs their free Expo account): see `frontend/INSTALL.md`. Config is ready.
 
 ## Backlog / Next
 - P1: Offline install polish (app icons/splash), EAS build config for real device installs.

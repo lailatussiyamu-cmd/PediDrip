@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet,
   StatusBar, Platform, Alert,
@@ -6,6 +6,7 @@ import {
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   useFonts, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
 } from '@expo-google-fonts/archivo';
@@ -15,16 +16,23 @@ import { JetBrainsMono_500Medium, JetBrainsMono_700Bold } from '@expo-google-fon
 import './src/webfonts';
 import { C, F, GRAD } from './src/theme';
 import { DRUGS, GRUP } from './src/data/drugs';
+import { BOLUS } from './src/data/bolus';
 import { rapi, fmt, dec, saring, num } from './src/logic/calc';
 import DrugCard from './src/components/DrugCard';
 import SummarySheet from './src/components/SummarySheet';
 import { printTherapy } from './src/print';
 
+const SAVED_KEY = 'pedidrip_saved_presets_v1';
+
 const makeInitial = () => {
   const s = {};
   DRUGS.forEach((d) => {
     const p = d.presets[0];
-    s[d.id] = { preset: 0, amt: rapi(p.amt ?? 0), ml: rapi(p.ml), dose: fmt(d.start, dec(d)), on: false, open: false };
+    const b = BOLUS[d.id];
+    s[d.id] = {
+      preset: 0, amt: rapi(p.amt ?? 0), ml: rapi(p.ml), dose: fmt(d.start, dec(d)),
+      on: false, open: false, bolusDose: b ? String(b.lo).replace('.', ',') : '',
+    };
   });
   return s;
 };
@@ -47,6 +55,21 @@ function Home() {
   const [ptOpen, setPtOpen] = useState(false);
   const [onlyChecked, setOnlyChecked] = useState(false);
   const [states, setStates] = useState(makeInitial);
+  const [saved, setSaved] = useState({});
+
+  useEffect(() => {
+    AsyncStorage.getItem(SAVED_KEY).then((v) => { if (v) { try { setSaved(JSON.parse(v)); } catch (e) {} } });
+  }, []);
+  const persistSaved = (next) => { setSaved(next); AsyncStorage.setItem(SAVED_KEY, JSON.stringify(next)).catch(() => {}); };
+  const addSaved = (id, amt, ml) => {
+    const list = saved[id] || [];
+    if (list.some((p) => p.amt === amt && p.ml === ml)) return;
+    persistSaved({ ...saved, [id]: [...list, { amt, ml }] });
+  };
+  const deleteSaved = (id, i) => {
+    const list = (saved[id] || []).filter((_, idx) => idx !== i);
+    persistSaved({ ...saved, [id]: list });
+  };
 
   const patch = useCallback((id, p) => {
     setStates((prev) => ({ ...prev, [id]: { ...prev[id], ...p } }));
@@ -164,7 +187,16 @@ function Home() {
               <View key={g.id}>
                 <Text style={styles.gjudul}>{g.judul}</Text>
                 {list.map((d) => (
-                  <DrugCard key={d.id} d={d} st={states[d.id]} bb={bb} onPatch={(p) => patch(d.id, p)} />
+                  <DrugCard
+                    key={d.id}
+                    d={d}
+                    st={states[d.id]}
+                    bb={bb}
+                    onPatch={(p) => patch(d.id, p)}
+                    saved={saved[d.id] || []}
+                    onSaveCurrent={(amt, ml) => addSaved(d.id, amt, ml)}
+                    onDeleteSaved={(i) => deleteSaved(d.id, i)}
+                  />
                 ))}
               </View>
             );

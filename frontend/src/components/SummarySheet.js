@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { F, useTheme } from '../theme';
 import { DRUGS } from '../data/drugs';
-import { fmt, rapi, konsen, dec, doseUnit, hitung, num } from '../logic/calc';
+import { fmt, rapi, konsen, dec, doseUnit, hitung, effAmt, num } from '../logic/calc';
 
 export default function SummarySheet({ states, bb }) {
   const { C } = useTheme();
@@ -39,7 +39,7 @@ export default function SummarySheet({ states, bb }) {
               return (
                 <View key={d.id} style={styles.tr}>
                   <Text style={[styles.tdName, styles.cName]}>{d.nama}</Text>
-                  <Text style={[styles.td, styles.cPrep]}>{rapi(st.amt) || '—'} {d.amtUnit} / {rapi(st.ml) || '—'} mL</Text>
+                  <Text style={[styles.td, styles.cPrep]}>{rapi(effAmt(d, st, bb)) || '—'} {d.amtUnit} / {rapi(st.ml) || '—'} mL</Text>
                   <Text style={[styles.td, styles.cConc]}>{r ? konsen(r.conc) : '—'} {d.amtUnit}/mL</Text>
                   <Text style={[styles.td, styles.cDose]}>{isFinite(num(st.dose)) ? fmt(num(st.dose), dec(d)) : '—'} {doseUnit(d)}</Text>
                   <Text style={[styles.tdRate, styles.cRate]}>{r ? fmt(r.laju, 2) : '—'} mL/jam</Text>

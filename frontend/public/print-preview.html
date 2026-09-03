@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>PediDrip — Kartu Titrasi</title>
+  <style>
+    @page{ margin:8mm; }
+    *{box-sizing:border-box}
+    body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#000;font-size:12px;margin:0;padding:6mm}
+    .hd{font-size:12px;color:#333;margin:0 0 6mm}
+    .hd b{color:#000}
+    .scis{font-size:10px;color:#777;letter-spacing:2px}
+    .labels{display:grid;grid-template-columns:repeat(2,1fr);gap:12mm}
+    /* dashed cut frame with room around the card for scissors + tape */
+    .cut{position:relative;border:1px dashed #9aa0a6;border-radius:3mm;padding:5mm;page-break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    /* corner crop marks to guide a precise cut */
+    .cm{position:absolute;width:3.5mm;height:3.5mm}
+    .cm.tl{top:-1px;left:-1px;border-top:1px solid #000;border-left:1px solid #000}
+    .cm.tr{top:-1px;right:-1px;border-top:1px solid #000;border-right:1px solid #000}
+    .cm.bl{bottom:-1px;left:-1px;border-bottom:1px solid #000;border-left:1px solid #000}
+    .cm.br{bottom:-1px;right:-1px;border-bottom:1px solid #000;border-right:1px solid #000}
+    .tcard{border:2px solid #000;border-radius:4px;padding:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .tcard h4{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin:-8px -8px 6px;padding:6px 8px;font-size:14px;font-weight:800;text-transform:uppercase;border-radius:3px 3px 0 0}
+    .tcard h4 .sw{width:18px;height:11px;border:1px solid #000;border-radius:2px;display:inline-block}
+    .tcard h4 .warna{font-size:10px;font-weight:800}
+    .tcard h4 .klass{font-size:9px;font-weight:600;text-transform:none;opacity:.85}
+    .tid{display:flex;gap:8px;border-bottom:1px solid #000;padding-bottom:4px;margin-bottom:5px}
+    .idc{flex:1}.idk{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:#333}
+    .idv{display:block;font-size:12px;font-weight:700;min-height:14px}
+    .cx{margin:0 0 4px;font-size:10.5px}
+    .bl{margin:0 0 5px;font-size:11px;padding:3px 6px;background:#f3e8ff;border-radius:3px}
+    table{width:100%;border-collapse:collapse;margin:0}
+    th{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:#333;text-align:left;border-bottom:1px solid #000;padding:2px 4px}
+    td{padding:2px 4px;border-bottom:1px solid #ccc;font-size:11px}
+    td:last-child{text-align:right;font-weight:700}
+    .dc{margin:5px 0 0;font-size:8px;color:#333}
+    .empty{color:#b00;font-size:13px}
+  </style></head><body>
+    <p class="hd"><b>PediDrip · Kartu titrasi syringe pump</b> — <span class="scis">&#9986; gunting garis putus-putus, tempel di badan syringe pump</span></p>
+    <div class="labels"><div class="cut">
+    <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
+    <div class="tcard" style="border-color:#FF8200">
+      <h4 style="background:#FF8200">Midazolam <span class="warna"><span class="sw" style="background:#FF8200"></span>ORANYE</span> <span class="klass">Benzodiazepin — sedasi</span></h4>
+      <div class="tid"><div class="idc"><span class="idk">Nama pasien</span><span class="idv">An. Budi</span></div><div class="idc"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,0 kg</b> · Sediaan 50 mg/50 mL · Titrasi 1 mL : 1000 mcg</p>
+      <p class="bl"><b>Bolus:</b> 0,05 mg/kg = <b>0,60 mL</b></p>
+      <table><thead><tr><th>Dosis (mcg/kg/menit)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>1</td><td style="text-align:right">0,72</td></tr><tr><td>2</td><td style="text-align:right">1,44</td></tr><tr><td>3</td><td style="text-align:right">2,16</td></tr><tr><td>4</td><td style="text-align:right">2,88</td></tr><tr><td>5</td><td style="text-align:right">3,60</td></tr><tr><td>6</td><td style="text-align:right">4,32</td></tr></tbody></table>
+      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat.</p>
+    </div>
+  </div><div class="cut">
+    <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
+    <div class="tcard" style="border-color:#71C5E8">
+      <h4 style="background:#71C5E8">Fentanil <span class="warna"><span class="sw" style="background:#71C5E8"></span>BIRU</span> <span class="klass">Opioid — analgesia</span></h4>
+      <div class="tid"><div class="idc"><span class="idk">Nama pasien</span><span class="idv">An. Budi</span></div><div class="idc"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,0 kg</b> · Sediaan 500 mcg/50 mL · Titrasi 1 mL : 10 mcg</p>
+      <p class="bl"><b>Bolus:</b> 1,00 mcg/kg = <b>1,20 mL</b></p>
+      <table><thead><tr><th>Dosis (mcg/kg/jam)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>1</td><td style="text-align:right">1,20</td></tr><tr><td>2</td><td style="text-align:right">2,40</td></tr><tr><td>3</td><td style="text-align:right">3,60</td></tr><tr><td>4</td><td style="text-align:right">4,80</td></tr><tr><td>5</td><td style="text-align:right">6,00</td></tr></tbody></table>
+      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat.</p>
+    </div>
+  </div><div class="cut">
+    <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
+    <div class="tcard" style="border-color:#C9A0DC">
+      <h4 style="background:#C9A0DC">Epinefrin <span class="warna"><span class="sw" style="background:#C9A0DC"></span>UNGU</span> <span class="klass">Vasopresor / inotropik</span></h4>
+      <div class="tid"><div class="idc"><span class="idk">Nama pasien</span><span class="idv">An. Budi</span></div><div class="idc"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,0 kg</b> · Sediaan 3,6 mg/50 mL · Titrasi 1 mL : 72 mcg</p>
+      <p class="bl"><b>Bolus / henti jantung:</b> 10,00 mcg/kg = <b>1,67 mL</b></p>
+      <table><thead><tr><th>Dosis (mcg/kg/menit)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>0,05</td><td style="text-align:right">0,50</td></tr><tr><td>0,10</td><td style="text-align:right">1,00</td></tr><tr><td>0,15</td><td style="text-align:right">1,50</td></tr><tr><td>0,20</td><td style="text-align:right">2,00</td></tr><tr><td>0,25</td><td style="text-align:right">2,50</td></tr><tr><td>0,30</td><td style="text-align:right">3,00</td></tr></tbody></table>
+      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat.</p>
+    </div>
+  </div><div class="cut">
+    <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
+    <div class="tcard" style="border-color:#999">
+      <h4 style="background:#eee">Furosemide <span class="warna">TIDAK DIATUR</span> <span class="klass">Diuretik loop</span></h4>
+      <div class="tid"><div class="idc"><span class="idk">Nama pasien</span><span class="idv">An. Budi</span></div><div class="idc"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,0 kg</b> · Sediaan 50 mg/50 mL · Titrasi 1 mL : 1,0 mg</p>
+      <p class="bl"><b>Bolus:</b> 0,50 mg/kg = <b>6,00 mL</b></p>
+      <table><thead><tr><th>Dosis (mg/kg/jam)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>0,1</td><td style="text-align:right">1,20</td></tr><tr><td>0,2</td><td style="text-align:right">2,40</td></tr><tr><td>0,3</td><td style="text-align:right">3,60</td></tr><tr><td>0,4</td><td style="text-align:right">4,80</td></tr><tr><td>0,5</td><td style="text-align:right">6,00</td></tr><tr><td>0,6</td><td style="text-align:right">7,20</td></tr><tr><td>0,7</td><td style="text-align:right">8,40</td></tr></tbody></table>
+      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat.</p>
+    </div>
+  </div></div>
+  </body></html>

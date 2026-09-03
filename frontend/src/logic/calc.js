@@ -100,3 +100,14 @@ export function status(d, doseStr) {
   if (dose <= d.cap) return ['high', 'Di atas rentang lazim — verifikasi instruksi'];
   return ['over', 'Melebihi batas kalkulator'];
 }
+
+// Bolus / loading dose: total drug amount (in amtUnit) and volume (mL) for one push.
+export function bolusCalc(bolus, d, st, bb, doseStr) {
+  const w = num(bb), dose = num(doseStr);
+  if (!bolus || !(w > 0) || !(dose > 0)) return null;
+  const totalAmt = dose * bolus.f * w; // in drug amtUnit
+  const amt = effAmt(d, st, bb), ml = num(st.ml);
+  const conc = amt > 0 && ml > 0 ? amt / ml : null;
+  const vol = conc ? totalAmt / conc : null;
+  return { totalAmt, vol };
+}

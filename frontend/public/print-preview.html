@@ -1,21 +1,19 @@
 <!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>PediDrip — Kartu Titrasi</title>
   <style>
-    @page{ margin:8mm; }
+    @page{ size:A4 portrait; margin:8mm; }
     *{box-sizing:border-box}
-    body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#000;font-size:12px;margin:0;padding:6mm}
-    .hd{font-size:12px;color:#333;margin:0 0 6mm}
-    .hd b{color:#000}
-    .scis{font-size:10px;color:#777;letter-spacing:2px}
-    .labels{display:grid;grid-template-columns:repeat(2,1fr);gap:12mm}
+    body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#000;font-size:11px;margin:0;padding:0}
+    /* 2 kolom x 3 baris = 6 label per halaman A4 potret */
+    .labels{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:88mm;gap:6mm}
     /* dashed cut frame with room around the card for scissors + tape */
-    .cut{position:relative;border:1px dashed #9aa0a6;border-radius:3mm;padding:5mm;page-break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .cut{position:relative;height:88mm;border:1px dashed #9aa0a6;border-radius:3mm;padding:4mm;page-break-inside:avoid;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     /* corner crop marks to guide a precise cut */
     .cm{position:absolute;width:3.5mm;height:3.5mm}
     .cm.tl{top:-1px;left:-1px;border-top:1px solid #000;border-left:1px solid #000}
     .cm.tr{top:-1px;right:-1px;border-top:1px solid #000;border-right:1px solid #000}
     .cm.bl{bottom:-1px;left:-1px;border-bottom:1px solid #000;border-left:1px solid #000}
     .cm.br{bottom:-1px;right:-1px;border-bottom:1px solid #000;border-right:1px solid #000}
-    .tcard{border:2px solid #000;border-radius:4px;padding:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .tcard{border:2px solid #000;border-radius:4px;padding:7px;height:100%;display:flex;flex-direction:column;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .tcard h4{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin:-8px -8px 6px;padding:6px 8px;font-size:14px;font-weight:800;text-transform:uppercase;border-radius:3px 3px 0 0}
     .tcard h4 .sw{width:18px;height:11px;border:1px solid #000;border-radius:2px;display:inline-block}
     .tcard h4 .warna{font-size:10px;font-weight:800}
@@ -32,7 +30,6 @@
     .dc{margin:5px 0 0;font-size:8px;color:#333}
     .empty{color:#b00;font-size:13px}
   </style></head><body>
-    <p class="hd"><b>PediDrip · Kartu titrasi syringe pump</b> — <span class="scis">&#9986; gunting garis putus-putus, tempel di badan syringe pump</span></p>
     <div class="labels"><div class="cut">
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:#FF8200">
@@ -61,6 +58,26 @@
       <p class="cx"><b>BB 12,0 kg</b> · Sediaan 3,6 mg/50 mL · Titrasi 1 mL : 72 mcg</p>
       <p class="bl"><b>Bolus / henti jantung:</b> 10,00 mcg/kg = <b>1,67 mL</b></p>
       <table><thead><tr><th>Dosis (mcg/kg/menit)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>0,05</td><td style="text-align:right">0,50</td></tr><tr><td>0,10</td><td style="text-align:right">1,00</td></tr><tr><td>0,15</td><td style="text-align:right">1,50</td></tr><tr><td>0,20</td><td style="text-align:right">2,00</td></tr><tr><td>0,25</td><td style="text-align:right">2,50</td></tr><tr><td>0,30</td><td style="text-align:right">3,00</td></tr></tbody></table>
+      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat.</p>
+    </div>
+  </div><div class="cut">
+    <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
+    <div class="tcard" style="border-color:#C9A0DC">
+      <h4 style="background:#C9A0DC">Norepinefrin <span class="warna"><span class="sw" style="background:#C9A0DC"></span>UNGU</span> <span class="klass">Vasopresor</span></h4>
+      <div class="tid"><div class="idc"><span class="idk">Nama pasien</span><span class="idv">An. Budi</span></div><div class="idc"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,0 kg</b> · Sediaan 3,6 mg/50 mL · Titrasi 1 mL : 72 mcg</p>
+      
+      <table><thead><tr><th>Dosis (mcg/kg/menit)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>0,05</td><td style="text-align:right">0,50</td></tr><tr><td>0,10</td><td style="text-align:right">1,00</td></tr><tr><td>0,15</td><td style="text-align:right">1,50</td></tr><tr><td>0,20</td><td style="text-align:right">2,00</td></tr><tr><td>0,25</td><td style="text-align:right">2,50</td></tr><tr><td>0,30</td><td style="text-align:right">3,00</td></tr><tr style="background:#fff8e1"><td>0,35</td><td style="text-align:right">3,50</td></tr><tr style="background:#fff8e1"><td>0,40</td><td style="text-align:right">4,00</td></tr><tr style="background:#fff8e1"><td>0,45</td><td style="text-align:right">4,50</td></tr><tr style="background:#fff8e1"><td>0,50</td><td style="text-align:right">5,00</td></tr></tbody></table>
+      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat.</p>
+    </div>
+  </div><div class="cut">
+    <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
+    <div class="tcard" style="border-color:#C9A0DC">
+      <h4 style="background:#C9A0DC">Dopamin <span class="warna"><span class="sw" style="background:#C9A0DC"></span>UNGU</span> <span class="klass">Vasopresor / inotropik</span></h4>
+      <div class="tid"><div class="idc"><span class="idk">Nama pasien</span><span class="idv">An. Budi</span></div><div class="idc"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,0 kg</b> · Sediaan 36 mg/50 mL · Titrasi 1 mL : 720 mcg</p>
+      
+      <table><thead><tr><th>Dosis (mcg/kg/menit)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>3,0</td><td style="text-align:right">3,00</td></tr><tr><td>5,0</td><td style="text-align:right">5,00</td></tr><tr><td>7,5</td><td style="text-align:right">7,50</td></tr><tr><td>10,0</td><td style="text-align:right">10,00</td></tr><tr><td>12,5</td><td style="text-align:right">12,50</td></tr><tr><td>15,0</td><td style="text-align:right">15,00</td></tr><tr><td>17,5</td><td style="text-align:right">17,50</td></tr><tr><td>20,0</td><td style="text-align:right">20,00</td></tr></tbody></table>
       <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat.</p>
     </div>
   </div><div class="cut">

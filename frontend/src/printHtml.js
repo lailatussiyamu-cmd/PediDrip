@@ -57,22 +57,20 @@ export function buildTherapyHtml(states, bb, patient = {}) {
 
   return `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>PediDrip — Kartu Titrasi</title>
   <style>
-    @page{ margin:8mm; }
+    @page{ size:A4 portrait; margin:8mm; }
     *{box-sizing:border-box}
-    body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#000;font-size:12px;margin:0;padding:6mm}
-    .hd{font-size:12px;color:#333;margin:0 0 6mm}
-    .hd b{color:#000}
-    .scis{font-size:10px;color:#777;letter-spacing:2px}
-    .labels{display:grid;grid-template-columns:repeat(2,1fr);gap:12mm}
+    body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#000;font-size:11px;margin:0;padding:0}
+    /* 2 kolom x 3 baris = 6 label per halaman A4 potret */
+    .labels{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:88mm;gap:6mm}
     /* dashed cut frame with room around the card for scissors + tape */
-    .cut{position:relative;border:1px dashed #9aa0a6;border-radius:3mm;padding:5mm;page-break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .cut{position:relative;height:88mm;border:1px dashed #9aa0a6;border-radius:3mm;padding:4mm;page-break-inside:avoid;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     /* corner crop marks to guide a precise cut */
     .cm{position:absolute;width:3.5mm;height:3.5mm}
     .cm.tl{top:-1px;left:-1px;border-top:1px solid #000;border-left:1px solid #000}
     .cm.tr{top:-1px;right:-1px;border-top:1px solid #000;border-right:1px solid #000}
     .cm.bl{bottom:-1px;left:-1px;border-bottom:1px solid #000;border-left:1px solid #000}
     .cm.br{bottom:-1px;right:-1px;border-bottom:1px solid #000;border-right:1px solid #000}
-    .tcard{border:2px solid #000;border-radius:4px;padding:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .tcard{border:2px solid #000;border-radius:4px;padding:7px;height:100%;display:flex;flex-direction:column;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .tcard h4{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin:-8px -8px 6px;padding:6px 8px;font-size:14px;font-weight:800;text-transform:uppercase;border-radius:3px 3px 0 0}
     .tcard h4 .sw{width:18px;height:11px;border:1px solid #000;border-radius:2px;display:inline-block}
     .tcard h4 .warna{font-size:10px;font-weight:800}
@@ -89,7 +87,6 @@ export function buildTherapyHtml(states, bb, patient = {}) {
     .dc{margin:5px 0 0;font-size:8px;color:#333}
     .empty{color:#b00;font-size:13px}
   </style></head><body>
-    <p class="hd"><b>PediDrip · Kartu titrasi syringe pump</b> — <span class="scis">&#9986; gunting garis putus-putus, tempel di badan syringe pump</span></p>
     ${ready
       ? `<div class="labels">${cards}</div>`
       : `<p class="empty">Isi berat badan dan centang minimal satu obat (Masukkan ke lembar terapi) untuk mencetak kartu titrasi.</p>`}

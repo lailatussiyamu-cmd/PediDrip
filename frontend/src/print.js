@@ -1,6 +1,7 @@
 import * as Print from 'expo-print';
 import { DRUGS, isoOf } from './data/drugs';
-import { fmt, rapi, konsen, dec, tdec, titrasiDoses, doseUnit, hitung, hitungDose, num } from './logic/calc';
+import { BOLUS } from './data/bolus';
+import { fmt, rapi, konsen, dec, tdec, titrasiDoses, doseUnit, hitung, hitungDose, bolusCalc, num } from './logic/calc';
 
 const esc = (v) => String(v || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -37,10 +38,21 @@ export async function printTherapy(states, bb, patient) {
     const st = states[d.id];
     const r = hitung(d, st, bb);
     if (r) total += r.laju;
+    const b = BOLUS[d.id];
+    let bolusCell = '—';
+    if (b) {
+      const dv = num(st.bolusDose);
+      if (dv > 0) {
+        const bc = bolusCalc(b, d, st, bb, st.bolusDose);
+        bolusCell = `${fmt(dv, 2)} ${b.unit}${b.label ? ` (${esc(b.label)})` : ''}`
+          + `${bc && bc.vol != null ? ` = <b>${fmt(bc.vol, 2)} mL</b>` : ''}`;
+      }
+    }
     return `<tr><td style="text-align:left">${esc(d.nama)}</td>
       <td>${rapi(st.amt) || '—'} ${d.amtUnit} / ${rapi(st.ml) || '—'} mL</td>
       <td>${r ? konsen(r.conc) : '—'} ${d.amtUnit}/mL</td>
       <td>${isFinite(num(st.dose)) ? fmt(num(st.dose), dec(d)) : '—'} ${doseUnit(d)}</td>
+      <td>${bolusCell}</td>
       <td class="rate">${r ? fmt(r.laju, 2) : '—'} mL/jam</td></tr>`;
   }).join('');
 
@@ -84,9 +96,9 @@ export async function printTherapy(states, bb, patient) {
       <span>Berat badan : <b>${w > 0 ? fmt(w, 1) : '____'} kg</b></span>
     </div>
     ${aktif.length ? `<table>
-      <thead><tr><th>Obat</th><th>Sediaan</th><th>Konsentrasi</th><th>Dosis</th><th>Laju pump</th></tr></thead>
+      <thead><tr><th>Obat</th><th>Sediaan</th><th>Konsentrasi</th><th>Dosis infus</th><th>Bolus / muat (sekali beri)</th><th>Laju pump</th></tr></thead>
       <tbody>${trows}</tbody>
-      <tfoot><tr><td colspan="4">Total cairan dari infus kontinu</td><td class="rate">${fmt(total, 2)} mL/jam</td></tr></tfoot>
+      <tfoot><tr><td colspan="5">Total cairan dari infus kontinu</td><td class="rate">${fmt(total, 2)} mL/jam</td></tr></tfoot>
     </table>` : '<p>Belum ada obat yang dicentang.</p>'}
     ${labels ? `<h2>Kartu titrasi untuk syringe</h2><div class="labels">${labels}</div>` : ''}
     <p class="warn">Double check oleh 2 perawat sebelum obat diberikan. Kode warna ISO 26825 hanya pengingat — label fisik mengikuti kebijakan unit.</p>

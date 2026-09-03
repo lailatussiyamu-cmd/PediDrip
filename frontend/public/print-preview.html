@@ -3,8 +3,8 @@
     @page{ size:A4 portrait; margin:8mm; }
     *{box-sizing:border-box}
     body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#000;font-size:11px;margin:0;padding:0}
-    /* 2 kolom x 3 baris = 6 label per halaman A4 potret */
-    .labels{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:88mm;gap:6mm}
+    /* 6 label POTRAIT per halaman A4: 2 kolom x 3 baris, tiap label 72 x 88 mm */
+    .labels{display:grid;grid-template-columns:repeat(2,72mm);justify-content:center;column-gap:16mm;row-gap:8mm;grid-auto-rows:88mm}
     /* dashed cut frame with room around the card for scissors + tape */
     .cut{position:relative;height:88mm;border:1px dashed #9aa0a6;border-radius:3mm;padding:4mm;page-break-inside:avoid;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     /* corner crop marks to guide a precise cut */
@@ -14,20 +14,20 @@
     .cm.bl{bottom:-1px;left:-1px;border-bottom:1px solid #000;border-left:1px solid #000}
     .cm.br{bottom:-1px;right:-1px;border-bottom:1px solid #000;border-right:1px solid #000}
     .tcard{border:2px solid #000;border-radius:4px;padding:7px;height:100%;display:flex;flex-direction:column;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .tcard h4{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin:-8px -8px 6px;padding:6px 8px;font-size:14px;font-weight:800;text-transform:uppercase;border-radius:3px 3px 0 0}
-    .tcard h4 .sw{width:18px;height:11px;border:1px solid #000;border-radius:2px;display:inline-block}
-    .tcard h4 .warna{font-size:10px;font-weight:800}
-    .tcard h4 .klass{font-size:9px;font-weight:600;text-transform:none;opacity:.85}
-    .tid{display:flex;gap:8px;border-bottom:1px solid #000;padding-bottom:4px;margin-bottom:5px}
-    .idc{flex:1}.idk{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:#333}
-    .idv{display:block;font-size:12px;font-weight:700;min-height:14px}
-    .cx{margin:0 0 4px;font-size:10.5px}
-    .bl{margin:0 0 5px;font-size:11px;padding:3px 6px;background:#f3e8ff;border-radius:3px}
+    .tcard h4{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:-7px -7px 5px;padding:5px 7px;font-size:12px;font-weight:800;text-transform:uppercase;border-radius:3px 3px 0 0}
+    .tcard h4 .sw{width:16px;height:10px;border:1px solid #000;border-radius:2px;display:inline-block}
+    .tcard h4 .warna{font-size:9px;font-weight:800}
+    .tcard h4 .klass{font-size:8px;font-weight:600;text-transform:none;opacity:.85;width:100%}
+    .tid{display:flex;gap:8px;border-bottom:1px solid #000;padding-bottom:3px;margin-bottom:4px}
+    .idc{flex:1}.idk{display:block;font-size:7.5px;text-transform:uppercase;letter-spacing:.4px;color:#333}
+    .idv{display:block;font-size:11px;font-weight:700;min-height:13px}
+    .cx{margin:0 0 4px;font-size:9px;line-height:1.3}
+    .bl{margin:0 0 5px;font-size:10px;padding:3px 5px;background:#f3e8ff;border-radius:3px}
     table{width:100%;border-collapse:collapse;margin:0}
-    th{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:#333;text-align:left;border-bottom:1px solid #000;padding:2px 4px}
-    td{padding:2px 4px;border-bottom:1px solid #ccc;font-size:11px}
+    th{font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;color:#333;text-align:left;border-bottom:1px solid #000;padding:1.5px 4px}
+    td{padding:1.5px 4px;border-bottom:1px solid #ccc;font-size:10.5px}
     td:last-child{text-align:right;font-weight:700}
-    .dc{margin:5px 0 0;font-size:8px;color:#333}
+    .dc{margin:auto 0 0;font-size:7.5px;color:#333}
     .empty{color:#b00;font-size:13px}
   </style></head><body>
     <div class="labels"><div class="cut">

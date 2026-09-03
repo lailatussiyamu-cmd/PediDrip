@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet,
   StatusBar, Platform, Alert,
@@ -14,7 +14,7 @@ import { PublicSans_400Regular, PublicSans_500Medium, PublicSans_600SemiBold } f
 import { JetBrainsMono_500Medium, JetBrainsMono_700Bold } from '@expo-google-fonts/jetbrains-mono';
 
 import './src/webfonts';
-import { C, F, GRAD } from './src/theme';
+import { F, useTheme, ThemeProvider } from './src/theme';
 import { DRUGS, GRUP } from './src/data/drugs';
 import { BOLUS } from './src/data/bolus';
 import { rapi, fmt, dec, saring, num } from './src/logic/calc';
@@ -46,6 +46,8 @@ const confirmReset = (onYes) => {
 };
 
 function Home() {
+  const { C, mode, toggle } = useTheme();
+  const styles = useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const [bb, setBb] = useState('');
   const [pn, setPn] = useState('');
@@ -95,13 +97,15 @@ function Home() {
       <StatusBar barStyle="light-content" />
       <ScrollView contentContainerStyle={{ paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
         {/* Hero */}
-        <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.hero, { paddingTop: insets.top + 22 }]}>
+        <LinearGradient colors={C.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.hero, { paddingTop: insets.top + 22 }]}>
           <View style={styles.heroRow}>
             <View>
               <Text style={styles.brand}>PediDrip</Text>
               <Text style={styles.tagline}>Kalkulator Infus Pediatrik · PICU</Text>
             </View>
-            <View style={styles.pill}><Ionicons name="water" size={14} color="#fff" /><Text style={styles.pillTxt}>Syringe pump</Text></View>
+            <TouchableOpacity style={styles.themeBtn} onPress={toggle} testID="theme-toggle" accessibilityLabel="Ganti mode terang/gelap">
+              <Ionicons name={mode === 'dark' ? 'sunny' : 'moon'} size={19} color="#fff" />
+            </TouchableOpacity>
           </View>
         </LinearGradient>
 
@@ -226,22 +230,23 @@ export default function App() {
     PublicSans_400Regular, PublicSans_500Medium, PublicSans_600SemiBold,
     JetBrainsMono_500Medium, JetBrainsMono_700Bold,
   });
-  if (!isWeb && !nativeLoaded) return <View style={{ flex: 1, backgroundColor: C.primary }} />;
+  if (!isWeb && !nativeLoaded) return <View style={{ flex: 1, backgroundColor: '#2563EB' }} />;
   return (
     <SafeAreaProvider>
-      <Home />
+      <ThemeProvider>
+        <Home />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C) => StyleSheet.create({
   root: { flex: 1, backgroundColor: C.paper },
   hero: { paddingHorizontal: 20, paddingBottom: 40, borderBottomLeftRadius: 22, borderBottomRightRadius: 22 },
   heroRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brand: { fontFamily: F.display, fontSize: 38, color: '#fff', letterSpacing: -1.6 },
   tagline: { fontFamily: F.head6, fontSize: 11, color: 'rgba(255,255,255,.9)', textTransform: 'uppercase', letterSpacing: 1.4, marginTop: 4 },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,.18)', paddingHorizontal: 11, paddingVertical: 6, borderRadius: 20 },
-  pillTxt: { fontFamily: F.head6, fontSize: 10, color: '#fff', textTransform: 'uppercase', letterSpacing: 0.8 },
+  themeBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,.18)' },
   wrap: { paddingHorizontal: 16, marginTop: -24 },
   wcard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 16, padding: 16, borderWidth: 1.5, borderColor: C.line,
     ...Platform.select({ web: { boxShadow: '0 10px 15px -3px rgba(0,0,0,.1)' }, default: { elevation: 4, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 6 } } }) },

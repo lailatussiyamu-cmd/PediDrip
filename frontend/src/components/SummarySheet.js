@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { C, F } from '../theme';
+import { F, useTheme } from '../theme';
 import { DRUGS } from '../data/drugs';
 import { fmt, rapi, konsen, dec, doseUnit, hitung, num } from '../logic/calc';
 
 export default function SummarySheet({ states, bb }) {
+  const { C } = useTheme();
+  const styles = useMemo(() => makeStyles(C), [C]);
   const aktif = DRUGS.filter((d) => states[d.id]?.on);
   const w = num(bb);
   let total = 0;
@@ -61,7 +63,7 @@ export default function SummarySheet({ states, bb }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C) => StyleSheet.create({
   sum: { backgroundColor: C.surface, borderWidth: 2.5, borderColor: C.primary, borderRadius: 14, padding: 20, marginTop: 8 },
   title: { fontFamily: F.head, fontSize: 16, textTransform: 'uppercase', letterSpacing: 1, color: C.ink },
   sub: { fontFamily: F.body, fontSize: 12, color: C.ink3, marginTop: 4, marginBottom: 14 },

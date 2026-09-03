@@ -43,7 +43,9 @@ label cards. Fully client-side; no patient data is stored.
 All verified by testing agent — iteration_1: 12/12 after fix; iteration_2 (new features + regression): 100%.
 
 ## Notes / limitations
-- Dark mode (2026-06): themeable palette in `src/theme.js` (ThemeProvider/useTheme, light + dark from the original web app), toggle in the hero (top-right, testID `theme-toggle`), persisted via AsyncStorage key `pedidrip_theme_v1`, follows device `prefers-color-scheme` by default. Verified 100% (light #F8FAFC ↔ dark #0F172A) with no regressions.
+- Print (2026-06): print output = titration cards only, PORTRAIT labels 72×88mm, 2 per row × 3 rows = 6 per A4 page, with dashed cut frames + crop marks + bolus line; ISO colours. On web, `Cetak` opens a new window (expo-print web ignores html, so `src/print.js` renders our own doc); native → PDF. Builder in `src/printHtml.js`.
+- Deployment (2026-06): fixed prod deploy — created `backend/.env` (MONGO_URL, DB_NAME) and `frontend/.env` (Expo tunnel vars); start script → `expo start --tunnel --port 3000`. deployment_agent status: PASS.
+- Dark mode: themeable palette in `src/theme.js` (ThemeProvider/useTheme, light + dark from the original web app), toggle in the hero (top-right, testID `theme-toggle`), persisted via AsyncStorage key `pedidrip_theme_v1`, follows device `prefers-color-scheme` by default. Verified 100% (light #F8FAFC ↔ dark #0F172A) with no regressions.
 - EAS cloud build must be run by the user (needs their free Expo account): see `frontend/INSTALL.md`. Config is ready.
 - Stripe payments (Emergent claimable sandbox): requested by user but PAUSED pending answers on what is sold / price / placement.
 

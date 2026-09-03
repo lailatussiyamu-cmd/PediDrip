@@ -1,10 +1,11 @@
-// Web-only font loading: alias our RN family names to Google variable-font woff2.
+// Web-only font loading: alias our RN family names to locally-bundled woff2 files
+// (served from /public/fonts) so the web build needs NO network / CDN — offline ready.
 // (expo-font's web loader renders blank glyphs under Metro web, so we inject CSS instead.)
 import { Platform } from 'react-native';
 
-const ARCHIVO = 'https://fonts.gstatic.com/s/archivo/v25/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxI.woff2';
-const PUBLIC = 'https://fonts.gstatic.com/s/publicsans/v21/ijwRs572Xtc6ZYQws9YVwnNGfJ4.woff2';
-const MONO = 'https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2';
+const ARCHIVO = '/fonts/archivo.woff2';
+const PUBLIC = '/fonts/publicsans.woff2';
+const MONO = '/fonts/jetbrainsmono.woff2';
 
 const face = (family, weight, url) =>
   `@font-face{font-family:'${family}';font-style:normal;font-weight:${weight};font-display:swap;src:url(${url}) format('woff2');}`;

@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "pedidrip",
+    "backgroundColor": "#2563EB",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.pedidrip.app"
@@ -26,7 +27,16 @@
     },
     "plugins": [
       "expo-font",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#2563EB"
+        }
+      ]
     ]
   }
 }

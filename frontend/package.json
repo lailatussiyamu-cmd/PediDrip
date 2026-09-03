@@ -1,0 +1,31 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@expo-google-fonts/archivo": "^0.4.2",
+    "@expo-google-fonts/jetbrains-mono": "^0.4.1",
+    "@expo-google-fonts/public-sans": "^0.4.2",
+    "@expo/metro-runtime": "~57.0.15",
+    "@expo/vector-icons": "^15.0.2",
+    "@react-native-community/slider": "5.2.0",
+    "expo": "~57.0.19",
+    "expo-font": "~57.0.3",
+    "expo-linear-gradient": "~57.0.1",
+    "expo-print": "~57.0.1",
+    "expo-sharing": "~57.0.17",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-web": "^0.21.2"
+  },
+  "scripts": {
+    "start": "expo start --web --port 3000",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "private": true
+}

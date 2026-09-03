@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "PediDrip",
+    "slug": "pedidrip",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "pedidrip",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pedidrip.app"
+    },
+    "android": {
+      "package": "com.pedidrip.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#2563EB",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-sharing"
+    ]
+  }
+}

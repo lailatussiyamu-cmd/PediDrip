@@ -14,7 +14,7 @@ DRUGS.forEach((d) => {
   };
 });
 // A representative therapy: sedation + opioid + a weight-based pressor + a diuretic
-['midazolam', 'fentanil', 'epinefrin', 'furosemide'].forEach((id) => { states[id].on = true; });
+['midazolam', 'fentanil', 'epinefrin', 'norepinefrin', 'dopamin', 'furosemide'].forEach((id) => { states[id].on = true; });
 
 const html = buildTherapyHtml(states, '12', { pn: 'An. Budi', prm: 'RM-123456' });
 writeFileSync('/app/frontend/public/print-preview.html', html);

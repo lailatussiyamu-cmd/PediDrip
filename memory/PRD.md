@@ -43,7 +43,9 @@ label cards. Fully client-side; no patient data is stored.
 All verified by testing agent — iteration_1: 12/12 after fix; iteration_2 (new features + regression): 100%.
 
 ## Notes / limitations
+- Dark mode (2026-06): themeable palette in `src/theme.js` (ThemeProvider/useTheme, light + dark from the original web app), toggle in the hero (top-right, testID `theme-toggle`), persisted via AsyncStorage key `pedidrip_theme_v1`, follows device `prefers-color-scheme` by default. Verified 100% (light #F8FAFC ↔ dark #0F172A) with no regressions.
 - EAS cloud build must be run by the user (needs their free Expo account): see `frontend/INSTALL.md`. Config is ready.
+- Stripe payments (Emergent claimable sandbox): requested by user but PAUSED pending answers on what is sold / price / placement.
 
 ## Backlog / Next
 - P1: Offline install polish (app icons/splash), EAS build config for real device installs.

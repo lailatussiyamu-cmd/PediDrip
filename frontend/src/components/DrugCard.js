@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, StyleSheet, Platform } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { C, F, BADGE, GRAD, bandColor } from '../theme';
+import { F, makeBadge, bandColor, useTheme } from '../theme';
 import { isoOf } from '../data/drugs';
 import { BOLUS } from '../data/bolus';
 import {
@@ -11,14 +11,15 @@ import {
   doseUnit, setaraUnit, effAmt, isWeightBased, hitung, hitungDose, status, bolusCalc,
 } from '../logic/calc';
 
-const NOTE_CLR = { low: C.ink3, in: C.ink3, high: C.warning, over: C.danger };
-
 export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent, onDeleteSaved }) {
+  const { C } = useTheme();
+  const styles = useMemo(() => makeStyles(C), [C]);
+  const NOTE_CLR = { low: C.ink3, in: C.ink3, high: C.warning, over: C.danger };
   const [presetOpen, setPresetOpen] = useState(false);
   const [tableOpen, setTableOpen] = useState(false);
   const [bolusOpen, setBolusOpen] = useState(false);
-  const band = bandColor(d);
-  const badge = BADGE[d.badge] || BADGE.diur;
+  const band = bandColor(d, C);
+  const badge = makeBadge(C)[d.badge] || makeBadge(C).diur;
   const iso = isoOf(d);
   const bolus = BOLUS[d.id];
   const D = dec(d);
@@ -130,7 +131,7 @@ export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent
             {txt} · lazim {fmt(d.lo, D)}–{fmt(d.hi, D)} {doseUnit(d)}
           </Text>
 
-          <LinearGradient colors={GRAD} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.readbox}>
+          <LinearGradient colors={C.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.readbox}>
             <Text style={styles.readout} testID={`read-${d.id}`}>{r ? fmt(r.laju, 2) : '––,––'}</Text>
             <Text style={styles.readunit}>mL / jam</Text>
           </LinearGradient>
@@ -141,7 +142,6 @@ export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent
             Syringe {rapi(st.ml) || '—'} mL habis dalam <Text style={styles.metaB}>{r && isFinite(r.habis) ? fmt(r.habis, 1) : '—'} jam</Text>
           </Text>
 
-          {/* Bolus / loading dose helper */}
           {bolus && (
             <>
               <TouchableOpacity style={styles.summaryRow} onPress={() => setBolusOpen(!bolusOpen)} testID={`bolus-toggle-${d.id}`}>
@@ -207,7 +207,6 @@ export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent
         </View>
       )}
 
-      {/* Preset picker modal */}
       <Modal visible={presetOpen} transparent animationType="fade" onRequestClose={() => setPresetOpen(false)}>
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => setPresetOpen(false)}>
           <View style={styles.sheet}>
@@ -238,11 +237,8 @@ export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent
                 {st.preset === -1 ? <Ionicons name="checkmark" size={18} color={C.primary} /> : null}
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.saveBtn, !canSave && styles.saveBtnOff]}
-                disabled={!canSave}
-                onPress={() => onSaveCurrent && onSaveCurrent(num(st.amt), num(st.ml))}
-                testID={`save-preset-${d.id}`}>
+              <TouchableOpacity style={[styles.saveBtn, !canSave && styles.saveBtnOff]} disabled={!canSave}
+                onPress={() => onSaveCurrent && onSaveCurrent(num(st.amt), num(st.ml))} testID={`save-preset-${d.id}`}>
                 <Ionicons name="add-circle-outline" size={18} color={canSave ? C.secondary : C.ink3} />
                 <Text style={[styles.saveTxt, { color: canSave ? C.secondary : C.ink3 }]}>
                   Simpan sediaan saat ini{canSave ? ` (${rapi(st.amt)} ${d.amtUnit} / ${rapi(st.ml)} mL)` : ''}
@@ -256,7 +252,7 @@ export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C) => StyleSheet.create({
   card: { backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.line, borderRadius: 14, marginBottom: 14, paddingLeft: 18, paddingRight: 16, paddingVertical: 16, overflow: 'hidden',
     ...Platform.select({ web: { boxShadow: '0 4px 6px -1px rgba(0,0,0,.07)' }, default: { elevation: 1, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } } }) },
   cardRelax: { borderColor: C.danger },
@@ -313,7 +309,7 @@ const styles = StyleSheet.create({
   td: { flex: 1, fontFamily: F.mono, fontSize: 11.5, color: C.ink, textAlign: 'right' },
   noteBox: { marginTop: 12, backgroundColor: C.sunken, borderRadius: 8, borderLeftWidth: 4, padding: 12 },
   noteTxt: { fontFamily: F.body, fontSize: 12, color: C.ink2, lineHeight: 18 },
-  backdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,.5)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,.6)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: C.surface, borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 20, maxHeight: '75%' },
   sheetTitle: { fontFamily: F.head, fontSize: 16, color: C.ink, marginBottom: 12 },
   opt: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: C.line2, gap: 10 },

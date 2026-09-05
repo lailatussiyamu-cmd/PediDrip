@@ -367,7 +367,7 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
    frontend/src/data/drugs.js setiap kali ada lo/hi/cap/preset/note yang berubah,
    supaya perawat yang membuka halaman ter-cache dan yang memakai build terpasang
    bisa tahu apakah angkanya sama. Dicetak di tiap label titrasi. */
-const TABEL = { versi:"2026.09.05", ditinjau:"5 September 2026" };
+const TABEL = { versi:"2026.09.05b", ditinjau:"5 September 2026" };
 
 const DRUGS = [
 /* --- sedasi, analgesia, relaksan --- */
@@ -528,7 +528,11 @@ const DRUGS = [
        memberi pilihan; tstep adalah default di antara keduanya. */
     lo:0.5, hi:1.75, cap:2, step:0.05, start:0.5, tstep:0.25, tsteps:[0.25,0.5],
     presets:[
-      {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50},
+      /* Semua kelipatan ampul utuh 240 mg/10 mL — bisa ditakar tanpa membuka
+         ampul kedua. Farmasi: ampul memang dioplos sesuai kebutuhan; untuk bayi
+         lazim 12 atau ~5 mg/mL. */
+      {t:"4,8 mg/mL — 240 mg (1 ampul) dalam 50 mL", amt:240, ml:50},
+      {t:"12 mg/mL — 240 mg (1 ampul) dalam 20 mL", amt:240, ml:20},
       {t:"Tanpa pengenceran — 24 mg/mL (ampul 240 mg/10 mL)", amt:240, ml:10, dflt:true}],
     note:"Rumatan mulai 0,5 mg/kg/jam, titrasi tiap 0,25–0,5 mg/kg/jam sesuai respons dan kadar teofilin bila tersedia. Dosis muat (loading dose) diberikan terpisah dan tidak dihitung di sini. Awasi takikardia, aritmia, mual, dan kejang pada kadar toksik; jendela terapi sempit." },
 

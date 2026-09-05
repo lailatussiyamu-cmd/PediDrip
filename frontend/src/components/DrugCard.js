@@ -2,13 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, ScrollView, StyleSheet, Platform } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { F, makeBadge, bandColor, useTheme } from '../theme';
 import { isoOf } from '../data/drugs';
-import { BOLUS } from '../data/bolus';
 import {
   num, saring, fmt, rapi, konsen, dec, tdec, titrasiDoses,
-  doseUnit, setaraUnit, effAmt, isWeightBased, hitung, hitungDose, status, bolusCalc,
+  doseUnit, setaraUnit, setaraValue, effAmt, isWeightBased, hitung, hitungDose, status,
+  lajuTerlaluPelan, LAJU_MIN,
 } from '../logic/calc';
 
 export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent, onDeleteSaved }) {
@@ -17,16 +17,15 @@ export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent
   const NOTE_CLR = { low: C.ink3, in: C.ink3, high: C.warning, over: C.danger };
   const [presetOpen, setPresetOpen] = useState(false);
   const [tableOpen, setTableOpen] = useState(false);
-  const [bolusOpen, setBolusOpen] = useState(false);
   const band = bandColor(d, C);
   const badge = makeBadge(C)[d.badge] || makeBadge(C).diur;
   const iso = isoOf(d);
-  const bolus = BOLUS[d.id];
   const D = dec(d);
   const r = hitung(d, st, bb);
   const wb = isWeightBased(d, st);
   const amtDisplay = wb ? rapi(effAmt(d, st, bb)) : st.amt;
   const [cls, txt] = status(d, st.dose);
+  const sv = r ? setaraValue(d, r.setara) : NaN;
   const doseNum = num(st.dose);
   const isRelax = d.badge === 'relax';
   const canSave = !wb && num(st.amt) > 0 && num(st.ml) > 0;
@@ -46,15 +45,21 @@ export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent
   };
   const pickSaved = (p) => { setPresetOpen(false); onPatch({ amt: rapi(p.amt), ml: rapi(p.ml), preset: -1 }); };
 
+  // Concentration is amount / volume — it does not depend on body weight, so show it
+  // as soon as the syringe is described (the nurse mixes before the weight is typed).
   const concText = () => {
-    if (!r) return 'Konsentrasi — menunggu berat badan';
-    let s = `Konsentrasi ${konsen(r.conc)} ${d.amtUnit}/mL`;
-    if (d.amtUnit === 'mg') s += `  ·  ${fmt(r.conc * 1000, 0)} mcg/mL`;
-    if (d.amtUnit === 'unit') s += `  ·  ${fmt(r.conc * 1000, 0)} mU/mL`;
+    const a = effAmt(d, st, bb), v = num(st.ml);
+    const conc = a > 0 && v > 0 ? a / v : NaN;
+    if (!isFinite(conc) || conc <= 0) {
+      return wb && !(num(bb) > 0)
+        ? 'Konsentrasi — sediaan ini dihitung dari berat badan'
+        : 'Konsentrasi — lengkapi jumlah obat & volume';
+    }
+    let s = `Konsentrasi ${konsen(conc)} ${d.amtUnit}/mL`;
+    if (d.amtUnit === 'mg') s += `  ·  ${fmt(conc * 1000, 0)} mcg/mL`;
+    if (d.amtUnit === 'unit') s += `  ·  ${fmt(conc * 1000, 0)} mU/mL`;
     return s;
   };
-
-  const bc = bolus ? bolusCalc(bolus, d, st, bb, st.bolusDose) : null;
 
   return (
     <View style={[styles.card, isRelax && styles.cardRelax, !bb && styles.idle]}>
@@ -78,7 +83,11 @@ export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent
         <View style={styles.headRight}>
           {r ? (
             <View style={styles.miniRead}>
-              <Text style={styles.miniNum}>{fmt(r.laju, 2)}</Text>
+              {/* the collapsed card is what gets scanned down the list, so the
+                  slow-rate signal has to survive here too, not only when opened */}
+              <Text style={[styles.miniNum, lajuTerlaluPelan(r.laju) && { color: C.warning }]}>
+                {fmt(r.laju, 2)}{lajuTerlaluPelan(r.laju) ? ' ⚠' : ''}
+              </Text>
               <Text style={styles.miniUnit}>mL/jam</Text>
             </View>
           ) : null}
@@ -136,46 +145,20 @@ export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent
             <Text style={styles.readunit}>mL / jam</Text>
           </LinearGradient>
 
+          {r && lajuTerlaluPelan(r.laju) && (
+            <View style={styles.slowBox} testID={`slow-${d.id}`}>
+              <Ionicons name="alert-circle-outline" size={15} color={C.warning} />
+              <Text style={styles.slowTxt}>
+                Di bawah {fmt(LAJU_MIN, 1)} mL/jam syringe pump sulit menjaga akurasi. Pakai pengenceran yang lebih encer.
+              </Text>
+            </View>
+          )}
+
           <Text style={styles.meta}>
-            Setara <Text style={styles.metaB}>{r ? fmt(r.setara, r.setara < 0.01 ? 5 : r.setara < 1 ? 3 : 2) : '—'} {setaraUnit(d)}</Text>{'\n'}
+            {d.noSetara ? '' : <>Setara <Text style={styles.metaB}>{r ? fmt(sv, sv < 0.01 ? 5 : sv < 1 ? 3 : 2) : '—'} {setaraUnit(d)}</Text>{'\n'}</>}
             Total <Text style={styles.metaB}>{r ? fmt(r.perJamAmt, 3) : '—'} {d.amtUnit}/jam</Text> · {r ? fmt(r.perJamAmt * 24, 2) : '—'} {d.amtUnit}/24 jam{'\n'}
             Syringe {rapi(st.ml) || '—'} mL habis dalam <Text style={styles.metaB}>{r && isFinite(r.habis) ? fmt(r.habis, 1) : '—'} jam</Text>
           </Text>
-
-          {bolus && (
-            <>
-              <TouchableOpacity style={styles.summaryRow} onPress={() => setBolusOpen(!bolusOpen)} testID={`bolus-toggle-${d.id}`}>
-                <Ionicons name="flash-outline" size={14} color={C.secondary} />
-                <Text style={[styles.summaryTxt, { color: C.secondary }]}>Dosis bolus{bolus.label ? ` / ${bolus.label}` : ''}</Text>
-                <Ionicons name={bolusOpen ? 'chevron-up' : 'chevron-down'} size={16} color={C.secondary} />
-              </TouchableOpacity>
-              {bolusOpen && (
-                <View style={styles.bolusBox}>
-                  <Text style={styles.lbl}>Dosis bolus</Text>
-                  <View style={styles.dosebar}>
-                    <TextInput style={styles.doseInput} value={st.bolusDose} keyboardType="decimal-pad" placeholder="0"
-                      placeholderTextColor={C.ink3} onChangeText={(v) => onPatch({ bolusDose: saring(v) })} testID={`bolus-dose-${d.id}`} />
-                    <Text style={styles.doseUnit}>{bolus.unit}</Text>
-                  </View>
-                  <Text style={[styles.rangeNote, { color: C.ink3, marginBottom: 4 }]}>
-                    lazim {fmt(bolus.lo, 2)}{bolus.hi !== bolus.lo ? `–${fmt(bolus.hi, 2)}` : ''} {bolus.unit}
-                    {bolus.over ? ` · beri perlahan ${bolus.over}` : ''}
-                  </Text>
-                  <View style={styles.bolusRead}>
-                    <View>
-                      <Text style={styles.bolusNum} testID={`bolus-vol-${d.id}`}>{bc && bc.vol != null ? fmt(bc.vol, 2) : '––,––'}</Text>
-                      <Text style={styles.bolusUnit}>mL sekali beri</Text>
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={styles.bolusNum2}>{bc ? fmt(bc.totalAmt, 3) : '—'}</Text>
-                      <Text style={styles.bolusUnit}>{d.amtUnit} total</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.bolusNote}>Bolus/muat diberikan terpisah dari infus kontinu. Rentang lazim — verifikasi dengan DPJP & protokol unit.</Text>
-                </View>
-              )}
-            </>
-          )}
 
           <TouchableOpacity style={styles.summaryRow} onPress={() => setTableOpen(!tableOpen)}>
             <Text style={styles.summaryTxt}>Tabel titrasi</Text>
@@ -183,15 +166,32 @@ export default function DrugCard({ d, st, bb, onPatch, saved = [], onSaveCurrent
           </TouchableOpacity>
           {tableOpen && (
             <View style={styles.table}>
+              {d.tsteps && (
+                <View style={styles.stepRow}>
+                  <Text style={styles.stepLbl}>Naik tiap</Text>
+                  {d.tsteps.map((v) => {
+                    const on = (st.tstep ?? d.tstep) === v;
+                    return (
+                      <TouchableOpacity key={v} onPress={() => onPatch({ tstep: v })}
+                        style={[styles.stepBtn, on && styles.stepBtnOn]} testID={`tstep-${d.id}-${v}`}>
+                        <Text style={[styles.stepTxt, on && styles.stepTxtOn]}>{fmt(v, tdec(d))}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                  <Text style={styles.stepLbl}>{doseUnit(d)}</Text>
+                </View>
+              )}
               <View style={[styles.tr, styles.thead]}>
                 <Text style={[styles.th, { flex: 1.4, textAlign: 'left' }]}>Dosis ({doseUnit(d)})</Text>
                 <Text style={styles.th}>mL/jam</Text>
                 <Text style={styles.th}>{d.amtUnit}/jam</Text>
               </View>
-              {titrasiDoses(d).map((dose, i) => {
+              {/* d.tblHi was ignored here while printHtml honoured it, so the printed
+                  norepinefrin label ran to 0,5 while this table stopped at 0,3. */}
+              {titrasiDoses(d, d.tblHi ?? d.hi, st.tstep).map((dose, i) => {
                 const rr = hitungDose(d, st, bb, dose);
                 return (
-                  <View key={i} style={styles.tr}>
+                  <View key={i} style={[styles.tr, dose > d.hi && styles.trHigh]}>
                     <Text style={[styles.td, { flex: 1.4, textAlign: 'left' }]}>{fmt(dose, tdec(d))}</Text>
                     <Text style={styles.td}>{rr ? fmt(rr.laju, 2) : '—'}</Text>
                     <Text style={styles.td}>{rr ? fmt(rr.perJamAmt, 3) : '—'}</Text>
@@ -292,18 +292,21 @@ const makeStyles = (C) => StyleSheet.create({
   readbox: { marginTop: 14, borderRadius: 14, paddingHorizontal: 18, paddingVertical: 16, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   readout: { fontFamily: F.monoBold, fontSize: 38, color: '#fff', letterSpacing: -1 },
   readunit: { fontFamily: F.head6, fontSize: 11, color: 'rgba(255,255,255,.85)', textTransform: 'uppercase', letterSpacing: 1.4 },
+  slowBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 10, backgroundColor: C.warningLight, borderRadius: 8, borderLeftWidth: 4, borderLeftColor: C.warning, padding: 10 },
+  slowTxt: { flex: 1, fontFamily: F.bodyMed, fontSize: 11.5, color: C.warning, lineHeight: 16 },
   meta: { fontFamily: F.mono, fontSize: 11, color: C.ink3, lineHeight: 20, marginTop: 10 },
   metaB: { fontFamily: F.monoBold, color: C.ink },
-  bolusBox: { marginTop: 8, backgroundColor: C.secondaryLight, borderRadius: 10, padding: 12 },
-  bolusRead: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', backgroundColor: C.surface, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, marginTop: 4, borderWidth: 1.5, borderColor: C.secondary },
-  bolusNum: { fontFamily: F.monoBold, fontSize: 28, color: C.secondary, letterSpacing: -0.8 },
-  bolusNum2: { fontFamily: F.monoBold, fontSize: 18, color: C.ink },
-  bolusUnit: { fontFamily: F.head6, fontSize: 9.5, color: C.ink3, textTransform: 'uppercase', letterSpacing: 0.8 },
-  bolusNote: { fontFamily: F.body, fontSize: 11, color: C.ink2, lineHeight: 16, marginTop: 8 },
   summaryRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14, paddingTop: 10, borderTopWidth: 1.5, borderTopColor: C.line2 },
   summaryTxt: { fontFamily: F.head6, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.2, color: C.primary },
   table: { marginTop: 8 },
+  stepRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 10, flexWrap: 'wrap' },
+  stepLbl: { fontFamily: F.body, fontSize: 11.5, color: C.ink3 },
+  stepBtn: { borderWidth: 1.5, borderColor: C.line, borderRadius: 8, paddingVertical: 5, paddingHorizontal: 11 },
+  stepBtnOn: { borderColor: C.primary, backgroundColor: C.primaryLight },
+  stepTxt: { fontFamily: F.mono, fontSize: 12.5, color: C.ink2 },
+  stepTxtOn: { fontFamily: F.monoBold, color: C.primary },
   tr: { flexDirection: 'row', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: C.line2 },
+  trHigh: { backgroundColor: C.warningLight },
   thead: { borderBottomWidth: 2, borderBottomColor: C.line },
   th: { flex: 1, fontFamily: F.head6, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: 0.6, color: C.ink3, textAlign: 'right' },
   td: { flex: 1, fontFamily: F.mono, fontSize: 11.5, color: C.ink, textAlign: 'right' },

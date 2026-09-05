@@ -6,7 +6,9 @@ app = FastAPI(title="PediDrip API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    # A wildcard origin combined with credentials is rejected by every browser.
+    # This API is public and stateless, so credentials are simply not allowed.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -5,3 +5,8 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# build artifacts / source archives
+*.zip
+node_modules/
+dist/

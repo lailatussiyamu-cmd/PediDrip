@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   useFonts, Archivo_600SemiBold, Archivo_700Bold, Archivo_800ExtraBold,
@@ -15,8 +15,7 @@ import { JetBrainsMono_500Medium, JetBrainsMono_700Bold } from '@expo-google-fon
 
 import './src/webfonts';
 import { F, useTheme, ThemeProvider } from './src/theme';
-import { DRUGS, GRUP } from './src/data/drugs';
-import { BOLUS } from './src/data/bolus';
+import { DRUGS, GRUP, TABEL, defaultPreset } from './src/data/drugs';
 import { rapi, fmt, dec, saring, num } from './src/logic/calc';
 import DrugCard from './src/components/DrugCard';
 import SummarySheet from './src/components/SummarySheet';
@@ -27,11 +26,12 @@ const SAVED_KEY = 'pedidrip_saved_presets_v1';
 const makeInitial = () => {
   const s = {};
   DRUGS.forEach((d) => {
-    const p = d.presets[0];
-    const b = BOLUS[d.id];
+    // presets are ordered dilute -> concentrated, so the one to open with is the
+    // marked default, not index 0
+    const i = defaultPreset(d), p = d.presets[i];
     s[d.id] = {
-      preset: 0, amt: rapi(p.amt ?? 0), ml: rapi(p.ml), dose: fmt(d.start, dec(d)),
-      on: false, open: false, bolusDose: b ? String(b.lo).replace('.', ',') : '',
+      preset: i, amt: rapi(p.amt ?? 0), ml: rapi(p.ml), dose: fmt(d.start, dec(d)),
+      on: false, open: false,
     };
   });
   return s;
@@ -88,7 +88,7 @@ function Home() {
   });
 
   const onPrint = async () => {
-    try { await printTherapy(states, bb, { pn, prm }); }
+    try { await printTherapy(states, bb, { pn, prm, ptl, pt }); }
     catch (e) { if (Platform.OS !== 'web') Alert.alert('Gagal mencetak', String(e?.message || e)); }
   };
 
@@ -112,7 +112,7 @@ function Home() {
         <View style={styles.wrap}>
           {/* Weight card */}
           <View style={styles.wcard}>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={styles.wlabel}>Berat badan</Text>
               <View style={styles.wrow}>
                 <TextInput
@@ -122,7 +122,10 @@ function Home() {
                   placeholder="0,0"
                   placeholderTextColor={C.ink3}
                   onChangeText={(v) => setBb(saring(v))}
-                  onBlur={() => setBb(bbNum > 0 ? fmt(bbNum, 1) : '')}
+                  // rapi() normalises without rounding (3,25 kg stays 3,25 kg).
+                  // fmt(bbNum,1) used to round every weight to one decimal, which
+                  // shifted a 0,85 kg neonate's dose by ~6%.
+                  onBlur={() => setBb(bbNum > 0 ? rapi(bbNum) : '')}
                   testID="weight-input"
                 />
                 <Text style={styles.wkg}>kg</Text>
@@ -215,6 +218,9 @@ function Home() {
             <View style={styles.relaxWarn}>
               <Text style={styles.relaxTxt}>Vekuronium & rokuronium melumpuhkan otot tanpa sedasi maupun analgesia. Pastikan sedasi & analgesia adekuat dan pasien terventilasi mekanik sebelum relaksan dijalankan.</Text>
             </View>
+            <Text style={styles.tabelVersi}>
+              Tabel dosis v{TABEL.versi} · ditinjau {TABEL.ditinjau}
+            </Text>
             <Text style={styles.credit}>CREATED BY THE URBAN MAMA · 2026</Text>
           </View>
         </View>
@@ -252,9 +258,11 @@ const makeStyles = (C) => StyleSheet.create({
     ...Platform.select({ web: { boxShadow: '0 10px 15px -3px rgba(0,0,0,.1)' }, default: { elevation: 4, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 6 } } }) },
   wlabel: { fontFamily: F.head6, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.4, color: C.ink3 },
   wrow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 4 },
-  winput: { fontFamily: F.monoBold, fontSize: 40, color: C.ink, padding: 0, minWidth: 100 },
-  wkg: { fontFamily: F.head6, fontSize: 18, color: C.ink3 },
-  wbtns: { gap: 8 },
+  // flexShrink lets a 3-digit weight give ground instead of shoving "kg" under
+  // the Cetak/Baru buttons; minWidth:0 is what actually allows the shrink.
+  winput: { flex: 1, minWidth: 0, fontFamily: F.monoBold, fontSize: 40, color: C.ink, padding: 0 },
+  wkg: { fontFamily: F.head6, fontSize: 18, color: C.ink3, flexShrink: 0 },
+  wbtns: { gap: 8, flexShrink: 0, marginLeft: 12 },
   iconBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1.5, borderColor: C.line, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 12, justifyContent: 'center' },
   iconBtnDanger: { borderColor: C.dangerLight },
   iconBtnTxt: { fontFamily: F.head6, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.6, color: C.primary },
@@ -276,5 +284,6 @@ const makeStyles = (C) => StyleSheet.create({
   fB: { fontFamily: F.bodySemi, color: C.ink },
   relaxWarn: { marginTop: 14, backgroundColor: C.dangerLight, borderLeftWidth: 4, borderLeftColor: C.danger, borderRadius: 8, padding: 12 },
   relaxTxt: { fontFamily: F.bodyMed, fontSize: 12, color: C.danger, lineHeight: 18 },
-  credit: { fontFamily: F.head6, fontSize: 10, letterSpacing: 1.2, color: C.ink3, textAlign: 'center', marginTop: 18, textTransform: 'uppercase' },
+  tabelVersi: { fontFamily: F.mono, fontSize: 11, color: C.ink3, textAlign: 'center', marginTop: 16 },
+  credit: { fontFamily: F.head6, fontSize: 10, letterSpacing: 1.2, color: C.ink3, textAlign: 'center', marginTop: 8, textTransform: 'uppercase' },
 });

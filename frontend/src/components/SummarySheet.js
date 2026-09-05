@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { F, useTheme } from '../theme';
 import { DRUGS } from '../data/drugs';
-import { fmt, rapi, konsen, dec, doseUnit, hitung, effAmt, num } from '../logic/calc';
+import { fmt, rapi, konsen, dec, doseUnit, hitung, effAmt, num, lajuTerlaluPelan, LAJU_MIN } from '../logic/calc';
 
 export default function SummarySheet({ states, bb }) {
   const { C } = useTheme();
@@ -16,7 +16,7 @@ export default function SummarySheet({ states, bb }) {
       <Text style={styles.title}>Lembar terapi infus kontinu</Text>
       <Text style={styles.sub}>
         {aktif.length
-          ? `Berat badan ${w > 0 ? fmt(w, 1) : '—'} kg · ${aktif.length} obat`
+          ? `Berat badan ${w > 0 ? rapi(w) : '—'} kg · ${aktif.length} obat`
           : 'Belum ada obat yang dicentang.'}
       </Text>
 
@@ -42,7 +42,9 @@ export default function SummarySheet({ states, bb }) {
                   <Text style={[styles.td, styles.cPrep]}>{rapi(effAmt(d, st, bb)) || '—'} {d.amtUnit} / {rapi(st.ml) || '—'} mL</Text>
                   <Text style={[styles.td, styles.cConc]}>{r ? konsen(r.conc) : '—'} {d.amtUnit}/mL</Text>
                   <Text style={[styles.td, styles.cDose]}>{isFinite(num(st.dose)) ? fmt(num(st.dose), dec(d)) : '—'} {doseUnit(d)}</Text>
-                  <Text style={[styles.tdRate, styles.cRate]}>{r ? fmt(r.laju, 2) : '—'} mL/jam</Text>
+                  <Text style={[styles.tdRate, styles.cRate, r && lajuTerlaluPelan(r.laju) && styles.tdRateSlow]}>
+                    {r ? fmt(r.laju, 2) : '—'} mL/jam{r && lajuTerlaluPelan(r.laju) ? ' ⚠' : ''}
+                  </Text>
                 </View>
               );
             })}
@@ -52,6 +54,12 @@ export default function SummarySheet({ states, bb }) {
             </View>
           </View>
         </ScrollView>
+      )}
+
+      {aktif.some((d) => { const r = hitung(d, states[d.id], bb); return r && lajuTerlaluPelan(r.laju); }) && (
+        <Text style={styles.slowNote}>
+          ⚠ Laju bertanda di bawah {fmt(LAJU_MIN, 1)} mL/jam — syringe pump sulit menjaga akurasi. Pakai pengenceran yang lebih encer.
+        </Text>
       )}
 
       <View style={styles.sign}>
@@ -75,11 +83,13 @@ const makeStyles = (C) => StyleSheet.create({
   td: { fontFamily: F.mono, fontSize: 11.5, color: C.ink },
   tdName: { fontFamily: F.bodySemi, fontSize: 12.5, color: C.ink },
   tdRate: { fontFamily: F.monoBold, fontSize: 11.5, color: C.primary },
+  tdRateSlow: { color: C.warning },
   cName: { width: 130 },
   cPrep: { width: 150 },
   cConc: { width: 120 },
   cDose: { width: 130 },
   cRate: { width: 100 },
+  slowNote: { fontFamily: F.bodyMed, fontSize: 11.5, color: C.warning, lineHeight: 17, marginTop: 12 },
   sign: { flexDirection: 'row', flexWrap: 'wrap', gap: 20, marginTop: 24 },
   signCol: { flex: 1, minWidth: 120, borderTopWidth: 2, borderTopColor: C.line, paddingTop: 8 },
   signTxt: { fontFamily: F.head6, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.8, color: C.ink3 },

@@ -1,0 +1,32 @@
+name: check
+
+# The dose table is the part of this repo that can hurt someone, and it lives in
+# two files that must stay identical — index.html and frontend/src/data/drugs.js.
+# These checks are the only thing standing between an edit and a wrong number on
+# a syringe label, so they run on every push rather than when someone remembers.
+#
+# Deliberately no install and no build step: scripts/check-calc.mjs is
+# dependency-free, so this job is fast and cannot go red for a reason unrelated
+# to dosing. A check that is always red teaches people to ignore it, which is
+# worse than no check. Add a build job once package-lock.json is committed.
+on:
+  push:
+  pull_request:
+
+jobs:
+  dosing-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Dosing and drug-table checks
+        working-directory: frontend
+        run: node scripts/check-calc.mjs
+
+      - name: Print preview still generates
+        working-directory: frontend
+        run: node scripts/genprint.mjs

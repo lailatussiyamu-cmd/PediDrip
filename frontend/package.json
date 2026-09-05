@@ -24,6 +24,8 @@
     "react-native-web": "^0.21.2"
   },
   "scripts": {
+    "check": "node scripts/check-calc.mjs",
+    "print-preview": "node scripts/genprint.mjs",
     "start": "expo start --web --port 3000",
     "android": "expo start --android",
     "ios": "expo start --ios",

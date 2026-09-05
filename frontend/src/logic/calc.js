@@ -42,10 +42,13 @@ export const tdec = (d) =>
     ? Math.min(3, Math.max(...d.doses.map(nd)))
     : Math.min(3, Math.max(nd(d.tstep || d.step), nd(d.lo), nd(d.hi)));
 
-export function titrasiDoses(d, sampai) {
+// `langkah` overrides the drug's own step, for drugs that offer a choice via
+// d.tsteps (aminofilin titrates by 0,25 or 0,5 depending on response). Passing
+// nothing keeps the drug's default, so every existing caller is unaffected.
+export function titrasiDoses(d, sampai, langkah) {
   const batas = sampai ?? d.hi;
   if (d.doses) return d.doses.slice().sort((a, b) => a - b);
-  const t = d.tstep || d.step, out = [];
+  const t = langkah || d.tstep || d.step, out = [];
   const r = (v) => Math.round(v * 1000) / 1000;
   if (d.lo % t !== 0) out.push(r(d.lo));
   for (let v = Math.ceil(r(d.lo / t)) * t; r(v) <= r(batas) + 1e-9; v += t) {
@@ -57,7 +60,18 @@ export function titrasiDoses(d, sampai) {
 }
 
 export const doseUnit = (d) => `${d.numer}/kg/${d.perMin ? 'menit' : 'jam'}`;
-export const setaraUnit = (d) => `${d.numer}/kg/${d.perMin ? 'jam' : 'menit'}`;
+
+// The "Setara" line flips the time base of the dose. Per-hour doses divide by 60,
+// which for the smaller drugs lands on a figure with too many leading zeros to
+// read at a glance — vasopresin showed "0,00033 unit/kg/menit". Those step down
+// one metric prefix so the number stays legible.
+//
+// The choice is made per drug from its own `lo`, never from the typed dose, so the
+// unit on the card cannot change under the nurse while titrating.
+const SUB_PREFIX = { unit: 'mU', mg: 'mcg', mcg: 'ng' };
+const setaraSub = (d) => (!d.perMin && d.lo / 60 < 0.01 ? SUB_PREFIX[d.numer] : undefined);
+export const setaraUnit = (d) => `${setaraSub(d) || d.numer}/kg/${d.perMin ? 'jam' : 'menit'}`;
+export const setaraValue = (d, setara) => (setaraSub(d) ? setara * 1000 : setara);
 
 // Effective drug amount (mg/mcg/unit) — weight-based presets compute from bb.
 export function effAmt(d, st, bb) {
@@ -92,6 +106,18 @@ export function hitungDose(d, st, bb, dose) {
   return hitung(d, { ...st, dose }, bb);
 }
 
+// The lowest rate the unit's syringe pumps hold reliably. A dose computing under
+// it needs a more dilute preparation, not a slower pump.
+//
+// 0,1 mL/jam is what the pumps in use actually manage. An earlier 0,3 was an
+// assumption, and it flagged four drugs on a 3 kg infant when three of them
+// already had a dilute preparation that cleared the real limit — ketamin 1 mg/mL,
+// rokuronium 2 mg/mL, nicardipin 1:400. A warning that fires that often gets
+// ignored, which is worse than no warning. At 0,1 it fires where it matters:
+// on a default preparation that is genuinely too concentrated for the patient.
+export const LAJU_MIN = 0.1;
+export const lajuTerlaluPelan = (laju) => isFinite(laju) && laju > 0 && laju < LAJU_MIN;
+
 export function status(d, doseStr) {
   const dose = num(doseStr);
   if (!isFinite(dose)) return ['low', 'Dosis belum diisi'];
@@ -101,13 +127,7 @@ export function status(d, doseStr) {
   return ['over', 'Melebihi batas kalkulator'];
 }
 
-// Bolus / loading dose: total drug amount (in amtUnit) and volume (mL) for one push.
-export function bolusCalc(bolus, d, st, bb, doseStr) {
-  const w = num(bb), dose = num(doseStr);
-  if (!bolus || !(w > 0) || !(dose > 0)) return null;
-  const totalAmt = dose * bolus.f * w; // in drug amtUnit
-  const amt = effAmt(d, st, bb), ml = num(st.ml);
-  const conc = amt > 0 && ml > 0 ? amt / ml : null;
-  const vol = conc ? totalAmt / conc : null;
-  return { totalAmt, vol };
-}
+// Bolus / loading doses are deliberately NOT calculated here, matching the web
+// build (index.html): they are given separately from the continuous infusion and
+// several drug notes say so explicitly. Deriving a push volume from the infusion
+// syringe's concentration is not the same syringe the bolus is drawn from.

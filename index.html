@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="utf-8">
@@ -145,6 +145,22 @@ input[type=range]{width:100%;accent-color:var(--primary);margin:14px 0 4px;heigh
 .gauge{position:relative;height:6px;background:var(--sunken);border-radius:99px;margin:2px 0 7px}
 .gauge .band{position:absolute;top:0;bottom:0;background:var(--band);opacity:.4;border-radius:99px}
 .gauge .pin{position:absolute;top:-4px;width:3px;height:14px;background:var(--ink);border-radius:2px}
+/* Peringatan laju di bawah 0,3 mL/jam: di kartu obat, sebagai penanda pada laju
+   di lembar terapi (yang dicek sebelum obat diberikan), dan baris tabel titrasi
+   di atas rentang lazim diarsir seperti di kartu cetak. */
+.slow-warn{margin:8px 0 0;background:var(--warning-light);border-left:4px solid var(--warning);
+           border-radius:8px;padding:9px 11px;font-size:11.5px;line-height:1.45;
+           color:var(--warning);font-weight:500}
+.rate-pelan{color:var(--warning)!important}
+.slow-note{margin:12px 0 0;font-size:11.5px;line-height:1.45;color:var(--warning);font-weight:500}
+.tstep-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:10px 0 4px}
+.tstep-lbl{font-size:11.5px;color:var(--ink3)}
+.tstep-btn{border:1.5px solid var(--line);border-radius:8px;padding:5px 11px;background:transparent;
+  font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12.5px;color:var(--ink2);cursor:pointer}
+.tstep-btn.on{border-color:var(--primary);background:var(--primary-light);color:var(--primary);font-weight:700}
+@media print{ .tstep-row{display:none} }
+tr.atas-lazim td{background:var(--warning-light)}
+@media print{ tr.atas-lazim td{background:#fff8e1} }
 .range-note{font-size:11.5px}
 .range-note.in,.range-note.low{color:var(--ink3)}
 .range-note.high{color:var(--warning);font-weight:600}
@@ -185,7 +201,9 @@ tfoot td{border-bottom:0;border-top:3px solid var(--primary);padding-top:9px;fon
 footer{margin-top:36px;color:var(--ink2);font-size:12px;line-height:1.75;
   border-top:2px solid var(--line);padding-top:18px}
 footer b{color:var(--ink)}
-footer .credit{margin-top:14px;font-size:10.5px;letter-spacing:.08em;color:var(--ink3);
+footer .tabel-versi{margin-top:16px;font-size:11.5px;color:var(--ink3);text-align:center;
+  font-family:"JetBrains Mono",ui-monospace,monospace}
+footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--ink3);
   text-align:center;text-transform:uppercase}
 .relaxwarn{color:var(--danger);font-weight:600;border-left:4px solid var(--danger);
   background:var(--danger-light);padding:12px 16px;border-radius:8px}
@@ -339,30 +357,37 @@ footer .credit{margin-top:14px;font-size:10.5px;letter-spacing:.08em;color:var(-
     <p>Halaman ini tidak menyimpan data pasien. Nama dan nomor rekam medis hanya ada di memori peramban selama halaman terbuka &mdash; tidak dikirim ke mana pun dan tidak tersimpan di perangkat. Menutup atau memuat ulang halaman akan mengosongkan semua isian, dan tombol <b>Pasien baru</b> melakukan hal yang sama secara sengaja &mdash; supaya identitas dan berat badan pasien sebelumnya tidak pernah terbawa ke perhitungan pasien berikutnya.</p>
     <p>Petak warna pada kartu titrasi mengikuti kode warna golongan obat <b>ISO 26825</b> dan hanya berfungsi sebagai pengingat &mdash; label fisik pada syringe tetap dipasang sesuai kebijakan unit. Bila kartu dicetak hitam-putih atau tanpa <i>background graphics</i>, pakai nama warna yang tertulis di sebelah petak.</p>
     <p class="noprint">Vasoaktif diberikan lewat akses sentral bila memungkinkan; epinefrin, norepinefrin, dan dopamin berisiko nekrosis bila ekstravasasi. Norepinefrin dihitung sebagai basa &mdash; periksa apakah sediaan Anda tertulis basa atau bitartrat. Vasopresin dihitung dalam unit/kg/jam. Label fisik syringe tetap mengikuti kode warna ISO 26825.</p>
+    <p class="tabel-versi noprint" id="tabel-versi"></p>
     <p class="credit noprint">CREATED BY THE URBAN MAMA-2026</p>
   </footer>
 </div>
 <script>
 /* ==== definisi obat: satuan dibuat generik supaya mcg/kg/jam, mcg/kg/menit, dan unit/kg/jam ikut tertampung ==== */
+/* Revisi tabel dosis. Naikkan versi ini DAN salinannya di
+   frontend/src/data/drugs.js setiap kali ada lo/hi/cap/preset/note yang berubah,
+   supaya perawat yang membuka halaman ter-cache dan yang memakai build terpasang
+   bisa tahu apakah angkanya sama. Dicetak di tiap label titrasi. */
+const TABEL = { versi:"2026.09.05", ditinjau:"5 September 2026" };
+
 const DRUGS = [
 /* --- sedasi, analgesia, relaksan --- */
   { id:"midazolam", badge:"benzo", nama:"Midazolam", klass:"Benzodiazepin — sedasi", band:"var(--benzo)", grup:"sedasi",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
     lo:1, hi:6, cap:10, step:0.1, start:1, tstep:1,
     presets:[
-      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
-      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
       {t:"0,5 mg/mL — 25 mg dalam 50 mL", amt:25, ml:50},
+      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50, dflt:true},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
       {t:"Tanpa pengenceran — 5 mg/mL", amt:50, ml:10}],
-    note:"Sedasi 1–4 mcg/kg/menit (setara 0,06–0,24 mg/kg/jam), titrasi sesuai skor sedasi. Awasi depresi napas dan hipotensi, terutama bila dikombinasi opioid. Neonatus lebih sensitif — mulai dari dosis terendah." },
+    note:"Sedasi 1–6 mcg/kg/menit (setara 0,06–0,36 mg/kg/jam), titrasi sesuai skor sedasi. Awasi depresi napas dan hipotensi, terutama bila dikombinasi opioid. Neonatus lebih sensitif — mulai dari dosis terendah." },
 
   { id:"fentanil", badge:"opioid", nama:"Fentanil", klass:"Opioid — analgesia", band:"var(--opioid)", grup:"sedasi",
     amtUnit:"mcg", numer:"mcg", perMin:false, conv:1,
     lo:1, hi:5, cap:10, step:0.1, start:1, tstep:1,
     presets:[
-      {t:"10 mcg/mL — 500 mcg dalam 50 mL", amt:500, ml:50},
-      {t:"20 mcg/mL — 1000 mcg dalam 50 mL", amt:1000, ml:50},
       {t:"5 mcg/mL — 250 mcg dalam 50 mL", amt:250, ml:50},
+      {t:"10 mcg/mL — 500 mcg dalam 50 mL", amt:500, ml:50, dflt:true},
+      {t:"20 mcg/mL — 1000 mcg dalam 50 mL", amt:1000, ml:50},
       {t:"Tanpa pengenceran — 50 mcg/mL", amt:500, ml:10}],
     note:"Infus kontinu 1–5 mcg/kg/jam, titrasi sesuai skor nyeri dan sedasi. Dosis bolus (1–2 mcg/kg) diberikan terpisah. Bolus cepat dapat memicu rigiditas dinding dada. Pemakaian lama menimbulkan toleransi dan gejala putus obat — turunkan bertahap." },
 
@@ -370,37 +395,40 @@ const DRUGS = [
     amtUnit:"mg", numer:"mcg", perMin:false, conv:0.001,
     lo:10, hi:40, cap:60, step:1, start:10, tstep:5,
     presets:[
-      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
+      {t:"0,1 mg/mL — 5 mg dalam 50 mL (neonatus)", amt:5, ml:50},
       {t:"0,5 mg/mL — 25 mg dalam 50 mL", amt:25, ml:50},
-      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
-      {t:"0,1 mg/mL — 5 mg dalam 50 mL (neonatus)", amt:5, ml:50}],
+      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50, dflt:true},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50}],
     note:"Infus kontinu 10–40 mcg/kg/jam (0,01–0,04 mg/kg/jam). Neonatus mulai 5–10 mcg/kg/jam karena klirens belum matang. Awasi depresi napas, hipotensi, dan pelepasan histamin. Turunkan bertahap setelah pemakaian lama." },
 
   { id:"deksmedetomidin", badge:"alpha", nama:"Deksmedetomidin", klass:"Agonis alfa-2 — sedasi", band:"var(--alpha)", grup:"sedasi",
     amtUnit:"mcg", numer:"mcg", perMin:false, conv:1,
-    lo:0.2, hi:1, cap:1.5, step:0.05, start:0.4, tstep:0.1,
+    /* noSetara: deksmedetomidin dipakai dalam mcg/kg/jam saja — ekuivalensi
+       per-menitnya bukan bentuk yang dipakai siapa pun, dan angkanya terlalu
+       kecil sampai butuh nanogram agar terbaca. Barisnya dihilangkan. */
+    lo:0.2, hi:1, cap:1.5, step:0.05, start:0.4, tstep:0.1, noSetara:true,
     presets:[
-      {t:"4 mcg/mL — 200 mcg dalam 50 mL", amt:200, ml:50},
-      {t:"8 mcg/mL — 400 mcg dalam 50 mL", amt:400, ml:50},
-      {t:"2 mcg/mL — 100 mcg dalam 50 mL", amt:100, ml:50}],
+      {t:"2 mcg/mL — 100 mcg dalam 50 mL", amt:100, ml:50},
+      {t:"4 mcg/mL — 200 mcg dalam 50 mL", amt:200, ml:50, dflt:true},
+      {t:"8 mcg/mL — 400 mcg dalam 50 mL", amt:400, ml:50}],
     note:"Rumatan 0,2–1 mcg/kg/jam. Dosis muat (0,5–1 mcg/kg selama 10 menit) sering dilewati pada anak karena memicu bradikardia dan hipotensi. Pantau laju jantung dan tekanan darah; sedasi tanpa depresi napas berarti." },
 
   { id:"ketamin", badge:"induksi", nama:"Ketamin", klass:"Sedasi — analgesia", band:"var(--induksi)", grup:"sedasi",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
     lo:1, hi:6, cap:10, step:1, start:1, doses:[1,2,3,4,5,6],
     presets:[
-      {t:"10 mg/mL — 500 mg dalam 50 mL", amt:500, ml:50},
-      {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50},
+      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
       {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
-      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50}],
+      {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50},
+      {t:"10 mg/mL — 500 mg dalam 50 mL", amt:500, ml:50, dflt:true}],
     note:"Sedasi dan analgesia 1–6 mcg/kg/menit (setara 0,06–0,36 mg/kg/jam). Relatif mempertahankan tekanan darah dan bersifat bronkodilator, berguna pada status asmatikus dan syok. Hipersalivasi dan fenomena emergensi mungkin muncul; pertimbangkan kombinasi benzodiazepin." },
 
   { id:"vekuronium", badge:"relax", nama:"Vekuronium", klass:"Relaksan otot", band:"var(--relax)", grup:"sedasi",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
     lo:0.8, hi:1.7, cap:3, step:0.1, start:1, tstep:0.2,
     presets:[
-      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
       {t:"0,4 mg/mL — 20 mg dalam 50 mL", amt:20, ml:50},
+      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50, dflt:true},
       {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50}],
     note:"WAJIB disertai sedasi dan analgesia adekuat serta ventilasi mekanik — relaksan tidak memberi efek sedasi maupun analgesia. Rumatan 0,8–1,7 mcg/kg/menit (0,05–0,1 mg/kg/jam). Pantau kedalaman blokade dengan TOF dan hentikan berkala untuk menilai kesadaran." },
 
@@ -408,8 +436,8 @@ const DRUGS = [
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
     lo:3, hi:12, cap:20, step:0.5, start:5, tstep:1,
     presets:[
-      {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50},
       {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
+      {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50, dflt:true},
       {t:"Tanpa pengenceran — 10 mg/mL", amt:500, ml:50}],
     note:"WAJIB disertai sedasi dan analgesia adekuat serta ventilasi mekanik. Rumatan 3–12 mcg/kg/menit (0,18–0,72 mg/kg/jam). Pantau TOF. Awasi akumulasi pada gangguan hati dan ginjal." },
 
@@ -418,7 +446,7 @@ const DRUGS = [
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
     lo:0.05, hi:0.3, cap:1, step:0.01, start:0.05, tstep:0.05,
     presets:[
-      {t:"Rule of 0,6 — 1 mL/jam = 0,1 mcg/kg/menit", amtPerKg:0.3, ml:50},
+      {t:"Rule of 0,6 — 1 mL/jam = 0,1 mcg/kg/menit", amtPerKg:0.3, ml:50, dflt:true},
       {t:"20 mcg/mL — 1 mg dalam 50 mL", amt:1, ml:50},
       {t:"40 mcg/mL — 2 mg dalam 50 mL", amt:2, ml:50},
       {t:"80 mcg/mL — 4 mg dalam 50 mL", amt:4, ml:50}],
@@ -428,85 +456,89 @@ const DRUGS = [
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
     lo:0.05, hi:0.3, cap:1, step:0.01, start:0.05, tstep:0.05, tblHi:0.5,
     presets:[
-      {t:"Rule of 0,6 — 1 mL/jam = 0,1 mcg/kg/menit", amtPerKg:0.3, ml:50},
+      {t:"Rule of 0,6 — 1 mL/jam = 0,1 mcg/kg/menit", amtPerKg:0.3, ml:50, dflt:true},
+      {t:"40 mcg/mL — 2 mg dalam 50 mL", amt:2, ml:50},
       {t:"80 mcg/mL — 4 mg dalam 50 mL", amt:4, ml:50},
-      {t:"160 mcg/mL — 8 mg dalam 50 mL", amt:8, ml:50},
-      {t:"40 mcg/mL — 2 mg dalam 50 mL", amt:2, ml:50}],
+      {t:"160 mcg/mL — 8 mg dalam 50 mL", amt:8, ml:50}],
     note:"Mulai 0,05 mcg/kg/menit, titrasi sesuai target MAP menurut usia; rentang lazim 0,05–0,3 mcg/kg/menit, dapat dinaikkan sampai 1 mcg/kg/menit pada syok refrakter. Berikan lewat akses sentral bila memungkinkan karena risiko nekrosis bila ekstravasasi." },
 
   { id:"dopamin", badge:"vaso", nama:"Dopamin", klass:"Vasopresor / inotropik", band:"var(--vaso)", grup:"vaso",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
     lo:3, hi:20, cap:30, step:0.5, start:5, tstep:2.5,
     presets:[
-      {t:"Rule of 6 — 1 mL/jam = 1 mcg/kg/menit", amtPerKg:3, ml:50},
+      {t:"Rule of 6 — 1 mL/jam = 1 mcg/kg/menit", amtPerKg:3, ml:50, dflt:true},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
       {t:"4 mg/mL — 200 mg dalam 50 mL", amt:200, ml:50},
-      {t:"8 mg/mL — 400 mg dalam 50 mL", amt:400, ml:50},
-      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50}],
+      {t:"8 mg/mL — 400 mg dalam 50 mL", amt:400, ml:50}],
     note:"Rentang lazim 3–20 mcg/kg/menit; efek bergeser dari inotropik ke vasokonstriksi seiring naiknya dosis. Di atas 20 mcg/kg/menit vasokonstriksi dominan. Ekstravasasi berisiko nekrosis — utamakan akses sentral." },
 
   { id:"dobutamin", badge:"vaso", nama:"Dobutamin", klass:"Inotropik", band:"var(--vaso)", grup:"vaso",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
     lo:3, hi:20, cap:40, step:0.5, start:5, tstep:2.5,
     presets:[
-      {t:"Rule of 6 — 1 mL/jam = 1 mcg/kg/menit", amtPerKg:3, ml:50},
+      {t:"Rule of 6 — 1 mL/jam = 1 mcg/kg/menit", amtPerKg:3, ml:50, dflt:true},
+      {t:"2,5 mg/mL — 125 mg dalam 50 mL", amt:125, ml:50},
       {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50},
-      {t:"10 mg/mL — 500 mg dalam 50 mL", amt:500, ml:50},
-      {t:"2,5 mg/mL — 125 mg dalam 50 mL", amt:125, ml:50}],
+      {t:"10 mg/mL — 500 mg dalam 50 mL", amt:500, ml:50}],
     note:"Rentang lazim 3–20 mcg/kg/menit. Di atas 20 mcg/kg/menit risiko takiaritmia meningkat. Pantau nadi, irama, dan perfusi." },
 
   { id:"milrinon", badge:"vaso", nama:"Milrinon", klass:"Inodilator", band:"var(--vaso)", grup:"vaso",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
-    lo:0.25, hi:2, cap:2.5, step:0.05, start:0.25, tstep:0.25,
+    lo:0.25, hi:0.75, cap:1, step:0.05, start:0.25, tstep:0.25, tblHi:1,
     presets:[
-      {t:"200 mcg/mL — 10 mg dalam 50 mL", amt:10, ml:50},
       {t:"100 mcg/mL — 5 mg dalam 50 mL", amt:5, ml:50},
+      {t:"200 mcg/mL — 10 mg dalam 50 mL", amt:10, ml:50, dflt:true},
       {t:"400 mcg/mL — 20 mg dalam 50 mL", amt:20, ml:50}],
-    note:"Rumatan 0,25–0,75 mcg/kg/menit. Bersifat vasodilator — hipotensi mungkin muncul, terutama bila volume intravaskular kurang. Ekskresi lewat ginjal: turunkan dosis pada gangguan fungsi ginjal karena mudah menumpuk." },
+    note:"Rumatan 0,25–0,75 mcg/kg/menit; sebagian protokol menaikkan sampai 1 mcg/kg/menit. Bersifat vasodilator — hipotensi mungkin muncul, terutama bila volume intravaskular kurang. Ekskresi lewat ginjal: turunkan dosis pada gangguan fungsi ginjal karena mudah menumpuk." },
 
   { id:"vasopresin", badge:"vaso", nama:"Vasopresin", klass:"Vasopresor", band:"var(--vaso)", grup:"vaso",
     amtUnit:"unit", numer:"unit", perMin:false, conv:1,
-    lo:0.05, hi:0.15, cap:0.3, step:0.01, start:0.05, tstep:0.05,
+    lo:0.01, hi:0.05, cap:0.12, step:0.01, start:0.02, tstep:0.01, tblHi:0.1,
     presets:[
-      {t:"1 unit/mL — 50 unit dalam 50 mL", amt:50, ml:50},
+      {t:"0,1 unit/mL — 5 unit dalam 50 mL (bayi)", amt:5, ml:50},
       {t:"0,4 unit/mL — 20 unit dalam 50 mL", amt:20, ml:50},
+      {t:"1 unit/mL — 50 unit dalam 50 mL", amt:50, ml:50, dflt:true},
       {t:"2 unit/mL — 100 unit dalam 50 mL", amt:100, ml:50}],
-    note:"Dosis dinyatakan dalam unit/kg/jam: rentang lazim 0,05–0,15 unit/kg/jam. Dipakai sebagai tambahan pada syok vasodilatasi yang tidak responsif katekolamin. Pantau perfusi distal, natrium, dan keluaran urine; risiko iskemia jari dan kulit." },
+    note:"Dosis dinyatakan dalam unit/kg/jam: rentang lazim 0,01–0,05 unit/kg/jam (setara 0,17–0,83 mU/kg/menit); sebagian protokol menaikkan sampai 0,12 unit/kg/jam (2 mU/kg/menit) atas persetujuan konsultan. Dipakai sebagai tambahan pada syok vasodilatasi yang tidak responsif katekolamin. Pada bayi pakai pengenceran 0,1 unit/mL agar laju pump terukur. Pantau perfusi distal, natrium, dan keluaran urine; risiko iskemia jari dan kulit." },
 
 /* --- diuretik --- */
   { id:"furosemide", badge:"diur", nama:"Furosemide", klass:"Diuretik loop", band:"var(--diur)", grup:"lain",
     amtUnit:"mg", numer:"mg", perMin:false, conv:1,
     lo:0.1, hi:0.7, cap:0.8, step:0.01, start:0.1, tstep:0.1,
     presets:[
-      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50},
-      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
       {t:"0,5 mg/mL — 25 mg dalam 50 mL", amt:25, ml:50},
+      {t:"1 mg/mL — 50 mg dalam 50 mL", amt:50, ml:50, dflt:true},
+      {t:"2 mg/mL — 100 mg dalam 50 mL", amt:100, ml:50},
       {t:"Tanpa pengenceran — 10 mg/mL", amt:100, ml:10}],
-    note:"Infus kontinu 0,1–0,4 mg/kg/jam. Dosis bolus awal (0,5–1 mg/kg) diberikan terpisah dan tidak dihitung di sini. Pantau balans cairan, kalium, natrium, dan fungsi ginjal." },
+    note:"Infus kontinu 0,1–0,7 mg/kg/jam. Dosis bolus awal (0,5–1 mg/kg) diberikan terpisah dan tidak dihitung di sini. Pantau balans cairan, kalium, natrium, dan fungsi ginjal." },
 
 /* --- endokrin / metabolik --- */
   { id:"insulin", badge:"horm", nama:"Insulin", klass:"Hormon — kontrol glukosa", band:"var(--diur)", grup:"lain",
     amtUnit:"unit", numer:"unit", perMin:false, conv:1,
     lo:0.05, hi:0.1, cap:0.15, step:0.01, start:0.05, doses:[0.05,0.06,0.07,0.08,0.09,0.1],
     presets:[
-      {t:"1 unit/mL — 50 unit dalam 50 mL", amt:50, ml:50},
+      {t:"0,1 unit/mL — 5 unit dalam 50 mL", amt:5, ml:50},
       {t:"0,5 unit/mL — 25 unit dalam 50 mL", amt:25, ml:50},
-      {t:"0,1 unit/mL — 5 unit dalam 50 mL", amt:5, ml:50}],
+      {t:"1 unit/mL — 50 unit dalam 50 mL", amt:50, ml:50, dflt:true}],
     note:"Dosis dinyatakan dalam unit/kg/jam: mulai 0,05 unit/kg/jam, titrasi sesuai protokol dan target gula darah unit. Insulin melekat pada dinding selang plastik — bilas/priming set infus sebelum disambung ke pasien. Pantau gula darah berkala dan kalium; obat kewaspadaan tinggi, double check 2 perawat." },
 
   { id:"aminofilin", badge:"resp", nama:"Aminofilin", klass:"Bronkodilator — metilxantin", band:"var(--diur)", grup:"lain",
     amtUnit:"mg", numer:"mg", perMin:false, conv:1,
-    lo:0.5, hi:1.75, cap:2, step:0.05, start:0.5, doses:[0.5,0.75,1,1.5,1.75],
+    /* tsteps: note-nya menyebut kenaikan 0,25–0,5 sesuai respons, jadi kartu
+       memberi pilihan; tstep adalah default di antara keduanya. */
+    lo:0.5, hi:1.75, cap:2, step:0.05, start:0.5, tstep:0.25, tsteps:[0.25,0.5],
     presets:[
-      {t:"Tanpa pengenceran — 24 mg/mL (ampul 240 mg/10 mL)", amt:240, ml:10}],
-    note:"Rumatan mulai 0,5 mg/kg/jam, titrasi tiap 0,5 mg/kg/jam sesuai respons dan kadar teofilin bila tersedia. Dosis muat (loading dose) diberikan terpisah dan tidak dihitung di sini. Awasi takikardia, aritmia, mual, dan kejang pada kadar toksik; jendela terapi sempit." },
+      {t:"5 mg/mL — 250 mg dalam 50 mL", amt:250, ml:50},
+      {t:"Tanpa pengenceran — 24 mg/mL (ampul 240 mg/10 mL)", amt:240, ml:10, dflt:true}],
+    note:"Rumatan mulai 0,5 mg/kg/jam, titrasi tiap 0,25–0,5 mg/kg/jam sesuai respons dan kadar teofilin bila tersedia. Dosis muat (loading dose) diberikan terpisah dan tidak dihitung di sini. Awasi takikardia, aritmia, mual, dan kejang pada kadar toksik; jendela terapi sempit." },
 
   { id:"nicardipin", badge:"vaso", nama:"Nicardipin", klass:"Antihipertensi — CCB", band:"var(--vaso)", grup:"vaso",
     amtUnit:"mg", numer:"mcg", perMin:true, conv:0.001,
     lo:0.5, hi:4, cap:5, step:0.05, start:0.5, tstep:0.5,
     presets:[
-      {t:"Tanpa pengenceran — 1000 mcg/mL (ampul 25 mg/25 mL)", amt:25, ml:25},
       {t:"1:400 (bayi) — 400 mcg/mL, 20 mg dalam 50 mL", amt:20, ml:50},
-      {t:"1:500 (bayi) — 500 mcg/mL, 25 mg dalam 50 mL", amt:25, ml:50}],
+      {t:"1:500 (bayi) — 500 mcg/mL, 25 mg dalam 50 mL", amt:25, ml:50},
+      {t:"Tanpa pengenceran — 1000 mcg/mL (ampul 25 mg/25 mL)", amt:25, ml:25, dflt:true}],
     note:"Mulai 0,5 mcg/kg/menit, titrasi sesuai target tekanan darah. Pada bayi pengenceran 1:400 atau 1:500 mcg/mL lazim dipakai agar laju infus lebih terukur. Utamakan akses sentral bila memungkinkan; ekstravasasi berisiko iritasi jaringan." }
 ];
 
@@ -537,9 +569,15 @@ const byId = id => DRUGS.find(d => d.id === id);
 const el   = id => document.getElementById(id);
 
 const state = {};
+/* Sediaan diurutkan encer -> pekat, jadi yang dipakai saat kartu dibuka adalah
+   yang ditandai dflt, bukan indeks 0. Sediaan paling encer bukan pilihan yang
+   tepat untuk dibuka: vasopresin 0,1 unit/mL akan menjalankan remaja 40 kg di
+   20 mL/jam. Pilihan encer ada untuk pasien kecil yang memang membutuhkannya. */
+const defaultPreset = d => { const i = d.presets.findIndex(p => p.dflt); return i < 0 ? 0 : i; };
+
 DRUGS.forEach(d => {
-  const p = d.presets[0];
-  state[d.id] = { preset:0, amt:p.amt ?? 0, ml:p.ml, dose:d.start, on:false };
+  const i = defaultPreset(d), p = d.presets[i];
+  state[d.id] = { preset:i, amt:p.amt ?? 0, ml:p.ml, dose:d.start, on:false };
 });
 let hanyaDicentang = false, rafId = null, sedangUpdate = false;
 
@@ -606,10 +644,12 @@ const tdec = d => d.doses
    Untuk kartu cetak, beberapa obat (mis. norepinefrin) punya d.tblHi supaya
    opsi dosis di atas rentang lazim — yang memang dipakai pada syok refrakter —
    ikut tercetak, tanpa mengubah definisi "rentang lazim" itu sendiri. */
-function titrasiDoses(d, sampai){
+/* `langkah` menimpa langkah bawaan obat, untuk obat yang menawarkan pilihan lewat
+   d.tsteps. Tanpa argumen itu, perilakunya persis seperti sebelumnya. */
+function titrasiDoses(d, sampai, langkah){
   const batas = sampai ?? d.hi;
   if (d.doses) return d.doses.slice().sort((a,b) => a - b);
-  const t = d.tstep || d.step, out = [];
+  const t = langkah || d.tstep || d.step, out = [];
   const r = v => Math.round(v * 1000) / 1000;
   if (d.lo % t !== 0) out.push(r(d.lo));
   for (let v = Math.ceil(r(d.lo / t)) * t; r(v) <= r(batas) + 1e-9; v += t){
@@ -619,8 +659,28 @@ function titrasiDoses(d, sampai){
   if (!out.includes(r(batas))) out.push(r(batas));
   return out.sort((a,b) => a - b);
 }
-const doseUnit   = d => `${d.numer}/kg/${d.perMin ? "menit" : "jam"}`;
-const setaraUnit = d => `${d.numer}/kg/${d.perMin ? "jam" : "menit"}`;
+const doseUnit = d => `${d.numer}/kg/${d.perMin ? "menit" : "jam"}`;
+
+/* Baris "Setara" membalik basis waktu dosis. Dosis per jam dibagi 60, yang untuk
+   obat-obat kecil jatuh ke angka dengan terlalu banyak nol di depan — vasopresin
+   dulu tampil "0,00033 unit/kg/menit". Obat seperti itu turun satu prefiks metrik.
+   Pilihannya diambil per obat dari `lo`-nya, bukan dari dosis yang diketik, supaya
+   satuan di kartu tidak berubah di tengah titrasi. */
+const SUB_PREFIX = { unit:"mU", mg:"mcg", mcg:"ng" };
+const setaraSub   = d => (!d.perMin && d.lo / 60 < 0.01) ? SUB_PREFIX[d.numer] : undefined;
+const setaraUnit  = d => `${setaraSub(d) || d.numer}/kg/${d.perMin ? "jam" : "menit"}`;
+const setaraValue = (d, setara) => setaraSub(d) ? setara * 1000 : setara;
+
+/* Laju terendah yang masih dipegang andal oleh syringe pump di unit. Dosis yang
+   jatuh di bawahnya butuh pengenceran lebih encer — bukan pump yang lebih pelan.
+
+   0,1 mL/jam adalah kemampuan pump yang dipakai. Angka 0,3 sebelumnya cuma asumsi,
+   dan menandai empat obat pada bayi 3 kg padahal tiga di antaranya sudah punya
+   pengenceran yang lolos batas sebenarnya — ketamin 1 mg/mL, rokuronium 2 mg/mL,
+   nicardipin 1:400. Peringatan yang terlalu sering muncul akan diabaikan, dan itu
+   lebih buruk daripada tidak ada peringatan. */
+const LAJU_MIN = 0.1;
+const lajuTerlaluPelan = laju => isFinite(laju) && laju > 0 && laju < LAJU_MIN;
 
 function hitung(d, s, bb){
   const amt = num(s.amt), ml = num(s.ml), dose = num(s.dose), w = num(bb);
@@ -644,12 +704,23 @@ function status(d, dose){
   return ["over", "Melebihi batas kalkulator"];
 }
 
-function concText(d, r){
-  if (!r) return "Konsentrasi — menunggu berat badan";
-  let s = `Konsentrasi ${konsen(r.conc)} ${d.amtUnit}/mL`;
-  if (d.amtUnit === "mg")   s += ` &nbsp;·&nbsp; ${fmt(r.conc * 1000, 0)} mcg/mL`;
-  if (d.amtUnit === "unit") s += ` &nbsp;·&nbsp; ${fmt(r.conc * 1000, 0)} mU/mL`;
-  return s;
+/* Konsentrasi adalah jumlah obat dibagi volume — tidak bergantung berat badan.
+   Dulu baris ini ikut menunggu BB, padahal perawat sudah butuh angkanya saat
+   mengoplos syringe, sebelum BB diketik. */
+function concText(d, s, bb){
+  const a = num(s.amt), v = num(s.ml);
+  const conc = a > 0 && v > 0 ? a / v : NaN;
+  const wb = (() => { const p = s.preset >= 0 ? d.presets[s.preset] : null; return !!(p && p.amtPerKg !== undefined); })();
+  if (!isFinite(conc) || conc <= 0){
+    return wb && !(num(bb) > 0)
+      ? "Konsentrasi — sediaan ini dihitung dari berat badan"
+      : "Konsentrasi — lengkapi jumlah obat &amp; volume";
+  }
+  const r = { conc };
+  let s2 = `Konsentrasi ${konsen(r.conc)} ${d.amtUnit}/mL`;
+  if (d.amtUnit === "mg")   s2 += ` &nbsp;·&nbsp; ${fmt(r.conc * 1000, 0)} mcg/mL`;
+  if (d.amtUnit === "unit") s2 += ` &nbsp;·&nbsp; ${fmt(r.conc * 1000, 0)} mU/mL`;
+  return s2;
 }
 
 /* Satu sumber untuk layar dan cetak supaya keduanya tidak pernah berbeda. */
@@ -682,8 +753,8 @@ function cardHTML(d){
 
     <p class="lbl">Sediaan dalam syringe</p>
     <select id="sel-${d.id}" data-preset="${d.id}" aria-label="Sediaan ${d.nama}">
-      ${d.presets.map((x, i) => `<option value="${i}">${x.t}</option>`).join("")}
-      <option value="-1">Sediaan lain (isi sendiri)</option>
+      ${d.presets.map((x, i) => `<option value="${i}"${i === s.preset ? " selected" : ""}>${x.t}</option>`).join("")}
+      <option value="-1"${s.preset === -1 ? " selected" : ""}>Sediaan lain (isi sendiri)</option>
     </select>
     <div class="prep">
       <input id="amt-${d.id}" type="text" inputmode="decimal" data-amt="${d.id}" value="${rapi(s.amt)}" placeholder="0" aria-label="Jumlah ${d.nama} dalam ${d.amtUnit}">
@@ -709,10 +780,16 @@ function cardHTML(d){
       <span class="readout" id="read-${d.id}">––,––</span>
       <span class="readunit">mL / jam</span>
     </div>
+    <p class="slow-warn" id="slow-${d.id}" hidden></p>
     <p class="meta" id="meta-${d.id}"></p>
 
     <details>
       <summary>Tabel titrasi</summary>
+      ${d.tsteps ? `<div class="tstep-row" id="tstep-${d.id}">
+        <span class="tstep-lbl">Naik tiap</span>
+        ${d.tsteps.map(v => `<button type="button" class="tstep-btn" data-tstep="${d.id}" data-val="${v}">${fmt(v, tdec(d))}</button>`).join("")}
+        <span class="tstep-lbl">${doseUnit(d)}</span>
+      </div>` : ""}
       <div class="tscroll"><table>
         <thead><tr><th>Dosis (${doseUnit(d)})</th><th>mL/jam</th><th>${d.amtUnit}/jam</th></tr></thead>
         <tbody id="tbl-${d.id}"></tbody>
@@ -739,8 +816,14 @@ function update(d){
     }
 
     const r = hitung(d, s, bb), D = dec(d);
+    /* Dropdown sediaan harus selalu menunjuk state, bukan sekadar item pertama.
+       Selama default selalu indeks 0 hal ini kebetulan benar; begitu urutan
+       sediaan dirapikan, dropdown bisa menampilkan sediaan yang berbeda dari
+       jumlah obat & volume di bawahnya. */
+    const sel = el(`sel-${d.id}`);
+    if (sel && Number(sel.value) !== s.preset) sel.value = String(s.preset);
     el(`card-${d.id}`).classList.toggle("idle", !bb);
-    el(`conc-${d.id}`).innerHTML = concText(d, r);
+    el(`conc-${d.id}`).innerHTML = concText(d, s, bb);
 
     const [cls, txt] = status(d, s.dose);
     const note = el(`note-${d.id}`);
@@ -750,8 +833,18 @@ function update(d){
       Math.min(100, Math.max(0, ((isFinite(s.dose) ? s.dose : 0) / d.cap) * 100)) + "%";
 
     el(`read-${d.id}`).textContent = r ? fmt(r.laju, 2) : "––,––";
+    const pelan = !!(r && lajuTerlaluPelan(r.laju));
+    el(`card-${d.id}`).classList.toggle("laju-pelan", pelan);
+    const slow = el(`slow-${d.id}`);
+    if (slow){
+      slow.hidden = !pelan;
+      slow.textContent = pelan
+        ? `Di bawah ${fmt(LAJU_MIN, 1)} mL/jam syringe pump sulit menjaga akurasi. Pakai pengenceran yang lebih encer.`
+        : "";
+    }
+    const sv = r ? setaraValue(d, r.setara) : NaN;
     el(`meta-${d.id}`).innerHTML =
-        `Setara <b>${r ? fmt(r.setara, r.setara < 0.01 ? 5 : (r.setara < 1 ? 3 : 2)) : "—"} ${setaraUnit(d)}</b><br>`
+        (d.noSetara ? "" : `Setara <b>${r ? fmt(sv, sv < 0.01 ? 5 : (sv < 1 ? 3 : 2)) : "—"} ${setaraUnit(d)}</b><br>`)
       + `Total <b>${r ? fmt(r.perJamAmt, 3) : "—"} ${d.amtUnit}/jam</b> · `
       + `${r ? fmt(r.perJamAmt * 24, 2) : "—"} ${d.amtUnit}/24 jam<br>`
       + `Syringe ${rapi(s.ml) || "—"} mL habis dalam `
@@ -759,9 +852,19 @@ function update(d){
 
     let rows = "";
     const TD = tdec(d);
-    for (const dose of titrasiDoses(d)){
+    /* d.tblHi dulu diabaikan di sini padahal kartu cetak memakainya, sehingga
+       tabel norepinefrin di layar berhenti di 0,30 sementara label yang ditempel
+       di pump berlanjut sampai 0,50. Keduanya kini memakai batas yang sama. */
+    if (d.tsteps){
+      const aktif = s.tstep ?? d.tstep;
+      document.querySelectorAll(`[data-tstep="${d.id}"]`).forEach(b => {
+        b.classList.toggle("on", Number(b.dataset.val) === aktif);
+      });
+    }
+    for (const dose of titrasiDoses(d, d.tblHi ?? d.hi, s.tstep)){
       const rr = hitung(d, { ...s, dose }, bb);
-      rows += `<tr><td>${fmt(dose, TD)}</td><td>${rr ? fmt(rr.laju, 2) : "—"}</td>`
+      rows += `<tr${dose > d.hi ? ' class="atas-lazim"' : ""}><td>${fmt(dose, TD)}</td>`
+            + `<td>${rr ? fmt(rr.laju, 2) : "—"}</td>`
             + `<td>${rr ? fmt(rr.perJamAmt, 3) : "—"}</td></tr>`;
     }
     el(`tbl-${d.id}`).innerHTML = rows;
@@ -784,7 +887,10 @@ function sumHTML(){
     const lb = el("labels"); if (lb) lb.innerHTML = "";
     return;
   }
-  sub.textContent = `Berat badan ${bb ? fmt(bb, 1) : "—"} kg · ${aktif.length} obat`;
+  /* rapi() menampilkan berat apa adanya; fmt(bb,1) dulu menulis "3,3 kg" untuk
+     bayi 3,25 kg — lembar terapi mendokumentasikan berat yang bukan berat yang
+     dipakai menghitung. */
+  sub.textContent = `Berat badan ${bb ? rapi(bb) : "—"} kg · ${aktif.length} obat`;
   let rows = "", total = 0;
   aktif.forEach(d => {
     const s = state[d.id], r = hitung(d, s, bb);
@@ -793,13 +899,16 @@ function sumHTML(){
           + `<td>${rapi(s.amt) || "—"} ${d.amtUnit} / ${rapi(s.ml) || "—"} mL</td>`
           + `<td>${r ? konsen(r.conc) : "—"} ${d.amtUnit}/mL</td>`
           + `<td>${isFinite(s.dose) ? fmt(s.dose, dec(d)) : "—"} ${doseUnit(d)}</td>`
-          + `<td class="rate">${r ? fmt(r.laju, 2) : "—"} mL/jam</td></tr>`;
+          + `<td class="rate${r && lajuTerlaluPelan(r.laju) ? " rate-pelan" : ""}">`
+          + `${r ? fmt(r.laju, 2) : "—"} mL/jam${r && lajuTerlaluPelan(r.laju) ? " ⚠" : ""}</td></tr>`;
   });
+  const adaPelan = aktif.some(d => { const rr = hitung(d, state[d.id], bb); return rr && lajuTerlaluPelan(rr.laju); });
   body.innerHTML = `<div class="tscroll"><table>`
     + `<thead><tr><th>Obat</th><th>Sediaan</th><th>Konsentrasi</th><th>Dosis</th><th>Laju pump</th></tr></thead>`
     + `<tbody>${rows}</tbody>`
     + `<tfoot><tr><td colspan="4">Total cairan dari infus kontinu</td>`
-    + `<td class="rate">${fmt(total, 2)} mL/jam</td></tr></tfoot></table></div>`;
+    + `<td class="rate">${fmt(total, 2)} mL/jam</td></tr></tfoot></table></div>`
+    + (adaPelan ? `<p class="slow-note">⚠ Laju bertanda di bawah ${fmt(LAJU_MIN, 1)} mL/jam — syringe pump sulit menjaga akurasi. Pakai pengenceran yang lebih encer.</p>` : "");
   labelHTML(aktif, bb);
 }
 
@@ -830,7 +939,7 @@ function labelHTML(aktif, bb){
     const s = state[d.id], r0 = hitung(d, s, bb);
     const TD = tdec(d);
     const batasTabel = d.tblHi ?? d.hi;
-    const baris = titrasiDoses(d, batasTabel).map(dose => {
+    const baris = titrasiDoses(d, batasTabel, s.tstep).map(dose => {
       const rr = hitung(d, { ...s, dose }, bb);
       const ext = dose > d.hi ? ' class="tcard-ext"' : "";
       return `<tr${ext}><td>${fmt(dose, TD)}</td><td>${rr ? fmt(rr.laju, 2) : "—"}</td></tr>`;
@@ -847,12 +956,12 @@ function labelHTML(aktif, bb){
       + `<span class="crop bl"></span><span class="crop br"></span>`
       + `<h4>${d.nama} ${swatch} <span class="klass">${d.klass}</span></h4>`
       + idPasien()
-      + `<p class="cx cx-bold">BB : ${fmt(bb, 1)} kg`
+      + `<p class="cx cx-bold">BB : ${rapi(bb)} kg`
       + ` &middot; Titrasi 1 mL : ${ratio !== null ? fmt(ratio, ratioTD) : "—"} ${d.numer}</p>`
       + `<table><thead><tr><th>Dosis (${doseUnit(d)})</th><th style="text-align:right">mL/jam</th></tr></thead>`
       + `<tbody>${baris}</tbody></table>`
       + (batasTabel > d.hi ? `<p class="dc">Dosis di atas ${fmt(d.hi, TD)} ${doseUnit(d)} (baris bertanda) adalah rentang syok refrakter — hanya sesuai instruksi DPJP eksplisit.</p>` : "")
-      + `<p class="dc">Berlaku hanya untuk sediaan & BB di atas. Double check 2 perawat. Potong tepat di tanda siku.</p>`
+      + `<p class="dc">Berlaku hanya untuk sediaan & BB di atas. Double check 2 perawat. Potong tepat di tanda siku. Tabel dosis v${TABEL.versi}</p>`
       + `</div>`;
   }).join("");
 }
@@ -945,7 +1054,10 @@ document.addEventListener("focusout", e => {
   }
   if (ds.amt !== undefined && !t.disabled){ t.value = rapi(state[ds.amt].amt); jadwalkan(); return; }
   if (ds.ml !== undefined){ t.value = rapi(state[ds.ml].ml); jadwalkan(); return; }
-  if (t.id === "bb"){ const v = bbVal(); t.value = v ? fmt(v, 1) : ""; jadwalkan(); }
+  /* rapi() merapikan tanpa membulatkan. fmt(v,1) dulu menulis ulang setiap berat
+     jadi satu desimal begitu kolom ditinggalkan — 3,25 kg jadi 3,3 dan 0,85 kg
+     jadi 0,8, menggeser dosis neonatus sekitar 6% tanpa terlihat. */
+  if (t.id === "bb"){ const v = bbVal(); t.value = v ? rapi(v) : ""; jadwalkan(); }
 });
 
 document.addEventListener("change", e => {
@@ -963,6 +1075,15 @@ document.addEventListener("change", e => {
   if (ds.on !== undefined && t.type === "checkbox"){
     state[ds.on].on = t.checked; jadwalkan();
   }
+});
+
+/* pilihan langkah titrasi — mengubah tabel di layar dan kartu cetak sekaligus,
+   supaya angka di label yang ditempel di pump persis yang dibaca di layar */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-tstep]");
+  if (!b) return;
+  state[b.dataset.tstep].tstep = Number(b.dataset.val);
+  updateAll();
 });
 
 el("filter").addEventListener("click", () => { hanyaDicentang = !hanyaDicentang; updateAll(); });
@@ -998,7 +1119,11 @@ window.addEventListener("error", ev => {
   Toast.galat("Terjadi kesalahan. Periksa hasil hitung secara manual sebelum dipakai.");
 });
 
+{ const v = el("tabel-versi");
+  if (v) v.textContent = `Tabel dosis v${TABEL.versi} · ditinjau ${TABEL.ditinjau}`; }
+
 updateAll();
 </script>
 </body>
 </html>
+

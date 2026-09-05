@@ -4,7 +4,7 @@
 // This is deliberately dependency-free so it can run in CI or on any machine
 // with Node installed. It does NOT validate clinical appropriateness of the
 // ranges — only that the arithmetic and the data table are internally consistent.
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { DRUGS, ISO, TABEL, defaultPreset } from '../src/data/drugs.js';
@@ -168,6 +168,39 @@ else {
   else if (JSON.stringify(WEBTABEL) !== JSON.stringify(TABEL))
     fail(`dose-table version differs: app ${JSON.stringify(TABEL)} vs web ${JSON.stringify(WEBTABEL)}`);
   if (!failed) pass(`drug table, ISO colours and version v${TABEL.versi} match index.html (${WEB.length} drugs)`);
+}
+
+// --- 7b. The service worker's cache name must carry the current table version ---
+// The worker keys its cache on VERSI and deletes every other cache on activate.
+// If VERSI is left behind when the dose table changes, an installed phone keeps
+// serving the old index.html from a cache that is never invalidated — a stale
+// dose table that nobody can see is stale. Tying the two together means the
+// cache is thrown away on exactly the pushes that change a number.
+{
+  const sw = readFileSync(join(ROOT, 'sw.js'), 'utf8');
+  const m = sw.match(/const VERSI\s*=\s*["']([^"']+)["']/);
+  if (!m) fail('sw.js declares no VERSI');
+  else if (m[1] !== TABEL.versi)
+    fail(`sw.js VERSI is ${m[1]} but the dose table is ${TABEL.versi} — bump both together`);
+  else pass(`service-worker cache is keyed to dose table v${TABEL.versi}`);
+
+  // Everything the worker precaches must actually exist, or install() rejects
+  // and the app silently never works offline.
+  const inti = sw.slice(sw.indexOf('const INTI = ['), sw.indexOf('];', sw.indexOf('const INTI = [')));
+  for (const f of inti.match(/"\.\/([^"]+)"/g) || []) {
+    const nama = f.slice(3, -1);
+    if (!existsSync(join(ROOT, nama))) fail(`sw.js precaches ${nama}, which does not exist`);
+  }
+
+  // The manifest is what makes Android offer "install" at all.
+  const man = JSON.parse(readFileSync(join(ROOT, 'manifest.json'), 'utf8'));
+  if (man.display !== 'standalone') fail('manifest.json: display must be standalone to open without the browser bar');
+  for (const ic of man.icons) if (!existsSync(join(ROOT, ic.src))) fail(`manifest.json lists ${ic.src}, which does not exist`);
+  if (!man.icons.some((i) => i.purpose === 'maskable')) fail('manifest.json has no maskable icon — Android will letterbox it');
+  const html = web;
+  if (!/rel="manifest"/.test(html)) fail('index.html does not link manifest.json');
+  if (!/serviceWorker/.test(html)) fail('index.html never registers the service worker');
+  if (!failed) pass('manifest and icons are installable on Android');
 }
 
 // --- 7a. The slow-rate warning must fire where a preparation is too concentrated ---

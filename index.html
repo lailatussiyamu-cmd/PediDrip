@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PediDrip — Kalkulator Infus Pediatrik</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563EB">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PediDrip">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -205,6 +213,9 @@ footer .tabel-versi{margin-top:16px;font-size:11.5px;color:var(--ink3);text-alig
   font-family:"JetBrains Mono",ui-monospace,monospace}
 footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--ink3);
   text-align:center;text-transform:uppercase}
+.pasang{margin-top:18px;padding:16px;border:2px dashed var(--primary);border-radius:var(--r);
+  background:var(--primary-light);text-align:center}
+.pasang p{margin:0 0 12px;color:var(--ink2)}
 .relaxwarn{color:var(--danger);font-weight:600;border-left:4px solid var(--danger);
   background:var(--danger-light);padding:12px 16px;border-radius:8px}
 .noscript{background:var(--warning-light);border:3px solid var(--warning);padding:20px;margin:20px;
@@ -357,6 +368,10 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
     <p>Halaman ini tidak menyimpan data pasien. Nama dan nomor rekam medis hanya ada di memori peramban selama halaman terbuka &mdash; tidak dikirim ke mana pun dan tidak tersimpan di perangkat. Menutup atau memuat ulang halaman akan mengosongkan semua isian, dan tombol <b>Pasien baru</b> melakukan hal yang sama secara sengaja &mdash; supaya identitas dan berat badan pasien sebelumnya tidak pernah terbawa ke perhitungan pasien berikutnya.</p>
     <p>Petak warna pada kartu titrasi mengikuti kode warna golongan obat <b>ISO 26825</b> dan hanya berfungsi sebagai pengingat &mdash; label fisik pada syringe tetap dipasang sesuai kebijakan unit. Bila kartu dicetak hitam-putih atau tanpa <i>background graphics</i>, pakai nama warna yang tertulis di sebelah petak.</p>
     <p class="noprint">Vasoaktif diberikan lewat akses sentral bila memungkinkan; epinefrin, norepinefrin, dan dopamin berisiko nekrosis bila ekstravasasi. Norepinefrin dihitung sebagai basa &mdash; periksa apakah sediaan Anda tertulis basa atau bitartrat. Vasopresin dihitung dalam unit/kg/jam. Label fisik syringe tetap mengikuti kode warna ISO 26825.</p>
+    <div class="pasang noprint" id="pasang" hidden>
+      <p>Pasang PediDrip di layar utama supaya bisa dibuka tanpa peramban dan tetap jalan saat ruangan tidak ada sinyal.</p>
+      <button class="btn btn-primary" id="btn-pasang" type="button">Pasang aplikasi</button>
+    </div>
     <p class="tabel-versi noprint" id="tabel-versi"></p>
     <p class="credit noprint">CREATED BY THE URBAN MAMA-2026</p>
   </footer>
@@ -1132,6 +1147,49 @@ window.addEventListener("error", ev => {
   if (v) v.textContent = `Tabel dosis v${TABEL.versi} · ditinjau ${TABEL.ditinjau}`; }
 
 updateAll();
+
+/* ==== pemasangan di layar utama ====
+   Service worker hanya berjalan lewat https atau localhost. Dibuka dari
+   berkas lokal (file://) pendaftarannya gagal, dan itu bukan masalah:
+   kalkulatornya sendiri tidak bergantung padanya. */
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {
+      /* Diam saja. Gagal memasang mode luring tidak boleh memunculkan
+         peringatan di alat yang sedang dipakai menghitung dosis. */
+    });
+  });
+}
+
+/* Chrome di Android menawarkan pemasangan lewat peristiwa ini. Kita tahan
+   tawaran bawaannya, lalu tampilkan tombol sendiri di kaki halaman supaya
+   perawat tidak melewatkannya. Peramban yang tidak mendukung (Safari iOS)
+   tidak pernah memicu ini, jadi kotaknya tetap tersembunyi. */
+{
+  let tawaran = null;
+  const kotak = el("pasang"), tombol = el("btn-pasang");
+
+  window.addEventListener("beforeinstallprompt", ev => {
+    ev.preventDefault();
+    tawaran = ev;
+    if (kotak) kotak.hidden = false;
+  });
+
+  if (tombol) tombol.addEventListener("click", async () => {
+    if (!tawaran) return;
+    tombol.disabled = true;
+    tawaran.prompt();
+    const { outcome } = await tawaran.userChoice;
+    tawaran = null;
+    if (outcome === "accepted") {
+      if (kotak) kotak.hidden = true;
+    } else {
+      tombol.disabled = false;
+    }
+  });
+
+  window.addEventListener("appinstalled", () => { if (kotak) kotak.hidden = true; });
+}
 </script>
 </body>
 </html>

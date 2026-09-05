@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="utf-8">
@@ -1092,9 +1092,14 @@ el("cetak").addEventListener("click", () => window.print());
 el("reset").addEventListener("click", () => {
   if (!confirm("Kosongkan semua isian untuk pasien baru?")) return;
   DRUGS.forEach(d => {
-    const p = d.presets[0];
-    state[d.id] = { preset:0, amt:p.amt ?? 0, ml:p.ml, dose:d.start, on:false };
-    el(`sel-${d.id}`).value = "0";
+    /* Harus lewat defaultPreset(), bukan presets[0]. Sejak sediaan diurutkan
+       encer -> pekat, indeks 0 berarti "paling encer", bukan "sediaan awal" —
+       menekan Pasien baru akan diam-diam memindahkan vasopresin ke 0,1 unit/mL
+       dan aminofilin ke 5 mg/mL. Objek state dibuat ulang tanpa tstep, sehingga
+       pilihan langkah titrasi pasien sebelumnya ikut hilang. */
+    const i = defaultPreset(d), p = d.presets[i];
+    state[d.id] = { preset:i, amt:p.amt ?? 0, ml:p.ml, dose:d.start, on:false };
+    el(`sel-${d.id}`).value = String(i);
     el(`amt-${d.id}`).value = rapi(state[d.id].amt);
     el(`ml-${d.id}`).value  = rapi(p.ml);
     el(`dose-${d.id}`).value = fmt(d.start, dec(d));
@@ -1126,4 +1131,3 @@ updateAll();
 </script>
 </body>
 </html>
-

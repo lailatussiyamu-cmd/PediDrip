@@ -331,6 +331,9 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
   .tcard .tid-v.nm-sedang{font-size:8.4pt;line-height:1.1}
   .tcard .tid-v.nm-kecil{font-size:7pt;line-height:1.08}
   .tcard .tid-v.nm-mini{font-size:5.9pt;line-height:1.06;letter-spacing:-.01em}
+  /* Nomor RM tidak boleh patah di tengah; kalau tetap tidak muat, biar
+     melebar keluar kolomnya daripada terbaca sebagai dua nomor. */
+  .tcard .tid-rm .tid-v{word-break:normal;overflow-wrap:normal}
   .tcard .tid-v.kosong{border-bottom:1.2pt solid #000}
 
   /* Satu baris, tidak boleh patah — baris ini yang mengunci kartu ke sediaan
@@ -349,6 +352,7 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
             font-size:9.2pt;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.12}
   .tcard td:last-child{text-align:right;font-weight:800}
   .tcard tr.tcard-ext td{background:#fff8e1}
+  .tcard tr.tcard-pelan td{background:#ededed;color:#333}
   .tcard tbody tr:last-child td{border-bottom:none}
 
   .tcard .dc{flex:none;margin:1mm 0 0;font-size:6pt;line-height:1.16;color:#000}
@@ -1021,11 +1025,19 @@ function sumHTML(){
    sudah digunting tetap membawa nama yang utuh. */
 const kelasNama = n => n.length <= 24 ? "" : n.length <= 34 ? " nm-sedang"
   : n.length <= 44 ? " nm-kecil" : " nm-mini";
+/* Nomor rekam medis dapat perlakuan sendiri, dan lebih ketat. Kolomnya lebih
+   sempit daripada kolom nama, dan nomor yang patah di tengah ("RM-01-99-88-"
+   lalu "77" di baris berikutnya) lebih buruk daripada nama yang patah: nomor
+   dibaca sebagai satu satuan, dan patahannya bisa terbaca sebagai nomor lain. */
+const kelasRM = n => n.length <= 9 ? "" : n.length <= 13 ? " nm-sedang"
+  : n.length <= 18 ? " nm-kecil" : " nm-mini";
 function idPasien(){
-  const isi = (judul, nilai, kelas) =>
-      `<span class="${kelas}"><span class="tid-k">${judul}</span>`
-    + `<span class="tid-v${nilai ? "" : " kosong"}${kelas === "tid-nm" && nilai ? kelasNama(nilai) : ""}">`
-    + `${nilai ? esc(nilai) : ""}</span></span>`;
+  const isi = (judul, nilai, kelas) => {
+    const kecil = !nilai ? "" : kelas === "tid-nm" ? kelasNama(nilai) : kelasRM(nilai);
+    return `<span class="${kelas}"><span class="tid-k">${judul}</span>`
+      + `<span class="tid-v${nilai ? "" : " kosong"}${kecil}">`
+      + `${nilai ? esc(nilai) : ""}</span></span>`;
+  };
   return `<div class="tid">`
     + isi("Nama pasien", el("pn").value.trim(), "tid-nm")
     + isi("No. RM", el("prm").value.trim(), "tid-rm")
@@ -1045,10 +1057,21 @@ function labelHTML(aktif, bb){
     const s = state[d.id], r0 = hitung(d, s, bb);
     const TD = tdec(d);
     const batasTabel = d.tblHi ?? d.hi;
+    /* Dua penandaan, dua arah, dan keduanya harus ikut tercetak.
+       Yang di ATAS rentang lazim sudah lama ditandai. Yang di BAWAH kemampuan
+       pump belum: di layar perawat diperingatkan kalau laju turun di bawah
+       0,1 mL/jam, tapi kartu yang digunting dan ditempel di pump — satu-satunya
+       lembar yang benar-benar dibaca jam tiga pagi — mencetak angka itu seolah
+       bisa dijalankan. Pada bayi 3,25 kg, lima dari tujuh baris morfin dan lima
+       dari enam baris ketamin jatuh di bawah ambang itu. */
+    let adaPelan = false;
     const baris = titrasiDoses(d, batasTabel, s.tstep).map(dose => {
       const rr = hitung(d, { ...s, dose }, bb);
-      const ext = dose > d.hi ? ' class="tcard-ext"' : "";
-      return `<tr${ext}><td>${fmt(dose, TD)}</td><td>${rr ? fmt(rr.laju, 2) : "—"}</td></tr>`;
+      const pelan = !!(rr && lajuTerlaluPelan(rr.laju));
+      if (pelan) adaPelan = true;
+      const kelas = dose > d.hi ? "tcard-ext" : pelan ? "tcard-pelan" : "";
+      return `<tr${kelas ? ` class="${kelas}"` : ""}><td>${fmt(dose, TD)}</td>`
+        + `<td>${rr ? fmt(rr.laju, 2) : "—"}</td></tr>`;
     }).join("");
     const ratio = r0 ? r0.conc / d.conv : null;
     const ratioTD = ratio !== null && ratio < 10 ? 1 : 0;
@@ -1067,8 +1090,9 @@ function labelHTML(aktif, bb){
       + `<table><thead><tr><th>Dosis (${doseUnit(d)})</th><th style="text-align:right">mL/jam</th></tr></thead>`
       + `<tbody>${baris}</tbody></table>`
       + `<p class="dc">`
-        + (batasTabel > d.hi ? `Di atas ${fmt(d.hi, TD)} (baris bertanda): hanya atas instruksi DPJP. ` : "")
-        + `<b>Double check 2 perawat.</b> Hanya untuk sediaan &amp; BB di atas. v${TABEL.versi}</p>`
+        + (batasTabel > d.hi ? `Baris krem di atas ${fmt(d.hi, TD)}: hanya atas instruksi DPJP. ` : "")
+        + (adaPelan ? `Baris kelabu di bawah ${fmt(LAJU_MIN, 1)} mL/jam: pump sulit akurat, encerkan lagi. ` : "")
+        + `<b>Double check 2 perawat.</b> Sesuai sediaan &amp; BB di atas. v${TABEL.versi}</p>`
       + `</div>`;
   }).join("");
 }

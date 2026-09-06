@@ -10,7 +10,7 @@
 // Explicit .js extensions so scripts/genprint.mjs can import this under plain Node
 // (Metro resolves either form).
 import { DRUGS, isoOf, TABEL } from './data/drugs.js';
-import { fmt, rapi, tdec, titrasiDoses, doseUnit, hitung, hitungDose, effAmt, num } from './logic/calc.js';
+import { fmt, rapi, tdec, titrasiDoses, doseUnit, hitung, hitungDose, effAmt, num, lajuTerlaluPelan, LAJU_MIN } from './logic/calc.js';
 
 const esc = (v) => String(v || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -23,10 +23,16 @@ function labelCard(d, st, bb, patient) {
   const ratioTD = ratio !== null && ratio < 10 ? 1 : 0;
   // st.tstep carries the step the nurse picked on the card, so the label taped to
   // the pump lists exactly the rows she was reading on screen.
+  // Dua penandaan, dua arah. Yang di atas rentang lazim sudah lama ditandai;
+  // yang di bawah kemampuan pump belum, padahal kartu inilah satu-satunya
+  // lembar yang benar-benar dibaca di samping pump.
+  let adaPelan = false;
   const rows = titrasiDoses(d, batas, st.tstep).map((dose) => {
     const rr = hitungDose(d, st, bb, dose);
-    const ext = dose > d.hi ? ' style="background:#fff8e1"' : '';
-    return `<tr${ext}><td>${fmt(dose, TD)}</td><td style="text-align:right">${rr ? fmt(rr.laju, 2) : '—'}</td></tr>`;
+    const pelan = !!(rr && lajuTerlaluPelan(rr.laju));
+    if (pelan) adaPelan = true;
+    const bg = dose > d.hi ? ' style="background:#fff8e1"' : pelan ? ' style="background:#ededed;color:#333"' : '';
+    return `<tr${bg}><td>${fmt(dose, TD)}</td><td style="text-align:right">${rr ? fmt(rr.laju, 2) : '—'}</td></tr>`;
   }).join('');
   // The whole header band is already printed in the ISO colour, so a swatch of the
   // same colour on top of it was invisible (it printed as an empty white box).
@@ -34,7 +40,14 @@ function labelCard(d, st, bb, patient) {
   // say "LABEL BIRU" and "BIRU" invite the question of whether they mean the
   // same thing, and that question costs more than the word saves.
   const head = iso ? iso.warna.toUpperCase() : 'TIDAK DIATUR';
-  const idCell = (k, v, grow = 1) => `<div class="idc" style="flex:${grow}"><span class="idk">${k}</span><span class="idv">${v ? esc(v) : '&nbsp;'}</span></div>`;
+  // Sama seperti index.html: yang mengalah ukuran hurufnya, bukan isinya.
+  // Nomor RM lebih ketat karena kolomnya lebih sempit, dan nomor yang patah di
+  // tengah bisa terbaca sebagai nomor lain.
+  const kelasNama = (n) => (n.length <= 24 ? '' : n.length <= 34 ? ' nm-sedang' : n.length <= 44 ? ' nm-kecil' : ' nm-mini');
+  const kelasRM = (n) => (n.length <= 9 ? '' : n.length <= 13 ? ' nm-sedang' : n.length <= 18 ? ' nm-kecil' : ' nm-mini');
+  const idCell = (k, v, grow = 1, rm = false) =>
+    `<div class="idc" style="flex:${grow}"><span class="idk">${k}</span>`
+    + `<span class="idv${v ? (rm ? kelasRM(v) : kelasNama(v)) : ''}">${v ? esc(v) : '&nbsp;'}</span></div>`;
 
   const amt = rapi(effAmt(d, st, bb));
 
@@ -42,10 +55,10 @@ function labelCard(d, st, bb, patient) {
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:${iso ? iso.hex : '#999'}">
       <h4 style="background:${iso ? iso.hex : '#eee'}">${esc(d.nama)} <span class="warna">${head}</span></h4>
-      <div class="tid">${idCell('Nama pasien', patient.pn, 1.6)}${idCell('No. RM', patient.prm, 1)}</div>
+      <div class="tid">${idCell('Nama pasien', patient.pn, 1.6)}${idCell('No. RM', patient.prm, 1, true)}</div>
       <p class="cx"><b>BB ${rapi(bb) || '—'} kg</b> · Titrasi 1 mL : ${ratio !== null ? fmt(ratio, ratioTD) : '—'} ${d.numer}</p>
       <table><thead><tr><th>Dosis (${doseUnit(d)})</th><th style="text-align:right">mL/jam</th></tr></thead><tbody>${rows}</tbody></table>
-      <p class="dc">${batas > d.hi ? `Di atas ${fmt(d.hi, TD)} (baris bertanda): hanya atas instruksi DPJP. ` : ''}<b>Double check 2 perawat.</b> Hanya untuk sediaan ${amt || '—'} ${esc(d.amtUnit)}/${rapi(st.ml) || '—'} mL &amp; BB di atas. v${esc(TABEL.versi)}</p>
+      <p class="dc">${batas > d.hi ? `Baris krem di atas ${fmt(d.hi, TD)}: hanya atas instruksi DPJP. ` : ''}${adaPelan ? `Baris kelabu di bawah ${fmt(LAJU_MIN, 1)} mL/jam: pump sulit akurat, encerkan lagi. ` : ''}<b>Double check 2 perawat.</b> Sesuai sediaan ${amt || '—'} ${esc(d.amtUnit)}/${rapi(st.ml) || '—'} mL &amp; BB di atas. v${esc(TABEL.versi)}</p>
     </div>
   </div>`;
 }
@@ -106,6 +119,10 @@ export function buildTherapyHtml(states, bb, patient = {}) {
          letter-spacing:.1em;color:#000;line-height:1.2}
     .idv{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
          font-size:9.6pt;font-weight:800;line-height:1.14;min-height:4.1mm;word-break:break-word}
+    .idv.nm-sedang{font-size:8.4pt;line-height:1.1}
+    .idv.nm-kecil{font-size:7pt;line-height:1.08}
+    .idv.nm-mini{font-size:5.9pt;line-height:1.06;letter-spacing:-.01em}
+    .idc:last-child .idv{word-break:normal;overflow-wrap:normal}
 
     /* Satu baris, tidak boleh patah: kalau melipat, tinggi kartu ikut berubah. */
     .cx{flex:none;margin:0 0 1.2mm;font-size:6.6pt;color:#333;

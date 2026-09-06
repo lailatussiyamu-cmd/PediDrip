@@ -255,50 +255,99 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
    memaksa HURUF BESAR SEMUA, yang ikut terbawa ke kartu titrasi saat dicetak. */
 #labels{display:none}
 @media print{
-  #labels{display:grid!important;grid-template-columns:repeat(2,1fr);gap:10mm;margin:5mm}
-  .tcard{position:relative;border:2pt solid var(--tcband,#000);border-radius:2mm;padding:3mm;page-break-inside:avoid;
-         font-family:"Public Sans",sans-serif;font-size:8.5pt;line-height:1.3;color:#000;
+  /* Margin di @page, bukan di grid: kalau dipasang di grid hanya halaman
+     pertama yang dapat jarak atas, dan tanda potong sudut atas di halaman
+     berikutnya ikut terpotong tepi kertas. */
+  @page{size:A4;margin:6mm}
+
+  /* Tiga kolom, tinggi kartu DIKUNCI 90 mm supaya setiap kartu keluar dengan
+     ukuran yang sama persis. Tanpa penguncian ini, obat berdaftar panjang
+     (epinefrin, norepinefrin, vasopresin: 10 baris) mencetak kartu jauh lebih
+     tinggi daripada fentanil atau midazolam, dan hasil guntingan jadi
+     bermacam-macam ukuran di satu pasien.
+     Konsekuensinya deret titrasi yang menyerap selisih: tabel dibuat melar
+     mengisi ruang sisa, jadi kartu berbaris sedikit justru berbaris lebih
+     lega, bukan menyisakan ruang kosong di bawah. */
+
+  /* Pembungkus halaman menyisakan padding bawah saat mencetak, dan sisa
+     ~17 mm itu cukup untuk melahirkan satu halaman kosong di akhir setiap
+     cetakan. */
+  body{margin:0}
+  .wrap{padding:0!important;margin:0!important;max-width:none!important}
+  #labels{display:grid!important;grid-template-columns:repeat(3,1fr);grid-auto-rows:90mm;align-content:start;gap:5mm;margin:0;padding:0}
+  .tcard{position:relative;display:flex;flex-direction:column;
+         /* JANGAN pasang overflow:hidden di sini — tanda potong sudut duduk
+            1,6 mm DI LUAR kartu, jadi overflow:hidden akan menggunting justru
+            panduan guntingnya. Ketinggian dijaga dengan memastikan isinya
+            memang muat, bukan dengan memotong yang lebih. */
+         height:90mm;
+         border:2pt solid var(--tcband,#000);border-radius:2mm;padding:2.4mm;
+         page-break-inside:avoid;break-inside:avoid;
+         font-family:"Public Sans",sans-serif;font-size:8pt;line-height:1.28;color:#000;
          -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  /* tanda potong presisi — garis siku 4mm di tiap sudut, sedikit di luar
-     garis putus-putus, supaya gunting/cutter bisa dipandu tepat di sudut
-     kartu walau garis putus-putus meleset saat dicetak */
-  .tcard .crop{position:absolute;width:4mm;height:4mm}
-  .tcard .crop.tl{top:-2mm;left:-2mm;border-top:0.75pt solid #000;border-left:0.75pt solid #000}
-  .tcard .crop.tr{top:-2mm;right:-2mm;border-top:0.75pt solid #000;border-right:0.75pt solid #000}
-  .tcard .crop.bl{bottom:-2mm;left:-2mm;border-bottom:0.75pt solid #000;border-left:0.75pt solid #000}
-  .tcard .crop.br{bottom:-2mm;right:-2mm;border-bottom:0.75pt solid #000;border-right:0.75pt solid #000}
-  /* identitas menyatu dengan kartu — kartu yang sudah digunting tetap punya pemilik */
-  .tcard .tid{display:flex;gap:3mm;border-bottom:1px solid #000;
-              padding-bottom:1.5mm;margin-bottom:2mm}
-  .tcard .tid-nm{flex:1.7 1 0;min-width:0}
-  .tcard .tid-rm{flex:1 1 0;min-width:0}
-  .tcard .tid-k{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:6.5pt;
-                text-transform:uppercase;letter-spacing:.12em;color:#333}
-  .tcard .tid-v{display:block;font-size:9pt;font-weight:700;line-height:1.25;
-                min-height:4.4mm;word-break:break-word}
-  .tcard .tid-v.kosong{border-bottom:1px solid #000}
-  /* Header kini berupa pita warna penuh (bukan sekadar petak kecil) supaya
-     obat bisa dikenali dari kejauhan — warna mengikuti ISO 26825, dan nama
-     warna tetap ditulis agar tetap terbaca bila dicetak tanpa background graphics. */
-  .tcard h4{display:flex;align-items:center;flex-wrap:wrap;gap:1.5mm;
-            margin:-3mm -3mm 2mm -3mm;padding:2.2mm 3mm;font-size:12.5pt;font-weight:800;
-            text-transform:uppercase;border-radius:1.5mm 1.5mm 0 0;
+
+  .tcard .crop{position:absolute;width:3mm;height:3mm}
+  .tcard .crop.tl{top:-1.6mm;left:-1.6mm;border-top:0.75pt solid #000;border-left:0.75pt solid #000}
+  .tcard .crop.tr{top:-1.6mm;right:-1.6mm;border-top:0.75pt solid #000;border-right:0.75pt solid #000}
+  .tcard .crop.bl{bottom:-1.6mm;left:-1.6mm;border-bottom:0.75pt solid #000;border-left:0.75pt solid #000}
+  .tcard .crop.br{bottom:-1.6mm;right:-1.6mm;border-bottom:0.75pt solid #000;border-right:0.75pt solid #000}
+
+  /* Pita warna ISO 26825 selebar kartu — dikenali sebelum tulisan apa pun.
+     Nama golongan obat dibuang di cetakan: warna dan nama obat sudah
+     menyampaikan hal yang sama, dan ruang itu lebih berguna untuk nama
+     obatnya sendiri.
+     Nama terpanjang (DEKSMEDETOMIDIN) bersama nama warna terpanjang
+     (TIDAK DIATUR) tetap tidak muat satu baris di kartu 60 mm; dibiarkan
+     melipat, bukan dipotong, karena nama warna itulah satu-satunya penanda
+     golongan yang tersisa bila kartu dicetak hitam-putih. */
+  .tcard h4{flex:none;display:flex;align-items:center;flex-wrap:wrap;gap:1.2mm;
+            margin:-2.4mm -2.4mm 1.6mm -2.4mm;padding:1.8mm 2.4mm;
+            font-size:11.8pt;font-weight:800;line-height:1.12;
+            text-transform:uppercase;letter-spacing:-.015em;
+            border-radius:1.5mm 1.5mm 0 0;
             background:var(--tcband,#eee);color:var(--tctext,#000);
             -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .tcard h4 .sw{width:7mm;height:4mm;border:0.75pt solid #000;border-radius:0.8mm;flex:none;
+  .tcard h4 .sw{width:5.5mm;height:3.2mm;border:0.75pt solid #000;border-radius:0.8mm;flex:none;
                 background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .tcard h4 .warna{font-size:8.5pt;font-weight:800;letter-spacing:.03em}
-  .tcard h4 .klass{font-size:7.5pt;font-weight:600;text-transform:none;opacity:.85}
-  .tcard .cx{margin:0 0 2mm;font-size:8pt;color:#333}
-  .tcard .cx-bold{font-size:11pt;font-weight:800;color:#000}
-  /* Warna dicetak sebagai petak; nama warnanya tetap ditulis supaya kartu
-     yang tercetak hitam-putih atau tanpa "background graphics" tetap terbaca. */
-  .tcard table{width:100%;border-collapse:collapse}
-  .tcard th{font-size:7.5pt;text-align:left;border-bottom:1px solid #000;padding:0.6mm 1mm}
-  .tcard td{padding:0.6mm 1mm;border-bottom:1px solid #ccc}
-  .tcard td:last-child{text-align:right;font-weight:700}
+  .tcard h4 .warna{font-size:6.8pt;font-weight:800;letter-spacing:.02em;flex:none}
+  .tcard h4 .klass{display:none}
+
+  /* Identitas dinaikkan, bukan diturunkan: kartu yang sudah digunting harus
+     tetap jelas miliknya siapa. */
+  .tcard .tid{flex:none;display:flex;gap:2mm;border-bottom:1.2pt solid #000;
+              padding-bottom:1.1mm;margin-bottom:1.3mm}
+  .tcard .tid-nm{flex:1.6 1 0;min-width:0}
+  .tcard .tid-rm{flex:1 1 0;min-width:0}
+  .tcard .tid-k{display:block;font-family:"Archivo",sans-serif;font-weight:700;font-size:5.8pt;
+                text-transform:uppercase;letter-spacing:.1em;color:#000}
+  /* Nama pasien boleh turun ke baris kedua. Memotongnya dengan elipsis lebih
+     rapi di layar tapi salah di bangsal: kartu yang sudah digunting harus bisa
+     dicocokkan dengan pasiennya, dan "Muhammad Rasyid A…" bukan identifikasi. */
+  .tcard .tid-v{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+                font-size:9.6pt;font-weight:800;line-height:1.14;
+                min-height:4.1mm;overflow:hidden;word-break:break-word}
+  .tcard .tid-v.kosong{border-bottom:1.2pt solid #000}
+
+  /* Satu baris, tidak boleh patah — baris ini yang mengunci kartu ke sediaan
+     dan berat badan tertentu. */
+  .tcard .cx{flex:none;margin:0 0 1.2mm;font-size:6.6pt;color:#333;
+             white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tcard .cx-bold{font-size:9.5pt;font-weight:800;color:#000}
+
+  /* Deret titrasi adalah alasan kartu ini ada: dibuat melar mengisi sisa
+     tinggi, dengan angka setebal dan sebesar yang masih memuat 10 baris. */
+  .tcard table{flex:1 1 auto;width:100%;border-collapse:collapse}
+  .tcard th{font-family:"Archivo",sans-serif;font-size:6.2pt;font-weight:700;text-align:left;
+            text-transform:uppercase;letter-spacing:.06em;
+            border-bottom:1.2pt solid #000;padding:0.4mm 0.8mm;height:4mm}
+  .tcard td{padding:0.3mm 0.8mm;border-bottom:0.5pt solid #bbb;
+            font-size:9.2pt;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.12}
+  .tcard td:last-child{text-align:right;font-weight:800}
   .tcard tr.tcard-ext td{background:#fff8e1}
-  .tcard .dc{margin:2mm 0 0;font-size:7pt;color:#333}
+  .tcard tbody tr:last-child td{border-bottom:none}
+
+  .tcard .dc{flex:none;margin:1mm 0 0;font-size:6pt;line-height:1.16;color:#000}
+  .tcard .dc:last-child{margin-bottom:0.4mm}
 }
 @media print{
   :root{--paper:#fff;--surface:#fff;--sunken:#fff;--ink:#000;--ink2:#333;--ink3:#555;
@@ -382,7 +431,7 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
    frontend/src/data/drugs.js setiap kali ada lo/hi/cap/preset/note yang berubah,
    supaya perawat yang membuka halaman ter-cache dan yang memakai build terpasang
    bisa tahu apakah angkanya sama. Dicetak di tiap label titrasi. */
-const TABEL = { versi:"2026.09.06", ditinjau:"6 September 2026" };
+const TABEL = { versi:"2026.09.06b", ditinjau:"6 September 2026" };
 
 const DRUGS = [
 /* --- sedasi, analgesia, relaksan --- */
@@ -979,8 +1028,9 @@ function labelHTML(aktif, bb){
       + ` &middot; Titrasi 1 mL : ${ratio !== null ? fmt(ratio, ratioTD) : "—"} ${d.numer}</p>`
       + `<table><thead><tr><th>Dosis (${doseUnit(d)})</th><th style="text-align:right">mL/jam</th></tr></thead>`
       + `<tbody>${baris}</tbody></table>`
-      + (batasTabel > d.hi ? `<p class="dc">Dosis di atas ${fmt(d.hi, TD)} ${doseUnit(d)} (baris bertanda) adalah rentang syok refrakter — hanya sesuai instruksi DPJP eksplisit.</p>` : "")
-      + `<p class="dc">Berlaku hanya untuk sediaan & BB di atas. Double check 2 perawat. Potong tepat di tanda siku. Tabel dosis v${TABEL.versi}</p>`
+      + `<p class="dc">`
+        + (batasTabel > d.hi ? `Di atas ${fmt(d.hi, TD)} (baris bertanda): hanya atas instruksi DPJP. ` : "")
+        + `<b>Double check 2 perawat.</b> Hanya untuk sediaan &amp; BB di atas. v${TABEL.versi}</p>`
       + `</div>`;
   }).join("");
 }

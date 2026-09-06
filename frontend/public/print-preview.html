@@ -1,110 +1,142 @@
 <!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>PediDrip — Kartu Titrasi</title>
   <style>
-    @page{ size:A4 portrait; margin:8mm; }
+    @page{ size:A4 portrait; margin:6mm; }
     *{box-sizing:border-box}
-    body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#000;font-size:11px;margin:0;padding:0}
-    /* 6 label POTRAIT per halaman A4: 2 kolom x 3 baris, tiap label 72 x 88 mm.
-       Tinggi 88mm adalah MINIMUM, bukan batas: obat dengan tabel titrasi panjang
-       (mis. rokuronium 3-12) boleh tumbuh ke bawah. Sebelumnya kartu dipaksa 88mm
-       dengan overflow:hidden sehingga baris dosis tertinggi & disclaimer terpotong
-       diam-diam. */
-    .labels{display:grid;grid-template-columns:repeat(2,72mm);justify-content:center;column-gap:16mm;row-gap:8mm;grid-auto-rows:minmax(88mm,auto)}
-    /* dashed cut frame with room around the card for scissors + tape */
-    .cut{position:relative;min-height:88mm;border:1px dashed #9aa0a6;border-radius:3mm;padding:4mm;page-break-inside:avoid;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    /* corner crop marks to guide a precise cut */
-    .cm{position:absolute;width:3.5mm;height:3.5mm}
-    .cm.tl{top:-1px;left:-1px;border-top:1px solid #000;border-left:1px solid #000}
-    .cm.tr{top:-1px;right:-1px;border-top:1px solid #000;border-right:1px solid #000}
-    .cm.bl{bottom:-1px;left:-1px;border-bottom:1px solid #000;border-left:1px solid #000}
-    .cm.br{bottom:-1px;right:-1px;border-bottom:1px solid #000;border-right:1px solid #000}
-    .tcard{border:2px solid #000;border-radius:4px;padding:7px;min-height:100%;display:flex;flex-direction:column;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    /* Type/padding tuned so even the longest table (rokuronium, 10 rows) still fits
-       inside 88mm and A4 keeps 6 labels per page. */
-    .tcard h4{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:-7px -7px 4px;padding:4px 7px;font-size:11px;font-weight:800;text-transform:uppercase;border-radius:3px 3px 0 0;line-height:1.2}
-    .tcard h4 .warna{font-size:8.5px;font-weight:800}
-    .tcard h4 .klass{font-size:8px;font-weight:600;text-transform:none;opacity:.85;width:100%}
-    .tid{display:flex;gap:6px;border-bottom:1px solid #000;padding-bottom:2px;margin-bottom:3px}
-    .idc{min-width:0}.idk{display:block;font-size:7px;text-transform:uppercase;letter-spacing:.4px;color:#333;line-height:1.2}
-    .idv{display:block;font-size:10px;font-weight:700;min-height:11px;line-height:1.2}
-    .cx{margin:0 0 3px;font-size:8.5px;line-height:1.25}
-    table{width:100%;border-collapse:collapse;margin:0}
-    th{font-size:8px;text-transform:uppercase;letter-spacing:.3px;color:#333;text-align:left;border-bottom:1px solid #000;padding:1px 4px;line-height:1.2}
-    td{padding:0.2px 4px;border-bottom:1px solid #ccc;font-size:10px;line-height:1.2}
-    td:last-child{text-align:right;font-weight:700}
-    .dc{margin:auto 0 0;padding-top:2px;font-size:7px;color:#333;line-height:1.2}
+    body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#000;font-size:8pt;margin:0;padding:0}
+
+    /* Sembilan kartu per halaman A4: 3 kolom x 3 baris, tiap kartu DIKUNCI
+       60 x 90 mm. Penguncian itu yang penting. Sebelumnya tinggi kartu
+       mengikuti isinya, jadi vasopresin (10 baris) tercetak jauh lebih tinggi
+       daripada fentanil (5 baris) dan setumpuk kartu hasil guntingan untuk satu
+       pasien keluar bermacam-macam ukuran.
+       Selisihnya diserap oleh deret titrasi: tabel dibuat melar mengisi ruang
+       sisa, sehingga obat berbaris sedikit justru berbaris lebih lega, bukan
+       menyisakan ruang kosong di bawah kartu. */
+    .labels{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:90mm;
+            align-content:start;gap:5mm}
+    .cut{position:relative;height:90mm;page-break-inside:avoid;break-inside:avoid}
+
+    /* Tanda potong duduk DI LUAR kartu, jadi .cut tidak boleh overflow:hidden —
+       yang tergunting justru panduan guntingnya. */
+    .cm{position:absolute;width:3mm;height:3mm}
+    .cm.tl{top:-1.6mm;left:-1.6mm;border-top:0.75pt solid #000;border-left:0.75pt solid #000}
+    .cm.tr{top:-1.6mm;right:-1.6mm;border-top:0.75pt solid #000;border-right:0.75pt solid #000}
+    .cm.bl{bottom:-1.6mm;left:-1.6mm;border-bottom:0.75pt solid #000;border-left:0.75pt solid #000}
+    .cm.br{bottom:-1.6mm;right:-1.6mm;border-bottom:0.75pt solid #000;border-right:0.75pt solid #000}
+
+    .tcard{height:100%;display:flex;flex-direction:column;
+           border:2pt solid #000;border-radius:2mm;padding:2.4mm;
+           line-height:1.28;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+    /* Pita warna ISO 26825 selebar kartu. Nama golongan obat dibuang di
+       cetakan: warna dan nama obat sudah menyampaikan hal yang sama, dan ruang
+       itu lebih berguna untuk nama obatnya sendiri. Nama warna tetap ditulis
+       supaya kartu yang dicetak hitam-putih masih punya penanda golongan. */
+    .tcard h4{flex:none;display:flex;align-items:center;flex-wrap:wrap;gap:1.2mm;
+              margin:-2.4mm -2.4mm 1.6mm;padding:1.8mm 2.4mm;
+              font-size:11.8pt;font-weight:800;line-height:1.12;
+              text-transform:uppercase;letter-spacing:-.015em;border-radius:1.5mm 1.5mm 0 0}
+    .tcard h4 .warna{font-size:6.8pt;font-weight:800;flex:none}
+
+    /* Identitas dinaikkan, bukan diturunkan: kartu yang sudah digunting harus
+       tetap jelas miliknya siapa. Nama boleh turun ke baris kedua — memotongnya
+       dengan elipsis lebih rapi tapi salah di bangsal. */
+    .tid{flex:none;display:flex;gap:2mm;border-bottom:1.2pt solid #000;
+         padding-bottom:1.1mm;margin-bottom:1.3mm}
+    .idc{min-width:0}
+    .idk{display:block;font-size:5.8pt;font-weight:700;text-transform:uppercase;
+         letter-spacing:.1em;color:#000;line-height:1.2}
+    .idv{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+         font-size:9.6pt;font-weight:800;line-height:1.14;min-height:4.1mm;word-break:break-word}
+
+    /* Satu baris, tidak boleh patah: kalau melipat, tinggi kartu ikut berubah. */
+    .cx{flex:none;margin:0 0 1.2mm;font-size:6.6pt;color:#333;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cx b{font-size:9.5pt;font-weight:800;color:#000}
+
+    /* Deret titrasi adalah alasan kartu ini ada. */
+    table{flex:1 1 auto;width:100%;border-collapse:collapse;margin:0}
+    th{font-size:6.2pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+       text-align:left;border-bottom:1.2pt solid #000;padding:0.4mm 0.8mm;height:4mm}
+    td{padding:0.3mm 0.8mm;border-bottom:0.5pt solid #bbb;
+       font-size:9.2pt;font-weight:700;line-height:1.12;font-variant-numeric:tabular-nums}
+    td:last-child{text-align:right;font-weight:800}
+    tbody tr:last-child td{border-bottom:none}
+
+    .dc{flex:none;margin:1mm 0 0.4mm;font-size:6pt;line-height:1.16;color:#000}
     .empty{color:#b00;font-size:13px}
   </style></head><body>
     <div class="labels"><div class="cut">
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:#71C5E8">
-      <h4 style="background:#71C5E8">Morfin <span class="warna">LABEL BIRU</span> <span class="klass">Opioid — analgesia</span></h4>
-      <div class="tid"><div class="idc" style="flex:2"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div><div class="idc" style="flex:1"><span class="idk">Tgl lahir</span><span class="idv">01/02/2024</span></div></div>
-      <p class="cx"><b>BB 12,5 kg</b> · Sediaan 50 mg/50 mL · Titrasi 1 mL : 1000 mcg</p>
+      <h4 style="background:#71C5E8">Morfin <span class="warna">BIRU</span></h4>
+      <div class="tid"><div class="idc" style="flex:1.6"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,5 kg</b> · Titrasi 1 mL : 1000 mcg</p>
       <table><thead><tr><th>Dosis (mcg/kg/jam)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>10</td><td style="text-align:right">0,13</td></tr><tr><td>15</td><td style="text-align:right">0,19</td></tr><tr><td>20</td><td style="text-align:right">0,25</td></tr><tr><td>25</td><td style="text-align:right">0,31</td></tr><tr><td>30</td><td style="text-align:right">0,38</td></tr><tr><td>35</td><td style="text-align:right">0,44</td></tr><tr><td>40</td><td style="text-align:right">0,50</td></tr></tbody></table>
-      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat. · 03/09/2026 08:00 · Tabel dosis v2026.09.05b</p>
+      <p class="dc"><b>Double check 2 perawat.</b> Hanya untuk sediaan 50 mg/50 mL &amp; BB di atas. v2026.09.06b</p>
     </div>
   </div><div class="cut">
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:#999">
-      <h4 style="background:#eee">Deksmedetomidin <span class="warna">TIDAK DIATUR ISO</span> <span class="klass">Agonis alfa-2 — sedasi</span></h4>
-      <div class="tid"><div class="idc" style="flex:2"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div><div class="idc" style="flex:1"><span class="idk">Tgl lahir</span><span class="idv">01/02/2024</span></div></div>
-      <p class="cx"><b>BB 12,5 kg</b> · Sediaan 200 mcg/50 mL · Titrasi 1 mL : 4,0 mcg</p>
+      <h4 style="background:#eee">Deksmedetomidin <span class="warna">TIDAK DIATUR</span></h4>
+      <div class="tid"><div class="idc" style="flex:1.6"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,5 kg</b> · Titrasi 1 mL : 4,0 mcg</p>
       <table><thead><tr><th>Dosis (mcg/kg/jam)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>0,2</td><td style="text-align:right">0,63</td></tr><tr><td>0,3</td><td style="text-align:right">0,94</td></tr><tr><td>0,4</td><td style="text-align:right">1,25</td></tr><tr><td>0,5</td><td style="text-align:right">1,56</td></tr><tr><td>0,6</td><td style="text-align:right">1,88</td></tr><tr><td>0,7</td><td style="text-align:right">2,19</td></tr><tr><td>0,8</td><td style="text-align:right">2,50</td></tr><tr><td>0,9</td><td style="text-align:right">2,81</td></tr><tr><td>1,0</td><td style="text-align:right">3,13</td></tr></tbody></table>
-      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat. · 03/09/2026 08:00 · Tabel dosis v2026.09.05b</p>
+      <p class="dc"><b>Double check 2 perawat.</b> Hanya untuk sediaan 200 mcg/50 mL &amp; BB di atas. v2026.09.06b</p>
     </div>
   </div><div class="cut">
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:#FF3C5F">
-      <h4 style="background:#FF3C5F">Rokuronium <span class="warna">LABEL MERAH</span> <span class="klass">Relaksan otot</span></h4>
-      <div class="tid"><div class="idc" style="flex:2"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div><div class="idc" style="flex:1"><span class="idk">Tgl lahir</span><span class="idv">01/02/2024</span></div></div>
-      <p class="cx"><b>BB 12,5 kg</b> · Sediaan 250 mg/50 mL · Titrasi 1 mL : 5000 mcg</p>
+      <h4 style="background:#FF3C5F">Rokuronium <span class="warna">MERAH</span></h4>
+      <div class="tid"><div class="idc" style="flex:1.6"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,5 kg</b> · Titrasi 1 mL : 5000 mcg</p>
       <table><thead><tr><th>Dosis (mcg/kg/menit)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>3</td><td style="text-align:right">0,45</td></tr><tr><td>4</td><td style="text-align:right">0,60</td></tr><tr><td>5</td><td style="text-align:right">0,75</td></tr><tr><td>6</td><td style="text-align:right">0,90</td></tr><tr><td>7</td><td style="text-align:right">1,05</td></tr><tr><td>8</td><td style="text-align:right">1,20</td></tr><tr><td>9</td><td style="text-align:right">1,35</td></tr><tr><td>10</td><td style="text-align:right">1,50</td></tr><tr><td>11</td><td style="text-align:right">1,65</td></tr><tr><td>12</td><td style="text-align:right">1,80</td></tr></tbody></table>
-      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat. · 03/09/2026 08:00 · Tabel dosis v2026.09.05b</p>
+      <p class="dc"><b>Double check 2 perawat.</b> Hanya untuk sediaan 250 mg/50 mL &amp; BB di atas. v2026.09.06b</p>
     </div>
   </div><div class="cut">
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:#C9A0DC">
-      <h4 style="background:#C9A0DC">Dopamin <span class="warna">LABEL UNGU</span> <span class="klass">Vasopresor / inotropik</span></h4>
-      <div class="tid"><div class="idc" style="flex:2"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div><div class="idc" style="flex:1"><span class="idk">Tgl lahir</span><span class="idv">01/02/2024</span></div></div>
-      <p class="cx"><b>BB 12,5 kg</b> · Sediaan 37,5 mg/50 mL · Titrasi 1 mL : 750 mcg</p>
+      <h4 style="background:#C9A0DC">Dopamin <span class="warna">UNGU</span></h4>
+      <div class="tid"><div class="idc" style="flex:1.6"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,5 kg</b> · Titrasi 1 mL : 750 mcg</p>
       <table><thead><tr><th>Dosis (mcg/kg/menit)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>3,0</td><td style="text-align:right">3,00</td></tr><tr><td>5,0</td><td style="text-align:right">5,00</td></tr><tr><td>7,5</td><td style="text-align:right">7,50</td></tr><tr><td>10,0</td><td style="text-align:right">10,00</td></tr><tr><td>12,5</td><td style="text-align:right">12,50</td></tr><tr><td>15,0</td><td style="text-align:right">15,00</td></tr><tr><td>17,5</td><td style="text-align:right">17,50</td></tr><tr><td>20,0</td><td style="text-align:right">20,00</td></tr></tbody></table>
-      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat. · 03/09/2026 08:00 · Tabel dosis v2026.09.05b</p>
+      <p class="dc"><b>Double check 2 perawat.</b> Hanya untuk sediaan 37,5 mg/50 mL &amp; BB di atas. v2026.09.06b</p>
     </div>
   </div><div class="cut">
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:#C9A0DC">
-      <h4 style="background:#C9A0DC">Milrinon <span class="warna">LABEL UNGU</span> <span class="klass">Inodilator</span></h4>
-      <div class="tid"><div class="idc" style="flex:2"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div><div class="idc" style="flex:1"><span class="idk">Tgl lahir</span><span class="idv">01/02/2024</span></div></div>
-      <p class="cx"><b>BB 12,5 kg</b> · Sediaan 10 mg/50 mL · Titrasi 1 mL : 200 mcg</p>
+      <h4 style="background:#C9A0DC">Milrinon <span class="warna">UNGU</span></h4>
+      <div class="tid"><div class="idc" style="flex:1.6"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,5 kg</b> · Titrasi 1 mL : 200 mcg</p>
       <table><thead><tr><th>Dosis (mcg/kg/menit)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>0,25</td><td style="text-align:right">0,94</td></tr><tr><td>0,50</td><td style="text-align:right">1,88</td></tr><tr><td>0,75</td><td style="text-align:right">2,81</td></tr><tr style="background:#fff8e1"><td>1,00</td><td style="text-align:right">3,75</td></tr></tbody></table>
-      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat. · 03/09/2026 08:00 · Tabel dosis v2026.09.05b</p>
+      <p class="dc">Di atas 0,75 (baris bertanda): hanya atas instruksi DPJP. <b>Double check 2 perawat.</b> Hanya untuk sediaan 10 mg/50 mL &amp; BB di atas. v2026.09.06b</p>
     </div>
   </div><div class="cut">
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:#C9A0DC">
-      <h4 style="background:#C9A0DC">Vasopresin <span class="warna">LABEL UNGU</span> <span class="klass">Vasopresor</span></h4>
-      <div class="tid"><div class="idc" style="flex:2"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div><div class="idc" style="flex:1"><span class="idk">Tgl lahir</span><span class="idv">01/02/2024</span></div></div>
-      <p class="cx"><b>BB 12,5 kg</b> · Sediaan 50 unit/50 mL · Titrasi 1 mL : 1,0 unit</p>
+      <h4 style="background:#C9A0DC">Vasopresin <span class="warna">UNGU</span></h4>
+      <div class="tid"><div class="idc" style="flex:1.6"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,5 kg</b> · Titrasi 1 mL : 1,0 unit</p>
       <table><thead><tr><th>Dosis (unit/kg/jam)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>0,01</td><td style="text-align:right">0,13</td></tr><tr><td>0,02</td><td style="text-align:right">0,25</td></tr><tr><td>0,03</td><td style="text-align:right">0,38</td></tr><tr><td>0,04</td><td style="text-align:right">0,50</td></tr><tr><td>0,05</td><td style="text-align:right">0,63</td></tr><tr style="background:#fff8e1"><td>0,06</td><td style="text-align:right">0,75</td></tr><tr style="background:#fff8e1"><td>0,07</td><td style="text-align:right">0,88</td></tr><tr style="background:#fff8e1"><td>0,08</td><td style="text-align:right">1,00</td></tr><tr style="background:#fff8e1"><td>0,09</td><td style="text-align:right">1,13</td></tr><tr style="background:#fff8e1"><td>0,10</td><td style="text-align:right">1,25</td></tr></tbody></table>
-      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat. · 03/09/2026 08:00 · Tabel dosis v2026.09.05b</p>
+      <p class="dc">Di atas 0,05 (baris bertanda): hanya atas instruksi DPJP. <b>Double check 2 perawat.</b> Hanya untuk sediaan 50 unit/50 mL &amp; BB di atas. v2026.09.06b</p>
     </div>
   </div><div class="cut">
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:#999">
-      <h4 style="background:#eee">Furosemide <span class="warna">TIDAK DIATUR ISO</span> <span class="klass">Diuretik loop</span></h4>
-      <div class="tid"><div class="idc" style="flex:2"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div><div class="idc" style="flex:1"><span class="idk">Tgl lahir</span><span class="idv">01/02/2024</span></div></div>
-      <p class="cx"><b>BB 12,5 kg</b> · Sediaan 50 mg/50 mL · Titrasi 1 mL : 1,0 mg</p>
+      <h4 style="background:#eee">Furosemide <span class="warna">TIDAK DIATUR</span></h4>
+      <div class="tid"><div class="idc" style="flex:1.6"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,5 kg</b> · Titrasi 1 mL : 1,0 mg</p>
       <table><thead><tr><th>Dosis (mg/kg/jam)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>0,1</td><td style="text-align:right">1,25</td></tr><tr><td>0,2</td><td style="text-align:right">2,50</td></tr><tr><td>0,3</td><td style="text-align:right">3,75</td></tr><tr><td>0,4</td><td style="text-align:right">5,00</td></tr><tr><td>0,5</td><td style="text-align:right">6,25</td></tr><tr><td>0,6</td><td style="text-align:right">7,50</td></tr><tr><td>0,7</td><td style="text-align:right">8,75</td></tr></tbody></table>
-      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat. · 03/09/2026 08:00 · Tabel dosis v2026.09.05b</p>
+      <p class="dc"><b>Double check 2 perawat.</b> Hanya untuk sediaan 50 mg/50 mL &amp; BB di atas. v2026.09.06b</p>
     </div>
   </div><div class="cut">
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:#C9A0DC">
-      <h4 style="background:#C9A0DC">Nicardipin <span class="warna">LABEL UNGU</span> <span class="klass">Antihipertensi — CCB</span></h4>
-      <div class="tid"><div class="idc" style="flex:2"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div><div class="idc" style="flex:1"><span class="idk">Tgl lahir</span><span class="idv">01/02/2024</span></div></div>
-      <p class="cx"><b>BB 12,5 kg</b> · Sediaan 25 mg/25 mL · Titrasi 1 mL : 1000 mcg</p>
+      <h4 style="background:#C9A0DC">Nicardipin <span class="warna">UNGU</span></h4>
+      <div class="tid"><div class="idc" style="flex:1.6"><span class="idk">Nama pasien</span><span class="idv">An. Budi Santoso Wijaya</span></div><div class="idc" style="flex:1"><span class="idk">No. RM</span><span class="idv">RM-123456</span></div></div>
+      <p class="cx"><b>BB 12,5 kg</b> · Titrasi 1 mL : 1000 mcg</p>
       <table><thead><tr><th>Dosis (mcg/kg/menit)</th><th style="text-align:right">mL/jam</th></tr></thead><tbody><tr><td>0,5</td><td style="text-align:right">0,38</td></tr><tr><td>1,0</td><td style="text-align:right">0,75</td></tr><tr><td>1,5</td><td style="text-align:right">1,13</td></tr><tr><td>2,0</td><td style="text-align:right">1,50</td></tr><tr><td>2,5</td><td style="text-align:right">1,88</td></tr><tr><td>3,0</td><td style="text-align:right">2,25</td></tr><tr><td>3,5</td><td style="text-align:right">2,63</td></tr><tr><td>4,0</td><td style="text-align:right">3,00</td></tr></tbody></table>
-      <p class="dc">Berlaku hanya untuk sediaan &amp; BB di atas. Double check 2 perawat. · 03/09/2026 08:00 · Tabel dosis v2026.09.05b</p>
+      <p class="dc"><b>Double check 2 perawat.</b> Hanya untuk sediaan 25 mg/25 mL &amp; BB di atas. v2026.09.06b</p>
     </div>
   </div></div>
   </body></html>

@@ -5,7 +5,7 @@
 // whenever any lo/hi/cap/preset/note changes, so a nurse on a cached web page and
 // a nurse on an installed build can tell whether they are looking at the same
 // numbers. It is printed on every titration label and shown in the app footer.
-export const TABEL = { versi: '2026.09.06', ditinjau: '6 September 2026' };
+export const TABEL = { versi: '2026.09.06b', ditinjau: '6 September 2026' };
 
 // Presets are listed dilute -> concentrated on every drug, so the picker reads the
 // same way everywhere instead of each drug having its own arbitrary order.

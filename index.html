@@ -1069,8 +1069,14 @@ function labelHTML(aktif, bb){
       const rr = hitung(d, { ...s, dose }, bb);
       const pelan = !!(rr && lajuTerlaluPelan(rr.laju));
       if (pelan) adaPelan = true;
+      /* Penandanya BUKAN sekadar warna latar. Kartu ini memang dirancang tetap
+         terbaca kalau dicetak hitam-putih atau tanpa "background graphics" —
+         itu sebabnya nama warna ISO ikut ditulis. Latar krem dan kelabu sama
+         saja hilangnya dalam keadaan itu, jadi tiap baris bertanda diberi
+         segitiga: ▲ di atas rentang lazim, ▼ di bawah kemampuan pump. */
       const kelas = dose > d.hi ? "tcard-ext" : pelan ? "tcard-pelan" : "";
-      return `<tr${kelas ? ` class="${kelas}"` : ""}><td>${fmt(dose, TD)}</td>`
+      const tanda = dose > d.hi ? "▲ " : pelan ? "▼ " : "";
+      return `<tr${kelas ? ` class="${kelas}"` : ""}><td>${tanda}${fmt(dose, TD)}</td>`
         + `<td>${rr ? fmt(rr.laju, 2) : "—"}</td></tr>`;
     }).join("");
     const ratio = r0 ? r0.conc / d.conv : null;
@@ -1090,8 +1096,8 @@ function labelHTML(aktif, bb){
       + `<table><thead><tr><th>Dosis (${doseUnit(d)})</th><th style="text-align:right">mL/jam</th></tr></thead>`
       + `<tbody>${baris}</tbody></table>`
       + `<p class="dc">`
-        + (batasTabel > d.hi ? `Baris krem di atas ${fmt(d.hi, TD)}: hanya atas instruksi DPJP. ` : "")
-        + (adaPelan ? `Baris kelabu di bawah ${fmt(LAJU_MIN, 1)} mL/jam: pump sulit akurat, encerkan lagi. ` : "")
+        + (batasTabel > d.hi ? `Baris ▲ di atas ${fmt(d.hi, TD)}: hanya atas instruksi DPJP. ` : "")
+        + (adaPelan ? `Baris ▼ di bawah ${fmt(LAJU_MIN, 1)} mL/jam: pump sulit akurat, encerkan lagi. ` : "")
         + `<b>Double check 2 perawat.</b> Sesuai sediaan &amp; BB di atas. v${TABEL.versi}</p>`
       + `</div>`;
   }).join("");

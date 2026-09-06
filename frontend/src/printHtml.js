@@ -31,8 +31,12 @@ function labelCard(d, st, bb, patient) {
     const rr = hitungDose(d, st, bb, dose);
     const pelan = !!(rr && lajuTerlaluPelan(rr.laju));
     if (pelan) adaPelan = true;
+    // Penandanya bukan sekadar warna latar: kartu ini harus tetap terbaca kalau
+    // dicetak hitam-putih atau tanpa background graphics, dan krem maupun kelabu
+    // sama saja hilangnya di situ.
     const bg = dose > d.hi ? ' style="background:#fff8e1"' : pelan ? ' style="background:#ededed;color:#333"' : '';
-    return `<tr${bg}><td>${fmt(dose, TD)}</td><td style="text-align:right">${rr ? fmt(rr.laju, 2) : '—'}</td></tr>`;
+    const tanda = dose > d.hi ? '▲ ' : pelan ? '▼ ' : '';
+    return `<tr${bg}><td>${tanda}${fmt(dose, TD)}</td><td style="text-align:right">${rr ? fmt(rr.laju, 2) : '—'}</td></tr>`;
   }).join('');
   // The whole header band is already printed in the ISO colour, so a swatch of the
   // same colour on top of it was invisible (it printed as an empty white box).
@@ -58,7 +62,7 @@ function labelCard(d, st, bb, patient) {
       <div class="tid">${idCell('Nama pasien', patient.pn, 1.6)}${idCell('No. RM', patient.prm, 1, true)}</div>
       <p class="cx"><b>BB ${rapi(bb) || '—'} kg</b> · Titrasi 1 mL : ${ratio !== null ? fmt(ratio, ratioTD) : '—'} ${d.numer}</p>
       <table><thead><tr><th>Dosis (${doseUnit(d)})</th><th style="text-align:right">mL/jam</th></tr></thead><tbody>${rows}</tbody></table>
-      <p class="dc">${batas > d.hi ? `Baris krem di atas ${fmt(d.hi, TD)}: hanya atas instruksi DPJP. ` : ''}${adaPelan ? `Baris kelabu di bawah ${fmt(LAJU_MIN, 1)} mL/jam: pump sulit akurat, encerkan lagi. ` : ''}<b>Double check 2 perawat.</b> Sesuai sediaan ${amt || '—'} ${esc(d.amtUnit)}/${rapi(st.ml) || '—'} mL &amp; BB di atas. v${esc(TABEL.versi)}</p>
+      <p class="dc">${batas > d.hi ? `Baris ▲ di atas ${fmt(d.hi, TD)}: hanya atas instruksi DPJP. ` : ''}${adaPelan ? `Baris ▼ di bawah ${fmt(LAJU_MIN, 1)} mL/jam: pump sulit akurat, encerkan lagi. ` : ''}<b>Double check 2 perawat.</b> Sesuai sediaan ${amt || '—'} ${esc(d.amtUnit)}/${rapi(st.ml) || '—'} mL &amp; BB di atas. v${esc(TABEL.versi)}</p>
     </div>
   </div>`;
 }

@@ -5,7 +5,7 @@
 // whenever any lo/hi/cap/preset/note changes, so a nurse on a cached web page and
 // a nurse on an installed build can tell whether they are looking at the same
 // numbers. It is printed on every titration label and shown in the app footer.
-export const TABEL = { versi: '2026.09.05b', ditinjau: '5 September 2026' };
+export const TABEL = { versi: '2026.09.06', ditinjau: '6 September 2026' };
 
 // Presets are listed dilute -> concentrated on every drug, so the picker reads the
 // same way everywhere instead of each drug having its own arbitrary order.
@@ -94,7 +94,7 @@ export const DRUGS = [
   /* --- vasoaktif & inotropik --- */
   { id: 'epinefrin', badge: 'vaso', nama: 'Epinefrin', klass: 'Vasopresor / inotropik', band: 'var(--vaso)', grup: 'vaso',
     amtUnit: 'mg', numer: 'mcg', perMin: true, conv: 0.001,
-    lo: 0.05, hi: 0.3, cap: 1, step: 0.01, start: 0.05, tstep: 0.05,
+    lo: 0.05, hi: 0.3, cap: 1, step: 0.01, start: 0.05, tstep: 0.05, tblHi: 0.5,
     presets: [
       { t: 'Rule of 0,6 — 1 mL/jam = 0,1 mcg/kg/menit', amtPerKg: 0.3, ml: 50, dflt: true },
       { t: '20 mcg/mL — 1 mg dalam 50 mL', amt: 1, ml: 50 },

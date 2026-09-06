@@ -12,11 +12,22 @@ app.add_middleware(
 )
 
 
-@app.get("/api/")
+# Kubernetes / deployment health probe hits GET /health (no /api prefix).
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
+
+@app.get("/")
 def root():
     return {"status": "ok", "app": "PediDrip", "note": "Calculator runs fully client-side."}
 
 
+@app.get("/api/")
+def api_root():
+    return {"status": "ok", "app": "PediDrip"}
+
+
 @app.get("/api/health")
-def health():
+def api_health():
     return {"status": "healthy"}

@@ -7,6 +7,7 @@
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo-google-fonts/public-sans": "^0.4.2",
     "@expo/metro-runtime": "~57.0.15",
+    "@expo/ngrok": "^4.1.0",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/slider": "5.2.0",

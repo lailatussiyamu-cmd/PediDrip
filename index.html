@@ -218,6 +218,8 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
 .pasang p{margin:0 0 12px;color:var(--ink2)}
 .relaxwarn{color:var(--danger);font-weight:600;border-left:4px solid var(--danger);
   background:var(--danger-light);padding:12px 16px;border-radius:8px}
+.bbwarn{color:var(--warning);font-weight:600;border-left:4px solid var(--warning);
+  background:var(--warning-light);padding:12px 16px;border-radius:8px;margin:12px 0}
 .noscript{background:var(--warning-light);border:3px solid var(--warning);padding:20px;margin:20px;
   text-align:center;border-radius:var(--r)}
 .error-boundary{margin:12px 0;padding:16px;border:2px solid var(--danger);border-radius:8px;
@@ -326,6 +328,9 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
   .tcard .tid-v{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
                 font-size:9.6pt;font-weight:800;line-height:1.14;
                 min-height:4.1mm;overflow:hidden;word-break:break-word}
+  .tcard .tid-v.nm-sedang{font-size:8.4pt;line-height:1.1}
+  .tcard .tid-v.nm-kecil{font-size:7pt;line-height:1.08}
+  .tcard .tid-v.nm-mini{font-size:5.9pt;line-height:1.06;letter-spacing:-.01em}
   .tcard .tid-v.kosong{border-bottom:1.2pt solid #000}
 
   /* Satu baris, tidak boleh patah — baris ini yang mengunci kartu ke sediaan
@@ -396,6 +401,8 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
 
   <p class="hint" id="hint">Isi berat badan untuk mengaktifkan perhitungan. Setiap kartu bisa diatur sediaan dan dosisnya; centang <em>Ringkasan</em> untuk memasukkan obat ke lembar terapi di bawah.</p>
 
+  <p class="bbwarn noprint" id="bbwarn" hidden></p>
+
   <div id="cards"></div>
 
   <section class="sum">
@@ -431,7 +438,7 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
    frontend/src/data/drugs.js setiap kali ada lo/hi/cap/preset/note yang berubah,
    supaya perawat yang membuka halaman ter-cache dan yang memakai build terpasang
    bisa tahu apakah angkanya sama. Dicetak di tiap label titrasi. */
-const TABEL = { versi:"2026.09.06b", ditinjau:"6 September 2026" };
+const TABEL = { versi:"2026.09.06c", ditinjau:"6 September 2026" };
 
 const DRUGS = [
 /* --- sedasi, analgesia, relaksan --- */
@@ -703,6 +710,29 @@ function konsen(v){
   return (b > 0 ? String(b) : v.toPrecision(2)).replace(".", ",");
 }
 const bbVal = () => { const v = num(el("bb").value); return isFinite(v) && v > 0 ? v : 0; };
+
+/* Kewajaran berat badan.
+   Salah ketik koma adalah satu-satunya kesalahan masukan di alat ini yang bisa
+   lolos tanpa jejak: pada sediaan berbasis berat ("Rule of 6" / "Rule of 0,6")
+   jumlah obat ikut berskala dengan berat, jadi laju pump tetap terbaca 1 mL/jam
+   untuk dosis yang sama — angka yang paling sering dilirik justru tidak berubah.
+   Yang bergeser hanya jumlah obat yang harus dioplos.
+   Karena itu peringatannya MEMPERINGATKAN, tidak memblokir: menolak menghitung
+   akan menghambat pasien remaja yang memang berat, dan alat yang menghalangi
+   akan dicari jalan pintasnya. Ambang 0,3 dan 100 kg sengaja dipasang jauh di
+   luar rentang pasien PICU/ICU mana pun supaya nyaris tidak pernah berbunyi
+   palsu — sesuaikan dengan kebijakan unit bila perlu. */
+const BB_MIN_WAJAR = 0.3, BB_MAKS_WAJAR = 100;
+function cekKewajaranBB(){
+  const w = document.getElementById("bbwarn"), v = bbVal();
+  if (!w) return;
+  const pesan = !v ? ""
+    : v > BB_MAKS_WAJAR ? `Berat ${rapi(v)} kg di luar rentang yang lazim di PICU/ICU. Periksa kembali sebelum menyiapkan syringe — salah letak koma tidak mengubah laju pump, hanya jumlah obat yang dioplos.`
+    : v < BB_MIN_WAJAR ? `Berat ${rapi(v)} kg lebih kecil daripada bayi terkecil sekalipun. Periksa kembali sebelum menyiapkan syringe.`
+    : "";
+  w.textContent = pesan;
+  w.hidden = !pesan;
+}
 const dec = d => d.step >= 1 ? 0 : (d.step >= 0.1 ? 1 : 2);
 const nd = v => { const t = String(v); return t.includes(".") ? t.split(".")[1].length : 0; };
 const tdec = d => d.doses
@@ -984,10 +1014,18 @@ function sumHTML(){
    ditempel di syringe, terpisah dari lembar terapi, jadi harus bisa berdiri
    sendiri. Kolom yang belum diisi dicetak sebagai garis kosong supaya tetap
    bisa ditulis tangan — bukan dibiarkan hilang. */
+/* Nama panjang dikecilkan hurufnya, bukan dipotong. Kartu cetak hanya punya
+   ruang dua baris untuk nama, dan ruang itu tidak bisa ditambah tanpa membuat
+   kartu terpadat (vasopresin: sepuluh baris ditambah catatan rentang atas)
+   meluber melewati garis bawah. Jadi yang mengalah ukuran hurufnya — kartu yang
+   sudah digunting tetap membawa nama yang utuh. */
+const kelasNama = n => n.length <= 24 ? "" : n.length <= 34 ? " nm-sedang"
+  : n.length <= 44 ? " nm-kecil" : " nm-mini";
 function idPasien(){
   const isi = (judul, nilai, kelas) =>
       `<span class="${kelas}"><span class="tid-k">${judul}</span>`
-    + `<span class="tid-v${nilai ? "" : " kosong"}">${nilai ? esc(nilai) : ""}</span></span>`;
+    + `<span class="tid-v${nilai ? "" : " kosong"}${kelas === "tid-nm" && nilai ? kelasNama(nilai) : ""}">`
+    + `${nilai ? esc(nilai) : ""}</span></span>`;
   return `<div class="tid">`
     + isi("Nama pasien", el("pn").value.trim(), "tid-nm")
     + isi("No. RM", el("prm").value.trim(), "tid-rm")
@@ -1040,6 +1078,7 @@ function updateAll(){
   sedangUpdate = true;
   try{
     DRUGS.forEach(update);
+    cekKewajaranBB();
     el("hint").style.display = bbVal() ? "none" : "block";
     DRUGS.forEach(d => {
       el(`card-${d.id}`).style.display = (hanyaDicentang && !state[d.id].on) ? "none" : "";

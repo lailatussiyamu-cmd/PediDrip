@@ -13,7 +13,7 @@
  * VERSI harus dinaikkan setiap kali TABEL.versi di index.html berubah.
  * scripts/check-calc.mjs memeriksa keduanya cocok.
  */
-const VERSI = "2026.09.06b";
+const VERSI = "2026.09.06c";
 const CACHE = `pedidrip-${VERSI}`;
 
 /* Berkas inti aplikasi. Font Google sengaja tidak dimasukkan di sini supaya

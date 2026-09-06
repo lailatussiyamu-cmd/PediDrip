@@ -38,11 +38,13 @@ function labelCard(d, st, bb, patient) {
     const tanda = dose > d.hi ? '▲ ' : pelan ? '▼ ' : '';
     return `<tr${bg}><td>${tanda}${fmt(dose, TD)}</td><td style="text-align:right">${rr ? fmt(rr.laju, 2) : '—'}</td></tr>`;
   }).join('');
-  // The whole header band is already printed in the ISO colour, so a swatch of the
-  // same colour on top of it was invisible (it printed as an empty white box).
-  // Worded exactly as index.html words it. Two cards at the same bedside that
-  // say "LABEL BIRU" and "BIRU" invite the question of whether they mean the
-  // same thing, and that question costs more than the word saves.
+  // Petak putih + nama warna, persis seperti index.html. Petak itu memang tidak
+  // membawa warna apa pun (pitanya sudah berwarna ISO), tapi kartu web sudah
+  // dipakai perawat dalam bentuk itu dan Lala memilih mempertahankannya — jadi
+  // yang menyesuaikan build ini, bukan sebaliknya. Dua build yang berbeda
+  // tampilannya lebih mahal daripada satu petak yang tidak berguna.
+  // Kata-katanya juga disamakan: dua kartu di satu bedside yang bertulis
+  // "LABEL BIRU" dan "BIRU" mengundang pertanyaan apakah artinya sama.
   const head = iso ? iso.warna.toUpperCase() : 'TIDAK DIATUR';
   // Sama seperti index.html: yang mengalah ukuran hurufnya, bukan isinya.
   // Nomor RM lebih ketat karena kolomnya lebih sempit, dan nomor yang patah di
@@ -58,7 +60,7 @@ function labelCard(d, st, bb, patient) {
   return `<div class="cut">
     <span class="cm tl"></span><span class="cm tr"></span><span class="cm bl"></span><span class="cm br"></span>
     <div class="tcard" style="border-color:${iso ? iso.hex : '#999'}">
-      <h4 style="background:${iso ? iso.hex : '#eee'}">${esc(d.nama)} <span class="warna">${head}</span></h4>
+      <h4 style="background:${iso ? iso.hex : '#eee'}">${esc(d.nama)} <span class="sw"></span> <span class="warna">${head}</span></h4>
       <div class="tid">${idCell('Nama pasien', patient.pn, 1.6)}${idCell('No. RM', patient.prm, 1, true)}</div>
       <p class="cx"><b>BB ${rapi(bb) || '—'} kg</b> · Titrasi 1 mL : ${ratio !== null ? fmt(ratio, ratioTD) : '—'} ${d.numer}</p>
       <table><thead><tr><th>Dosis (${doseUnit(d)})</th><th style="text-align:right">mL/jam</th></tr></thead><tbody>${rows}</tbody></table>
@@ -111,6 +113,8 @@ export function buildTherapyHtml(states, bb, patient = {}) {
               margin:-2.4mm -2.4mm 1.6mm;padding:1.8mm 2.4mm;
               font-size:11.8pt;font-weight:800;line-height:1.12;
               text-transform:uppercase;letter-spacing:-.015em;border-radius:1.5mm 1.5mm 0 0}
+    .tcard h4 .sw{width:5.5mm;height:3.2mm;border:0.75pt solid #000;border-radius:0.8mm;flex:none;
+                  background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .tcard h4 .warna{font-size:6.8pt;font-weight:800;flex:none}
 
     /* Identitas dinaikkan, bukan diturunkan: kartu yang sudah digunting harus

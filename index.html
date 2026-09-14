@@ -14,7 +14,14 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Public Sans sampai 900, bukan 600.
+     Kartu titrasi meminta font-weight:800 di enam tempat — nama obat, nama
+     pasien, nomor RM, kolom mL/jam, baris BB — tapi yang dimuat selama ini
+     berhenti di 600, jadi browser memalsukan tebalnya dengan menebalkan
+     huruf sendiri. Di layar selisihnya tak terasa; di kertas 60 mm yang
+     dibaca sambil berdiri di samping pump, itulah bedanya antara nama obat
+     yang langsung tertangkap mata dan yang harus dicari. -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Public+Sans:wght@400;500;600;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
   --primary:#2563EB; --primary-dark:#1D4ED8; --primary-light:#DBEAFE;
@@ -283,7 +290,19 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
             panduan guntingnya. Ketinggian dijaga dengan memastikan isinya
             memang muat, bukan dengan memotong yang lebih. */
          height:90mm;
-         border:2pt solid var(--tcband,#000);border-radius:2mm;padding:2.4mm;
+         /* Bingkai golongan, bukan garis tepi biasa: 3,2pt penuh keliling
+            dengan warna ISO obatnya, supaya setumpuk kartu yang sudah
+            digunting bisa dipilah tanpa dibaca satu per satu.
+            Warnanya diambil dari --tcframe, terpisah dari --tcband (pita
+            kepala), karena obat di luar ISO 26825 tidak boleh diberi warna
+            karangan sendiri: kepalanya tetap kelabu polos, tapi bingkainya
+            hitam PUTUS-PUTUS. Bingkai putus-putus itu yang membedakannya:
+            ia terlihat jelas — #eee yang dipakai sebelumnya praktis tidak
+            terlihat, sehingga deksmedetomidin, furosemide, insulin, dan
+            aminofilin tercetak seperti kartu tanpa tepi — tanpa ikut
+            berlagak sebagai salah satu warna golongan ISO. */
+         border:3.2pt var(--tcgaris,solid) var(--tcframe,#000);
+         border-radius:2mm;padding:2.4mm;
          page-break-inside:avoid;break-inside:avoid;
          font-family:"Public Sans",sans-serif;font-size:8pt;line-height:1.28;color:#000;
          -webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -302,13 +321,30 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
      (TIDAK DIATUR) tetap tidak muat satu baris di kartu 60 mm; dibiarkan
      melipat, bukan dipotong, karena nama warna itulah satu-satunya penanda
      golongan yang tersisa bila kartu dicetak hitam-putih. */
-  .tcard h4{flex:none;display:flex;align-items:center;flex-wrap:wrap;gap:1.2mm;
-            margin:-2.4mm -2.4mm 1.6mm -2.4mm;padding:1.8mm 2.4mm;
+  .tcard h4{flex:none;display:flex;align-items:center;flex-wrap:wrap;gap:0.8mm 1.2mm;
+            margin:-2.4mm -2.4mm 1.6mm -2.4mm;padding:1.6mm 2.4mm;
             font-size:11.8pt;font-weight:800;line-height:1.12;
             text-transform:uppercase;letter-spacing:-.015em;
-            border-radius:1.5mm 1.5mm 0 0;
+            border-radius:1.2mm 1.2mm 0 0;
             background:var(--tcband,#eee);color:var(--tctext,#000);
             -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* Nama obat adalah satu-satunya hal di kartu ini yang harus terbaca dari
+     jarak satu langkah. Ia dibesarkan dan dinaikkan ke bobot 900 — bobot
+     yang baru sekarang benar-benar ikut dimuat — sementara nama warna ISO
+     di sebelahnya tetap 6,8pt. Keduanya sebelumnya sama-sama 800, dan mata
+     jadi harus memilih sendiri mana yang nama obat.
+     Yang mengalah saat sempit adalah nama warna, bukan nama obat: petak
+     ISO turun ke baris kedua dan nama obat tetap 14pt. Nama obat sendiri
+     baru dikecilkan kalau satu baris penuh pun tidak muat — ambangnya
+     diletakkan di luar jangkauan seluruh 16 obat sekarang (terpanjang
+     DEKSMEDETOMIDIN, 15 huruf), jadi ia murni jaring pengaman untuk obat
+     yang ditambahkan kemudian, bukan aturan yang berlaku hari ini. */
+  .tcard h4 .nm{flex:1 1 auto;min-width:0;
+                font-size:14pt;font-weight:900;line-height:1.04;
+                letter-spacing:-.02em;white-space:nowrap}
+  .tcard h4 .nm.nm-sedang{font-size:11.6pt;letter-spacing:-.025em}
+  .tcard h4 .nm.nm-panjang{font-size:9.6pt;letter-spacing:-.03em}
+  .tcard h4 .iso{flex:none;display:flex;align-items:center;gap:1.2mm}
   .tcard h4 .sw{width:5.5mm;height:3.2mm;border:0.75pt solid #000;border-radius:0.8mm;flex:none;
                 background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .tcard h4 .warna{font-size:6.8pt;font-weight:800;letter-spacing:.02em;flex:none}
@@ -348,14 +384,23 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
   .tcard th{font-family:"Archivo",sans-serif;font-size:6.2pt;font-weight:700;text-align:left;
             text-transform:uppercase;letter-spacing:.06em;
             border-bottom:1.2pt solid #000;padding:0.4mm 0.8mm;height:4mm}
-  .tcard td{padding:0.3mm 0.8mm;border-bottom:0.5pt solid #bbb;
+  /* Padding baris 0,18 mm, bukan 0,3 mm. Bukan soal selera: tinggi minimum
+     tabel = jumlah baris x (tinggi huruf + padding), dan pada kartu terpadat
+     selisih 0,12 mm per sisi itu 2,4 mm untuk sepuluh baris — persis sebanyak
+     yang selama ini membuat catatan kaki epinefrin, norepinefrin, dan
+     vasopresin tercetak MELEWATI garis tepi kartu, jadi kalimat "hanya atas
+     instruksi DPJP" dan nomor versi tabel terpotong tepat pada obat yang
+     paling tidak boleh salah baca.
+     Kartu berbaris sedikit tidak ikut memadat: tabelnya melar mengisi sisa
+     tinggi, jadi yang berubah hanya kartu yang memang sesak. */
+  .tcard td{padding:0.18mm 0.8mm;border-bottom:0.5pt solid #bbb;
             font-size:9.2pt;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.12}
   .tcard td:last-child{text-align:right;font-weight:800}
   .tcard tr.tcard-ext td{background:#fff8e1}
   .tcard tr.tcard-pelan td{background:#ededed;color:#333}
   .tcard tbody tr:last-child td{border-bottom:none}
 
-  .tcard .dc{flex:none;margin:1mm 0 0;font-size:6pt;line-height:1.16;color:#000}
+  .tcard .dc{flex:none;margin:0.7mm 0 0;font-size:6pt;line-height:1.12;color:#000}
   .tcard .dc:last-child{margin-bottom:0.4mm}
 }
 @media print{
@@ -1082,14 +1127,28 @@ function labelHTML(aktif, bb){
     const ratio = r0 ? r0.conc / d.conv : null;
     const ratioTD = ratio !== null && ratio < 10 ? 1 : 0;
     const i = isoOf(d);
-    const bandStyle = i ? `--tcband:${i.hex};--tctext:#000;` : `--tcband:#eee;--tctext:#000;`;
+    /* Dua warna, dua tugas. --tcband mewarnai pita kepala dan hanya boleh
+       memakai warna ISO 26825 yang sah; --tcframe mewarnai bingkai kartu.
+       Untuk obat di luar ISO keduanya berpisah: pita tetap kelabu polos —
+       tidak mengaku punya warna golongan yang tidak ada — dan bingkainya
+       hitam putus-putus, bukan warna. Garis putus-putus itu sendiri yang
+       memberi tahu: golongan ini memang tidak diatur ISO 26825. Kelabu
+       #eee yang dipakai sebelumnya sama saja dengan tanpa bingkai. */
+    const bandStyle = i
+      ? `--tcband:${i.hex};--tcframe:${i.hex};--tcgaris:solid;--tctext:#000;`
+      : `--tcband:#eee;--tcframe:#000;--tcgaris:dashed;--tctext:#000;`;
     const swatch = i
       ? `<span class="sw"></span><span class="warna">${i.warna.toUpperCase()}</span>`
       : `<span class="sw"></span><span class="warna">TIDAK DIATUR</span>`;
+    /* Diukur dari panjang nama, bukan dari daftar nama tertentu: obat yang
+       ditambahkan nanti ikut aturan yang sama tanpa perlu diingat. */
+    const nk = d.nama.length >= 20 ? " nm-panjang" : d.nama.length >= 17 ? " nm-sedang" : "";
     return `<div class="tcard" style="${bandStyle}">`
       + `<span class="crop tl"></span><span class="crop tr"></span>`
       + `<span class="crop bl"></span><span class="crop br"></span>`
-      + `<h4>${d.nama} ${swatch} <span class="klass">${d.klass}</span></h4>`
+      + `<h4><span class="nm${nk}">${d.nama}</span>`
+      + `<span class="iso">${swatch}</span>`
+      + `<span class="klass">${d.klass}</span></h4>`
       + idPasien()
       + `<p class="cx cx-bold">BB : ${rapi(bb)} kg`
       + ` &middot; Titrasi 1 mL : ${ratio !== null ? fmt(ratio, ratioTD) : "—"} ${d.numer}</p>`

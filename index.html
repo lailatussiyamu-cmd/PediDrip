@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PediDrip — Kalkulator Infus Pediatrik</title>
-<link rel="manifest" href="manifest.json">
+
 <meta name="theme-color" content="#2563EB">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="PediDrip">
-<link rel="icon" href="icon-192.png" sizes="192x192">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+
+
+
 <!-- Public Sans sampai 900, bukan 600.
      Kartu titrasi meminta font-weight:800 di enam tempat — nama obat, nama
      pasien, nomor RM, kolom mL/jam, baris BB — tapi yang dimuat selama ini
@@ -21,7 +21,7 @@
      huruf sendiri. Di layar selisihnya tak terasa; di kertas 60 mm yang
      dibaca sambil berdiri di samping pump, itulah bedanya antara nama obat
      yang langsung tertangkap mata dan yang harus dicari. -->
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Public+Sans:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+
 <style>
 :root{
   --primary:#2563EB; --primary-dark:#1D4ED8; --primary-light:#DBEAFE;
@@ -410,7 +410,191 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
   .topbar,.patient,.sum,footer{display:none!important}
 }
 </style>
-</head>
+<style>
+/* Navigation colors are decorative; existing clinical label colors are unchanged. */
+@media screen {
+:root{color-scheme:light;--paper:#f3f5f9;--surface:#fff;--sunken:#f3f5f9;--ink:#172137;--ink2:#526079;--ink3:#64748b;--line:#dce3ef;--line2:#edf0f6;--primary:#5142dc;--primary-dark:#4031bb;--primary-light:#eeebff;--secondary:#7954de;--r:18px;--shadow:0 6px 28px #182b5010}
+body{background:radial-gradient(ellipse at 95% 15%,#e8e3ff 0,transparent 40%),var(--paper)}
+.wrap{max-width:1440px;padding-left:36px;padding-right:36px}
+.topbar{border-bottom:1px solid var(--line);box-shadow:none;background:#ffffffed;backdrop-filter:blur(16px)}
+.topbar .wrap{align-items:center;padding-top:20px;padding-bottom:20px}
+.mark .word{font-size:32px;background:none;-webkit-text-fill-color:#3426a0;color:#3426a0}.mark .exp{color:#626780}.brand p{font-size:11px}
+#bb{font-size:22px;width:100px;background:#f5f3ff;border-color:#ded8ff}.btn{letter-spacing:.02em;text-transform:none;border-width:1px;border-radius:12px}.btn-primary{background:#5142dc}
+.explorer{padding:42px 0 8px}.eyebrow{font-weight:800;color:#6250b8;letter-spacing:.15em;font-size:11px;text-transform:uppercase}.explorer h1{font-family:Archivo,system-ui,sans-serif;font-size:clamp(32px,4vw,52px);line-height:1.13;letter-spacing:-.05em;margin:12px 0;color:#172137}.explorer h1 span{color:#6250db}.intro-row{display:flex;align-items:center;justify-content:space-between;gap:24px}.intro-row p{max-width:580px;color:#526079;margin:12px 0 22px}.catalog-mark{flex:none;border:1px solid #d9d2f3;border-radius:22px;padding:20px 25px;background:#ffffffa8;color:#6757b4;font-size:12px}.catalog-mark strong{display:block;font-size:32px;color:#40328f}
+.category-list{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:12px 0 24px}.category{position:relative;text-align:left;border:2px solid transparent;border-radius:18px;padding:19px 16px;background:var(--tint);color:var(--tone);cursor:pointer;min-height:118px;transition:transform .18s,border-color .18s}.category:hover{transform:translateY(-3px)}.category[aria-pressed=true]{border-color:var(--tone);box-shadow:0 4px 16px #17213712}.category .cat-icon{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#ffffffa8;font-size:20px;margin-bottom:12px}.category b{display:block;font-size:14px}.category small{position:absolute;right:15px;top:20px;font-weight:700;font-size:12px}.category[aria-pressed=true]:after{content:'✓';position:absolute;right:16px;bottom:17px}
+.catalog-tools{display:flex;gap:16px;align-items:center;justify-content:space-between;margin:12px 0}.search-box{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dce3ef;border-radius:14px;padding:0 16px;max-width:620px;width:100%;color:#6c768b}.search-box input{min-width:0;width:100%;border:0;background:transparent;padding:16px 0;color:#172137}.search-box input:focus{outline:none}.search-box:focus-within{outline:2px solid #5142dc;outline-offset:2px}#catalog-count{font-size:12px;color:#526079;white-space:nowrap}.design-note{font-size:11px!important;color:#68758a!important;margin:12px 0}
+.patient{padding:22px;background:white;border:1px solid var(--line);border-radius:18px;margin-top:24px}.patient input{background:#f6f7fb;border:1px solid #dce3ef;border-radius:9px;padding:10px}.hint{border:0;border-left:4px solid #6552db;background:#edeafb;padding:16px 20px;font-size:13px}.gjudul{font-size:13px;letter-spacing:.08em;border-bottom:1px solid #d8deeb;padding-bottom:14px;margin-top:30px}.grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px}.card{border:1px solid #dce3ef;border-top:4px solid var(--band);padding:24px;border-radius:18px}.card:before{display:none}.card.idle{opacity:1}.chead h2{font-size:24px}.badge{font-size:10px;letter-spacing:.03em;text-transform:none}.card.relax{border-color:#dc7373}.lbl{letter-spacing:.08em}.card input,.card select{border-width:1px}.card .isoline{background:#f6f7fa;padding:8px;border-radius:8px}.catalog-hidden{display:none!important}.empty-catalog{padding:44px;text-align:center;background:white;border:1px dashed #b9b0db;border-radius:18px;color:#526079}
+@media(min-width:1100px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.category-list{grid-template-columns:repeat(3,1fr)}.catalog-mark{display:none}.wrap{padding-left:20px;padding-right:20px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar{position:relative}}
+@media(max-width:600px){.category-list{grid-template-columns:repeat(2,minmax(0,1fr))}.category:first-child{grid-column:1/-1;min-height:82px}.category:first-child .cat-icon{float:left;margin-right:12px}.grid{grid-template-columns:minmax(0,1fr)}.catalog-tools{align-items:stretch;flex-direction:column;gap:8px}.explorer{padding-top:28px}.bbbox{gap:8px}.card{padding:18px}.catalog-mark{display:none}}
+}
+@media print{.explorer,.empty-catalog{display:none!important}}
+
+
+</style><style>
+@media screen{
+.topbar{position:sticky;top:0;z-index:20}.topbar .wrap{padding-top:12px;padding-bottom:12px}.mark .word{font-size:27px}.mark .exp{font-size:9px}.brand p{max-width:420px}.wrap{max-width:1280px}
+.patient{margin:16px 0 12px;padding:14px 18px;gap:12px}.patient label{font-size:10px;letter-spacing:.05em}.patient input{padding:8px;font-size:14px}.patient div{min-width:0}.patient{grid-template-columns:repeat(4,minmax(0,1fr))}
+.picu-tools{padding:12px 0}.work-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.work-heading h1{font-family:Archivo,system-ui,sans-serif;font-size:23px;margin:4px 0;letter-spacing:-.035em}.work-heading a{text-decoration:none;white-space:nowrap}.eyebrow{font-size:10px}.search-box{max-width:100%}.search-box input{padding:12px 0}.picu-categories{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.picu-categories button{border:1px solid #cdd5e5;background:white;color:#526079;border-radius:30px;padding:8px 15px;font-size:13px;cursor:pointer;min-height:40px}.picu-categories button[aria-pressed=true]{background:#5142dc;color:white;border-color:#5142dc}.drug-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}.drug-choice{text-align:left;min-height:65px;border:1px solid #dce3ef;border-left:4px solid var(--drug-tone);border-radius:11px;background:white;padding:10px 12px;cursor:pointer;color:#172137}.drug-choice strong{display:block;font-size:14px}.drug-choice span{display:block;font-size:10px;color:#526079;margin-top:3px}.drug-choice[aria-pressed=true]{background:#eeebff;outline:2px solid #5142dc;outline-offset:1px}.drug-choice:hover{box-shadow:0 3px 12px #17213712}#search-status{font-size:12px;color:#526079;margin:10px 0 0}.hint{margin:8px 0;font-size:12px;padding:10px 14px}.focus-hidden{display:none!important}.focus-empty{padding:26px;text-align:center;border:1px dashed #b9b0db;background:white;border-radius:14px;color:#526079;margin-top:14px}.gjudul{display:none}#cards .grid{display:block}#cards .card{margin-top:15px;padding:22px;max-width:none}.chead{margin-bottom:16px}.chead h2{font-size:28px}.card .readout{font-size:46px}.card select{max-width:600px}.card .prep{margin-bottom:10px}.card input[type=range]{max-width:600px}.card .gauge{max-width:600px}.card .isoline{max-width:600px}.card details{margin-top:16px}#sumbody{scroll-margin-top:140px}
+@media(max-width:650px){.topbar{position:relative}.patient{grid-template-columns:repeat(2,minmax(0,1fr))}.work-heading{align-items:flex-start}.work-heading h1{font-size:19px}.work-heading a{font-size:10px;padding:9px;min-height:38px}.drug-list{grid-template-columns:repeat(2,minmax(0,1fr))}.picu-categories{gap:6px}.picu-categories button{padding:7px 10px;font-size:11px}.card .readout{font-size:38px}}
+}
+@media print{.picu-tools,.focus-empty{display:none!important}}
+
+
+/* Brighter PICU workspace */
+@media screen {
+body{background:linear-gradient(125deg,#e8f8ff 0%,#f5efff 48%,#fff2e6 100%);background-attachment:fixed}
+.topbar{background:#fff;border-bottom:3px solid #a695f4;box-shadow:0 5px 22px #7759c414}
+.mark .word{-webkit-text-fill-color:#6543d8;color:#6543d8}
+.patient{background:linear-gradient(110deg,#e0f7ff,#eeebff);border-color:#b8daed;box-shadow:0 4px 18px #527ba00a}
+.patient input{background:#ffffffed;border-color:#bbcfdf}.patient label{color:#425b78}
+.work-heading h1{color:#4d3693}.eyebrow{color:#7850b8}
+.search-box{border:2px solid #cec1f5;box-shadow:0 4px 14px #7850b80c}
+.picu-categories button{border-color:#ded4f4;background:#fff8ff;color:#644593;font-weight:700}
+.picu-categories button:nth-child(2){background:#d9f5ff;color:#11657b;border-color:#9ed9ed}
+.picu-categories button:nth-child(3){background:#ffe0ee;color:#92345f;border-color:#edb5cf}
+.picu-categories button:nth-child(4){background:#ffe7cc;color:#914016;border-color:#efc097}
+.picu-categories button:nth-child(5){background:#d9f8e7;color:#246248;border-color:#a7dec1}
+.picu-categories button[aria-pressed=true]{background:#7450d8;border-color:#7450d8;color:#fff;box-shadow:0 3px 12px #7450d82b}
+.drug-choice{background:color-mix(in srgb,var(--drug-tone) 12%,white);border-color:color-mix(in srgb,var(--drug-tone) 25%,white);border-left-color:var(--drug-tone);border-left-width:5px;box-shadow:0 3px 9px #24325906}
+.drug-choice strong{color:var(--drug-tone)}.drug-choice span{color:#45556a}
+.drug-choice:hover{background:color-mix(in srgb,var(--drug-tone) 20%,white);transform:translateY(-1px)}
+.drug-choice[aria-pressed=true]{background:#eee2ff;outline-color:#8550d9;box-shadow:0 5px 15px #8550d925}
+#cards .card{border-top-width:6px;background:#fff;box-shadow:0 8px 30px #725fa015}
+.chead{background:#f4efff;margin:-10px -10px 18px;padding:16px;border-radius:13px}
+.card .readbox{background:linear-gradient(115deg,#5640b2,#7651cf);box-shadow:0 4px 15px #6345bd25;border-radius:14px}
+.hint{background:#fff7db;border-left-color:#db9b16;color:#655018}
+.focus-empty{background:linear-gradient(110deg,#ffffffcc,#f2eaff);border-color:#c4afe8;color:#66528b}
+.btn-primary{background:#7250ce}.btn-danger{background:#fff0f1;color:#ac3049;border-color:#efb5bf}
+}
+@media screen{
+.input-error{display:block;color:#a32136;font-size:12px;max-width:340px;margin:5px 0}.input-error[hidden]{display:none}input[aria-invalid=true]{border:2px solid #c32f49!important;background:#fff0f1!important}.card .chead{position:relative}.patient{position:sticky;top:102px;z-index:19}.hint{display:block!important}
+@media(max-width:650px){.patient{top:0}}
+}
+@media print{
+#labels{grid-auto-rows:auto!important;align-items:start}.tcard{height:auto!important;min-height:90mm;break-inside:avoid}.tcard .tid-v{display:block!important;-webkit-line-clamp:unset!important;overflow:visible!important;overflow-wrap:anywhere}.tcard .cx{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}.tcard .tid-rm .tid-v{overflow-wrap:anywhere}.input-error{display:none}
+}
+@media screen {
+body{background:#f7f9fc}
+.patient{background:#edf6fc;box-shadow:none}
+.work-heading{justify-content:flex-end;margin-bottom:10px}
+.focus-empty{background:#fff}
+.card .readbox{background:#6546bc;box-shadow:none}
+}
+@media screen{.work-heading{justify-content:space-between}.work-heading h1{font-size:22px;margin:0 0 4px}.work-heading p{font-size:13px;color:#526079;margin:0}.picu-tools{padding-top:10px}}
+
+/* Transparent glass treatment */
+@media screen {
+body{background:radial-gradient(ellipse at 8% 12%,#d6efff 0,transparent 48%),radial-gradient(ellipse at 92% 38%,#eee0ff 0,transparent 48%),linear-gradient(145deg,#f4faff,#f5f2fc 65%,#eefaf5);background-attachment:fixed}
+.topbar{background:rgba(255,255,255,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(137,112,206,.3);box-shadow:0 4px 20px #5f65900a}
+.patient{background:rgba(224,242,252,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(150,189,217,.42)}
+.patient input,#bb{background:rgba(255,255,255,.65)}
+.search-box{background:rgba(255,255,255,.62);border-color:rgba(171,151,217,.42);box-shadow:none}
+.picu-categories button{background:rgba(244,232,255,.45)}
+.picu-categories button:nth-child(2){background:rgba(167,227,246,.35)}
+.picu-categories button:nth-child(3){background:rgba(250,185,214,.32)}
+.picu-categories button:nth-child(4){background:rgba(250,203,156,.34)}
+.picu-categories button:nth-child(5){background:rgba(164,230,192,.34)}
+.picu-categories button[aria-pressed=true]{background:rgba(104,69,191,.85);color:#fff;border-color:#7857c3}
+.drug-choice{background:color-mix(in srgb,var(--drug-tone) 8%,transparent);border-color:color-mix(in srgb,var(--drug-tone) 24%,transparent);border-left-color:var(--drug-tone);box-shadow:none}
+.drug-choice:hover{background:color-mix(in srgb,var(--drug-tone) 17%,transparent)}
+.drug-choice[aria-pressed=true]{background:rgba(215,193,249,.42);outline-color:#8550d9}
+#cards .card{background:rgba(255,255,255,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:rgba(163,178,203,.4);border-top-color:var(--band)}
+.chead{background:rgba(228,215,252,.38)}
+.card input,.card select{background:rgba(255,255,255,.72)}
+.card .isoline{background:rgba(237,240,248,.52)}
+.card .readbox{background:rgba(85,58,167,.9)}
+.focus-empty{background:rgba(255,255,255,.42)}
+.btn{background:rgba(255,255,255,.55)}
+.btn-primary{background:rgba(103,70,193,.9);color:#fff}
+.btn-danger{background:rgba(255,230,235,.55)}
+.hint{background:rgba(255,245,203,.65)}
+}
+@media(prefers-reduced-transparency:reduce){
+.topbar,.patient,#cards .card,.search-box,.focus-empty{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+
+/* Familiar, restrained typography */
+@media screen {
+body,input,select,button,textarea{font-family:"Segoe UI",Arial,sans-serif}
+body{font-size:14px;line-height:1.5}
+.mark .word{font-family:"Segoe UI",Arial,sans-serif;font-weight:700;font-size:29px;letter-spacing:-.8px;line-height:1.15}
+.mark .exp{font-family:inherit;font-size:12px;font-weight:500;letter-spacing:0;text-transform:none;line-height:1.4;color:#526079}
+.brand p{font-size:12px;line-height:1.5;font-weight:400;letter-spacing:0}
+.work-heading h1{font-family:inherit;font-size:21px;font-weight:600;letter-spacing:-.3px;line-height:1.3}
+.work-heading p{font-size:13px;font-weight:400;line-height:1.5}
+.patient label,.bbbox label,.lbl{font-family:inherit;text-transform:none;letter-spacing:0;font-weight:600;font-size:12px;line-height:1.4;color:#45546a}
+.btn,.tick,.badge,.gjudul,summary{font-family:inherit;text-transform:none;letter-spacing:0}
+.btn{font-size:13px;font-weight:600}
+.picu-categories button{font-size:13px;font-weight:500;letter-spacing:0}
+.picu-categories button[aria-pressed=true]{font-weight:600}
+.drug-choice strong{font-family:inherit;font-size:15px;font-weight:600;line-height:1.35;letter-spacing:0}
+.drug-choice span{font-size:12px;line-height:1.4;margin-top:4px}
+.chead h2{font-family:inherit;font-size:26px;font-weight:600;line-height:1.2;letter-spacing:-.4px}
+.badge{font-size:12px;font-weight:500;line-height:1.4}
+.tick{font-size:12px;font-weight:500}
+#bb,.prep input,.dosebar input,.card .readout,.conc,.dosebar .u,.tstep-btn{font-family:"Segoe UI",Arial,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:0}
+#bb{font-weight:600}.dosebar input{font-size:19px;font-weight:600}
+.card .readout{font-size:44px;font-weight:650;line-height:1.15}
+.conc,.dosebar .u{font-size:13px;line-height:1.5}
+summary{font-size:13px;font-weight:600}
+#search-status,.hint,.design-note{font-size:12px;line-height:1.5}
+@media(max-width:650px){.work-heading h1{font-size:20px}.card .readout{font-size:38px}.drug-choice span{font-size:11px}}
+}
+@media screen{.patient{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media screen and (max-width:650px){.patient{grid-template-columns:repeat(2,minmax(0,1fr))}.patient>div:last-child{grid-column:1/-1}}
+#print-warning{display:none}
+@media print{
+body.print-blocked>*{display:none!important}
+body.print-blocked>#print-warning{display:block!important;font:16pt Arial,sans-serif;color:#000;padding:15mm}
+}
+
+/* Short interaction feedback; clinical values remain immediate. */
+@media screen and (prefers-reduced-motion:no-preference){
+.picu-categories button,.drug-choice,.btn{transition:background-color 150ms ease,border-color 150ms ease,box-shadow 150ms ease,transform 150ms ease}
+.picu-categories button:active,.drug-choice:active,.btn:active{transform:translateY(1px)}
+#cards .card:not(.focus-hidden){animation:picu-card-enter 150ms ease-out}
+@keyframes picu-card-enter{from{transform:translateY(4px)}to{transform:translateY(0)}}
+}
+@media screen and (prefers-reduced-motion:reduce){
+*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+.drug-choice:hover,.drug-choice:active,.btn:active,.picu-categories button:active{transform:none!important}
+}
+
+/* Match active cards to the category navigation palette. Screen only. */
+@media screen{
+#cards .card{border-top-color:var(--category-tone);border-left-color:color-mix(in srgb,var(--category-tone) 25%,transparent);border-right-color:color-mix(in srgb,var(--category-tone) 25%,transparent);border-bottom-color:color-mix(in srgb,var(--category-tone) 25%,transparent)}
+#cards .chead{background:color-mix(in srgb,var(--category-tone) 10%,transparent)}
+#cards .chead h2{color:var(--category-tone)}
+#cards .badge{background:color-mix(in srgb,var(--category-tone) 12%,white);color:var(--category-tone)}
+#cards .readbox{background:var(--category-tone);box-shadow:none}
+#cards .readout,#cards .readunit{color:#fff}
+#cards input[type=range],#cards input[type=checkbox]{accent-color:var(--category-tone)}
+#cards .gauge .band{background:var(--category-tone)}
+}
+@media screen{
+.picu-categories button[data-group="sedasi"]{background:rgba(175,204,255,.48);color:#2457b5;border-color:#8caee9}
+.picu-categories button[data-group="lain"]{background:rgba(255,224,127,.52);color:#805b08;border-color:#d5b24b}
+.picu-categories button[data-group="sedasi"][aria-pressed=true]{background:#2457b5;color:#fff;border-color:#2457b5}
+.picu-categories button[data-group="lain"][aria-pressed=true]{background:#805b08;color:#fff;border-color:#805b08}
+}
+
+/* Pastel category surfaces, with dark text and unchanged print labels. */
+@media screen{
+.picu-categories button[data-group="relax"]{background:rgba(224,210,249,.68);color:#6943a6;border-color:#b9a0de}
+.picu-categories button[data-group="relax"][aria-pressed=true]{background:#e0d2f9;color:#553184;border-color:#6943a6;box-shadow:0 0 0 1px #6943a6}
+.picu-categories button[data-group="sedasi"][aria-pressed=true]{background:#d9e8ff;color:#2457b5;border-color:#2457b5}
+.picu-categories button[data-group="vaso"][aria-pressed=true]{background:#f9dfed;color:#943767;border-color:#943767}
+.picu-categories button[data-group="lain"][aria-pressed=true]{background:#fff0bf;color:#805b08;border-color:#805b08}
+.drug-choice{background:color-mix(in srgb,var(--drug-tone) 12%,#fff)}
+.drug-choice:hover{background:color-mix(in srgb,var(--drug-tone) 18%,#fff)}
+.drug-choice[aria-pressed=true]{background:color-mix(in srgb,var(--drug-tone) 20%,#fff);outline-color:var(--drug-tone);box-shadow:none}
+#cards .chead{background:color-mix(in srgb,var(--category-tone) 12%,#fff)}
+#cards .readbox{background:color-mix(in srgb,var(--category-tone) 14%,#fff);border:1px solid color-mix(in srgb,var(--category-tone) 30%,#fff)}
+#cards .readout,#cards .readunit{color:var(--category-tone)}
+}
+
+</style></head>
 <body>
 <noscript><div class="noscript"><h2>JavaScript diperlukan</h2>
 <p>Kalkulator ini memerlukan JavaScript. Mohon aktifkan JavaScript di browser Anda.</p></div></noscript>
@@ -425,7 +609,7 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
         <span class="word">PediDrip</span>
         <span class="exp">Kalkulator Infus Pediatrik</span>
       </div>
-      <p>Laju syringe pump berbasis berat badan &middot; PICU</p>
+      <p>Laju syringe berbasis berat badan</p>
     </div>
     <div class="bbbox">
       <div>
@@ -444,7 +628,6 @@ footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--
   <div class="patient">
     <div><label for="pn">Nama pasien</label><input id="pn" type="text" autocomplete="off"></div>
     <div><label for="prm">No. rekam medis</label><input id="prm" type="text" autocomplete="off"></div>
-    <div><label for="ptl">Tanggal lahir</label><input id="ptl" type="text" inputmode="numeric" placeholder="hh/bb/tttt" autocomplete="off"></div>
     <div><label for="pt">Tanggal / jam</label><input id="pt" type="text" autocomplete="off"></div>
   </div>
 
@@ -727,19 +910,14 @@ const Toast = {
 /* ---------- angka ---------- */
 function num(v){
   if (v === null || v === undefined) return NaN;
-  const t = String(v).trim().replace(/\s/g, "").replace(",", ".");
+  const t = String(v).trim().replace(",", ".");
   if (t === "" || !/^[0-9]*\.?[0-9]*$/.test(t)) return NaN;
   const n = parseFloat(t);
   return isFinite(n) ? n : NaN;
 }
 /* saring ketikan: hanya angka, satu koma, tanpa tanda minus */
-function saring(v){
-  let t = String(v).replace(/[^0-9.,]/g, "").replace(/,/g, ".");
-  const p = t.split(".");
-  if (p.length > 2) t = p[0] + "." + p.slice(1).join("");
-  if (t.startsWith(".")) t = "0" + t;
-  return t.replace(".", ",");
-}
+function saring(v){ return String(v).trim(); }
+const dosisTeks = v => Number.isFinite(Number(v)) ? String(v).replace(".", ",") : "—";
 const fmt = (v, dec) => isFinite(v) ? v.toFixed(dec).replace(".", ",") : "—";
 /* untuk jumlah sediaan: 50 tetap "50", bukan "50,000" yang mudah terbaca keliru */
 function rapi(v){
@@ -831,7 +1009,7 @@ const lajuTerlaluPelan = laju => isFinite(laju) && laju > 0 && laju < LAJU_MIN;
 
 function hitung(d, s, bb){
   const amt = num(s.amt), ml = num(s.ml), dose = num(s.dose), w = num(bb);
-  if (!(w > 0) || !(amt > 0) || !(ml > 0) || !(dose >= 0)) return null;
+  if (!(w > 0) || !(amt > 0) || !(ml > 0) || !(dose >= 0) || dose > d.cap) return null;
   const conc = amt / ml;
   if (!(conc > 0) || !isFinite(conc)) return null;
   const perJamNum = dose * w * (d.perMin ? 60 : 1);
@@ -913,7 +1091,7 @@ function cardHTML(d){
 
     <p class="lbl" style="margin-top:16px">Dosis</p>
     <div class="dosebar">
-      <input id="dose-${d.id}" type="text" inputmode="decimal" data-dose="${d.id}" value="${fmt(s.dose, dec(d))}" placeholder="0" aria-label="Dosis ${d.nama}">
+      <input id="dose-${d.id}" type="text" inputmode="decimal" data-dose="${d.id}" value="${dosisTeks(s.dose)}" placeholder="0" aria-label="Dosis ${d.nama}">
       <span class="u">${doseUnit(d)}</span>
     </div>
     <input id="sl-${d.id}" type="range" min="0" max="${d.cap}" step="${d.step}" value="${s.dose}" data-slider="${d.id}" aria-label="Geser dosis ${d.nama}">
@@ -1045,7 +1223,7 @@ function sumHTML(){
     rows += `<tr><td>${d.nama}</td>`
           + `<td>${rapi(s.amt) || "—"} ${d.amtUnit} / ${rapi(s.ml) || "—"} mL</td>`
           + `<td>${r ? konsen(r.conc) : "—"} ${d.amtUnit}/mL</td>`
-          + `<td>${isFinite(s.dose) ? fmt(s.dose, dec(d)) : "—"} ${doseUnit(d)}</td>`
+          + `<td>${isFinite(s.dose) ? dosisTeks(s.dose) : "—"} ${doseUnit(d)}</td>`
           + `<td class="rate${r && lajuTerlaluPelan(r.laju) ? " rate-pelan" : ""}">`
           + `${r ? fmt(r.laju, 2) : "—"} mL/jam${r && lajuTerlaluPelan(r.laju) ? " ⚠" : ""}</td></tr>`;
   });
@@ -1168,7 +1346,7 @@ function updateAll(){
   try{
     DRUGS.forEach(update);
     cekKewajaranBB();
-    el("hint").style.display = bbVal() ? "none" : "block";
+    el("hint").style.display = "block";
     DRUGS.forEach(d => {
       el(`card-${d.id}`).style.display = (hanyaDicentang && !state[d.id].on) ? "none" : "";
     });
@@ -1230,7 +1408,7 @@ document.addEventListener("input", e => {
   if (ds.slider !== undefined){
     const d = byId(ds.slider), s = state[d.id];
     s.dose = parseFloat(t.value);
-    el(`dose-${d.id}`).value = fmt(s.dose, dec(d));
+    el(`dose-${d.id}`).value = dosisTeks(s.dose);
     jadwalkan(); return;
   }
 });
@@ -1239,13 +1417,8 @@ document.addEventListener("focusout", e => {
   const t = e.target, ds = t.dataset;
   if (ds.dose !== undefined){
     const d = byId(ds.dose), s = state[d.id];
-    /* hanya dibatasi ke batas atas; angka yang diketik tidak dibulatkan */
-    if (s.dose > d.cap){
-      s.dose = d.cap;
-      Toast.show(`Dosis ${d.nama} dibatasi ke ${fmt(d.cap, dec(d))} ${doseUnit(d)} — batas atas kalkulator.`, "warning", 6000);
-    }
-    if (!(s.dose >= 0)) s.dose = 0;
-    t.value = fmt(s.dose, dec(d));
+    if (!Number.isFinite(s.dose) || s.dose < 0 || s.dose > d.cap) return;
+    t.value = dosisTeks(s.dose);
     el(`sl-${d.id}`).value = Math.min(s.dose, d.cap);
     jadwalkan(); return;
   }
@@ -1284,7 +1457,27 @@ document.addEventListener("click", e => {
 });
 
 el("filter").addEventListener("click", () => { hanyaDicentang = !hanyaDicentang; updateAll(); });
-el("cetak").addEventListener("click", () => window.print());
+function alasanCetak(){
+ const chosen=DRUGS.filter(d=>state[d.id].on);
+ if(!bbVal() || !chosen.length || !el("pn").value.trim() || !el("prm").value.trim())return "Lengkapi nama, nomor rekam medis, berat badan, dan pilih obat untuk label.";
+ if(document.querySelector('[aria-invalid="true"]') || chosen.some(d=>!hitung(d,state[d.id],bbVal())))return "Perbaiki parameter yang belum valid sebelum mencetak.";
+ return "";
+}
+el("cetak").textContent="Cetak label";
+el("cetak").addEventListener("click",()=>{
+ const reason=alasanCetak();if(reason){Toast.galat(reason);return;}
+ const chosen=DRUGS.filter(d=>state[d.id].on);
+ if(confirm("Periksa label sebelum cetak:\n"+el("pn").value+" · RM "+el("prm").value+" · "+rapi(bbVal())+" kg\n"+chosen.map(d=>d.nama).join(", ")+"\n\nPastikan sediaan dan dosis sesuai instruksi. Lanjutkan ke pratinjau cetak?"))window.print();
+});
+window.addEventListener("beforeprint",()=>{
+ updateAll();
+ const reason=alasanCetak();
+ document.body.classList.toggle("print-blocked",!!reason);
+ let warning=el("print-warning");
+ if(!warning){warning=document.createElement("div");warning.id="print-warning";document.body.append(warning);}
+ warning.textContent=reason?"LABEL TIDAK DICETAK — "+reason:"";
+});
+window.addEventListener("afterprint",()=>document.body.classList.remove("print-blocked"));
 
 el("reset").addEventListener("click", () => {
   if (!confirm("Kosongkan semua isian untuk pasien baru?")) return;
@@ -1306,7 +1499,8 @@ el("reset").addEventListener("click", () => {
     if (cb) cb.checked = false;
   });
   hanyaDicentang = false;
-  ["bb", "pn", "prm", "ptl", "pt"].forEach(id => { el(id).value = ""; });
+  document.dispatchEvent(new Event("picu-reset"));
+  ["bb", "pn", "prm", "pt"].forEach(id => { el(id).value = ""; });
   updateAll();
   el("bb").focus();
   Toast.sukses("Semua isian dikosongkan. Masukkan berat badan pasien baru.");
@@ -1330,15 +1524,6 @@ updateAll();
    Service worker hanya berjalan lewat https atau localhost. Dibuka dari
    berkas lokal (file://) pendaftarannya gagal, dan itu bukan masalah:
    kalkulatornya sendiri tidak bergantung padanya. */
-if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {
-      /* Diam saja. Gagal memasang mode luring tidak boleh memunculkan
-         peringatan di alat yang sedang dipakai menghitung dosis. */
-    });
-  });
-}
-
 /* Chrome di Android menawarkan pemasangan lewat peristiwa ini. Kita tahan
    tawaran bawaannya, lalu tampilkan tombol sendiri di kaki halaman supaya
    perawat tidak melewatkannya. Peramban yang tidak mendukung (Safari iOS)
@@ -1369,5 +1554,71 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   window.addEventListener("appinstalled", () => { if (kotak) kotak.hidden = true; });
 }
 </script>
-</body>
+<script>
+(() => {
+ const numeric=t=>t instanceof HTMLInputElement&&(t.id==='bb'||t.dataset.amt!==undefined||t.dataset.ml!==undefined||t.dataset.dose!==undefined);
+ const message='Gunakan angka positif dengan satu koma atau titik desimal, tanpa satuan atau pemisah ribuan.';
+ const clear=t=>{if(!t)return;t.removeAttribute('aria-invalid');t.setCustomValidity('');const err=document.getElementById(t.id+'-error');if(err)err.remove();};
+ document.addEventListener('input',e=>{const id=e.target.dataset?.slider;if(id)clear(document.getElementById('dose-'+id));},true);
+ document.addEventListener('change',e=>{const id=e.target.dataset?.preset;if(id&&Number(e.target.value)>=0){clear(document.getElementById('amt-'+id));clear(document.getElementById('ml-'+id));}},true);
+ document.addEventListener('input',e=>{
+  const t=e.target;if(!numeric(t))return;
+  const raw=t.value.trim(),n=num(raw),over=t.dataset.dose!==undefined&&n>byId(t.dataset.dose).cap;
+  const valid=raw!==''&&Number.isFinite(n)&&(t.dataset.dose!==undefined?n>=0:n>0)&&!over;
+  const reason=over?'Dosis melebihi batas kalkulator. Periksa kembali instruksi; nilai tidak diubah otomatis.':message;
+  t.setAttribute('aria-invalid',String(!valid));t.setCustomValidity(valid?'':reason);
+  let error=document.getElementById(t.id+'-error');
+  if(!error){error=document.createElement('span');error.id=t.id+'-error';error.className='input-error';error.setAttribute('role','status');t.after(error);t.setAttribute('aria-describedby',error.id);}
+  error.textContent=valid?'':reason;error.hidden=valid;
+  if(valid)return;
+  e.stopImmediatePropagation();
+  const id=t.dataset.amt??t.dataset.ml??t.dataset.dose;
+  if(id){const key=t.dataset.amt!==undefined?'amt':t.dataset.ml!==undefined?'ml':'dose';state[id][key]=NaN;if(key==='amt'||key==='ml')state[id].preset=-1;}
+  jadwalkan();
+ },true);
+ document.addEventListener('focusout',e=>{if(numeric(e.target)&&e.target.getAttribute('aria-invalid')==='true')e.stopImmediatePropagation();},true);
+ document.addEventListener('picu-reset',()=>{document.querySelectorAll('[aria-invalid]').forEach(t=>{t.removeAttribute('aria-invalid');t.setCustomValidity('');});document.querySelectorAll('.input-error').forEach(e=>e.remove());});
+})();
+
+</script><script>
+(() => {
+ const categories=[['all','Semua'],['sedasi','Sedasi & analgesia'],['vaso','Kardiovaskular'],['relax','Relaksan'],['lain','Lainnya']];
+ let group='all',active=null;
+ const patient=document.querySelector('.patient');
+ const tools=document.createElement('section');tools.className='picu-tools noprint';
+ tools.innerHTML='<div class="work-heading"><div><h1>Daftar obat infus</h1><p>Cari nama obat atau pilih golongan.</p></div><a class="btn" href="#sumbody">Obat terpilih ↓</a></div><label class="search-box"><span aria-hidden="true">⌕</span><input type="search" id="drug-search" aria-label="Cari obat" placeholder="Ketik nama obat atau golongan…" autocomplete="off"></label><div class="picu-categories" role="group" aria-label="Golongan obat"></div><div class="drug-list" role="group" aria-label="Pilih obat"></div><p id="search-status" role="status" aria-live="polite"></p>';
+ patient.after(tools);
+ document.querySelector('.brand p').textContent='Laju syringe berbasis berat badan';
+ document.querySelector('.hint').textContent='Isi berat badan, lalu pilih obat. Nilai awal sediaan dan dosis berasal dari tabel; periksa kesesuaiannya sebelum menggunakan hasil.';
+ document.getElementById('filter').hidden=true;
+ const cats=tools.querySelector('.picu-categories'),list=tools.querySelector('.drug-list');
+ const notice=document.createElement('div');notice.className='focus-empty noprint';notice.textContent='Pilih obat di atas untuk membuka perhitungan. Input obat lain tetap tersimpan selama halaman ini terbuka.';document.getElementById('cards').before(notice);
+ const tone=d=>d.badge==='relax'?'#6943a6':d.grup==='sedasi'?'#2457b5':d.grup==='vaso'?'#943767':'#805b08';
+ DRUGS.forEach(d=>document.getElementById('card-'+d.id).style.setProperty('--category-tone',tone(d)));
+ categories.forEach(([id,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.group=id;b.onclick=()=>{group=id;active=null;render();};cats.append(b);});
+ function render(){const query=document.getElementById('drug-search').value.trim().toLowerCase();const matches=DRUGS.filter(d=>(group==='all'||(group==='relax'?d.badge==='relax':d.grup===group&&(group!=='sedasi'||d.badge!=='relax')))&&`${d.nama} ${d.klass}`.toLowerCase().includes(query));
+ list.replaceChildren();matches.forEach(d=>{const b=document.createElement('button');b.type='button';b.className='drug-choice';b.style.setProperty('--drug-tone',tone(d));b.setAttribute('aria-pressed',String(active===d.id));b.innerHTML=`<strong>${d.nama}</strong><span>${d.klass}</span>`;b.onclick=()=>{active=d.id;render();};list.append(b);});
+ cats.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.group===group)));
+ DRUGS.forEach(d=>document.getElementById('card-'+d.id).classList.toggle('focus-hidden',active!==d.id));
+ document.querySelectorAll('#cards>section').forEach(s=>s.classList.toggle('focus-hidden',!s.querySelector('.card:not(.focus-hidden)')));
+ notice.hidden=active!==null;
+ const selected=DRUGS.find(d=>d.id===active);document.getElementById('search-status').textContent=`${matches.length} obat ditemukan${selected?' · Kartu aktif: '+selected.nama:''}${matches.length?'':'. Coba nama lain atau pilih Semua.'}`;
+ }
+ document.getElementById('drug-search').addEventListener('input',()=>{active=null;render();});
+ document.getElementById('drug-search').addEventListener('keydown',e=>{if(e.key==='Escape'){e.target.value='';group='all';render();}});
+ // The original reset handler retains its confirmation and clears clinical inputs.
+ document.addEventListener('picu-reset',()=>{active=null;group='all';document.getElementById('drug-search').value='';render();});
+ render();
+})();
+
+
+
+
+
+
+
+</script></body>
 </html>
+
+
+

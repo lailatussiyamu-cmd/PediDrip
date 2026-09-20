@@ -5,608 +5,2194 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PediDrip — Kalkulator Infus Pediatrik</title>
 
-<meta name="theme-color" content="#2563EB">
+<meta name="theme-color" content="#6448be">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="PediDrip">
 
-
-
-
-<!-- Public Sans sampai 900, bukan 600.
-     Kartu titrasi meminta font-weight:800 di enam tempat — nama obat, nama
-     pasien, nomor RM, kolom mL/jam, baris BB — tapi yang dimuat selama ini
-     berhenti di 600, jadi browser memalsukan tebalnya dengan menebalkan
-     huruf sendiri. Di layar selisihnya tak terasa; di kertas 60 mm yang
-     dibaca sambil berdiri di samping pump, itulah bedanya antara nama obat
-     yang langsung tertangkap mata dan yang harus dicari. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
-:root{
-  --primary:#2563EB; --primary-dark:#1D4ED8; --primary-light:#DBEAFE;
-  --secondary:#7C3AED; --secondary-light:#EDE9FE;
-  --accent:#0EA5E9; --success:#059669; --success-light:#D1FAE5;
-  --warning:#B45309; --warning-light:#FEF3C7;
-  --danger:#DC2626; --danger-light:#FEE2E2;
-  --pink:#DB2777; --pink-light:#FCE7F3;
-  --paper:#F8FAFC; --surface:#FFFFFF; --sunken:#F1F5F9;
-  --line:#E2E8F0; --line2:#F1F5F9;
-  --ink:#0F172A; --ink2:#475569; --ink3:#94A3B8;
-  --r:12px;
-  --gradient-primary:linear-gradient(135deg,#2563EB 0%,#7C3AED 100%);
-  --shadow:0 4px 6px -1px rgba(0,0,0,.07);
-  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.08);
-  --transition:.2s cubic-bezier(.4,0,.2,1);
+/* ==========================================================================
+   PediDrip Design System — Modern Animated Pediatric Clinical Interface
+   ========================================================================== */
+:root {
+  color-scheme: light;
+  --primary: #6448be;
+  --primary-dark: #4f359f;
+  --primary-light: #eee7ff;
+  --secondary: #7954de;
+  --accent: #0ea5e9;
+  --success: #059669;
+  --success-light: #d1fae5;
+  --warning: #b45309;
+  --warning-light: #fef3c7;
+  --danger: #dc2626;
+  --danger-light: #fee2e2;
+  --pink: #db2777;
+  --pink-light: #fce7f3;
+  --paper: #f9f8fe;
+  --surface: #ffffff;
+  --sunken: #f1f4fb;
+  --line: #e2daf0;
+  --line2: #f1ecf9;
+  --ink: #1e2638;
+  --ink2: #4a5568;
+  --ink3: #718096;
+  --r: 20px;
+  --gradient-primary: linear-gradient(135deg, #6448be 0%, #8b5cf6 100%);
+  --shadow-sm: 0 2px 8px rgba(100, 72, 190, 0.06);
+  --shadow: 0 8px 24px rgba(100, 72, 190, 0.08);
+  --shadow-lg: 0 16px 36px rgba(100, 72, 190, 0.12);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ISO 26825 category colors for cards */
+  --benzo: #ff8200;
+  --opioid: #71c5e8;
+  --induksi: #f5e14b;
+  --alpha: #10b981;
+  --vaso: #c9a0dc;
+  --diur: #64748b;
+  --relax: #ff3c5f;
 }
-@media (prefers-color-scheme:dark){
-  :root{
-    --paper:#0F172A; --surface:#1E293B; --sunken:#172033;
-    --line:#334155; --line2:#1E293B;
-    --ink:#F8FAFC; --ink2:#94A3B8; --ink3:#64748B;
-    --primary:#3B82F6; --primary-dark:#2563EB; --primary-light:#1E3A5F;
-    --secondary:#8B5CF6; --secondary-light:#2D1B4E; --accent:#38BDF8;
-    --success:#10B981; --success-light:#064E3B;
-    --warning:#F59E0B; --warning-light:#78350F;
-    --danger:#EF4444; --danger-light:#7F1D1D;
-    --pink:#EC4899; --pink-light:#831843;
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14.5px;
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* --------------------------------------------------------------------------
+   Ambient Animated Background Motion (Blobs & Floating Bubbles)
+   -------------------------------------------------------------------------- */
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+.ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(75px);
+  opacity: 0.55;
+  will-change: transform;
+}
+.ambient-orb.orb-1 {
+  width: 520px;
+  height: 520px;
+  top: -120px;
+  left: -120px;
+  background: radial-gradient(circle, #e0f2fe 0%, #ede9fe 70%, transparent 100%);
+  animation: floatOrb1 20s ease-in-out infinite alternate;
+}
+.ambient-orb.orb-2 {
+  width: 580px;
+  height: 580px;
+  top: 30%;
+  right: -140px;
+  background: radial-gradient(circle, #fce7f3 0%, #ffedd5 70%, transparent 100%);
+  animation: floatOrb2 24s ease-in-out infinite alternate;
+}
+.ambient-orb.orb-3 {
+  width: 480px;
+  height: 480px;
+  bottom: -80px;
+  left: 15%;
+  background: radial-gradient(circle, #d1fae5 0%, #e0e7ff 70%, transparent 100%);
+  animation: floatOrb3 22s ease-in-out infinite alternate;
+}
+.ambient-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.15));
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.8), 0 6px 16px rgba(100, 72, 190, 0.05);
+  backdrop-filter: blur(3px);
+  will-change: transform, opacity;
+}
+.ambient-bubble.b1 { width: 32px; height: 32px; left: 8%; top: 20%; animation: floatBubble 13s ease-in-out infinite; }
+.ambient-bubble.b2 { width: 22px; height: 22px; right: 14%; top: 38%; animation: floatBubble 17s ease-in-out infinite 2s; }
+.ambient-bubble.b3 { width: 40px; height: 40px; right: 6%; top: 68%; animation: floatBubble 15s ease-in-out infinite 1s; }
+.ambient-bubble.b4 { width: 26px; height: 26px; left: 12%; bottom: 12%; animation: floatBubble 18s ease-in-out infinite 4s; }
+
+@keyframes floatOrb1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(70px, 50px) scale(1.12); }
+  100% { transform: translate(-40px, 90px) scale(0.95); }
+}
+@keyframes floatOrb2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-60px, -50px) scale(1.1); }
+  100% { transform: translate(40px, -80px) scale(0.9); }
+}
+@keyframes floatOrb3 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(50px, -60px) scale(1.08); }
+  100% { transform: translate(-50px, 40px) scale(0.98); }
+}
+@keyframes floatBubble {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-40px) rotate(180deg); }
+}
+
+/* --------------------------------------------------------------------------
+   Layout & Typography
+   -------------------------------------------------------------------------- */
+.wrap {
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 0 24px 72px;
+}
+input, select, button {
+  font-size: 15px;
+  font-family: inherit;
+}
+
+/* --------------------------------------------------------------------------
+   Sticky Topbar Header
+   -------------------------------------------------------------------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 2px solid rgba(222, 211, 246, 0.7);
+  box-shadow: 0 4px 24px rgba(100, 72, 190, 0.07);
+  transition: all 0.3s ease;
+}
+.topbar .wrap {
+  padding: 12px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+.mark {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mark .word {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Archivo", sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--primary);
+  text-shadow: 0 1px 2px rgba(100, 72, 190, 0.15);
+}
+.pedi-brand-logo {
+  display: block;
+  width: 38px;
+  height: 44px;
+  flex: none;
+  transform-origin: center bottom;
+  animation: logoFloat 4s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(121, 207, 195, 0.4));
+}
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-3px) rotate(-3deg); }
+  70% { transform: translateY(-2px) rotate(3deg); }
+}
+.mark:hover .pedi-brand-logo {
+  animation: logoWiggle 0.6s var(--spring);
+}
+@keyframes logoWiggle {
+  0% { transform: scale(1) rotate(0); }
+  25% { transform: scale(1.15) rotate(-10deg); }
+  50% { transform: scale(1.2) rotate(10deg); }
+  75% { transform: scale(1.1) rotate(-5deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.mark .exp {
+  font-family: "Archivo", sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink3);
+  border-left: 2px solid var(--line);
+  padding-left: 12px;
+  line-height: 1.3;
+}
+.brand p {
+  margin: 3px 0 0;
+  color: var(--ink2);
+  font-size: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Weight & Topbar Controls (Bbbox)
+   -------------------------------------------------------------------------- */
+.bbbox {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.bbbox label {
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 10.5px;
+  color: var(--ink2);
+  display: block;
+  margin-bottom: 4px;
+}
+#bb {
+  width: 108px;
+  background: #fffdf5;
+  border: 2px solid #e3c473;
+  border-radius: 14px;
+  color: var(--ink);
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: 24px;
+  padding: 6px 12px;
+  text-align: right;
+  min-height: 46px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s var(--spring);
+}
+#bb:placeholder-shown {
+  animation: weightPromptPulse 2.8s ease-in-out infinite;
+}
+@keyframes weightPromptPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(227, 196, 115, 0.4); border-color: #e3c473; }
+  50% { box-shadow: 0 0 0 6px rgba(227, 196, 115, 0); border-color: #f59e0b; }
+}
+#bb:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(100, 72, 190, 0.18), 0 4px 14px rgba(100, 72, 190, 0.1);
+  transform: scale(1.03);
+}
+.kg {
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink3);
+  padding-bottom: 11px;
+}
+
+/* Buttons */
+.btn {
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-size: 12.5px;
+  background: #ffffff;
+  color: var(--ink);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 16px;
+  cursor: pointer;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.22s var(--spring);
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  box-shadow: 0 6px 18px rgba(100, 72, 190, 0.15);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.btn-primary {
+  background: var(--gradient-primary);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(100, 72, 190, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  animation: btnShine 4.5s infinite;
+}
+@keyframes btnShine {
+  0%, 75% { left: -120%; }
+  100% { left: 220%; }
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5135aa 0%, #7647eb 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 22px rgba(100, 72, 190, 0.4);
+}
+.btn-danger {
+  background: #fff5f5;
+  color: #c53030;
+  border-color: #feb2b2;
+}
+.btn-danger:hover:not(:disabled) {
+  background: #fed7d7;
+  border-color: #e53e3e;
+  color: #9b2c2c;
+  box-shadow: 0 6px 16px rgba(229, 62, 62, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   Welcome Hero Section & Interactive Bear Mascot
+   -------------------------------------------------------------------------- */
+.pedi-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 24px 0 16px;
+  padding: 24px 32px 44px;
+  border: 1.5px solid #dccdf1;
+  border-radius: 26px;
+  background: linear-gradient(115deg, #f2ecfe 0%, #f9f2ff 55%, #fff5e8 100%);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(100, 72, 190, 0.08);
+}
+.pedi-welcome::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 215, 185, 0.45) 0%, transparent 70%);
+  pointer-events: none;
+}
+.pedi-copy {
+  max-width: 620px;
+  position: relative;
+  z-index: 2;
+}
+.pedi-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #655088;
+}
+.pedi-kicker::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: #38b2ac;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #38b2ac;
+  animation: kickerPulse 2s infinite ease-in-out;
+}
+@keyframes kickerPulse {
+  0%, 100% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+}
+.pedi-welcome h1 {
+  font-family: "Archivo", sans-serif;
+  font-size: clamp(26px, 3.4vw, 40px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  color: #3b2b5a;
+  margin: 10px 0;
+}
+.pedi-welcome h1 span {
+  color: #7b4eb2;
+}
+.pedi-welcome p {
+  max-width: 540px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #554e66;
+  margin: 0;
+}
+.pedi-art {
+  width: 250px;
+  height: 165px;
+  flex: 0 0 250px;
+  cursor: pointer;
+  filter: drop-shadow(0 6px 14px rgba(100, 72, 190, 0.1));
+  transition: transform 0.3s var(--spring);
+}
+.pedi-art:hover {
+  transform: scale(1.04) rotate(1deg);
+}
+
+/* Bear Animations */
+.pedi-bear {
+  transform-box: view-box;
+  transform-origin: 181px 153px;
+  animation: pedi-sway 3.8s ease-in-out infinite;
+}
+.pedi-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pedi-blink 4.6s ease-in-out infinite;
+}
+.ear-l {
+  transform-box: fill-box;
+  transform-origin: 146px 67px;
+  animation: earTwitchL 5s ease-in-out infinite;
+}
+.ear-r {
+  transform-box: fill-box;
+  transform-origin: 217px 67px;
+  animation: earTwitchR 5s ease-in-out infinite 0.4s;
+}
+.pedi-blush {
+  animation: blushGlow 3s ease-in-out infinite alternate;
+}
+.star-1 {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: starTwinkle 3.2s ease-in-out infinite;
+}
+.star-2 {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: starTwinkle 3.8s ease-in-out infinite 1.2s;
+}
+.sp-1 {
+  animation: sparkleBob 2.6s ease-in-out infinite alternate;
+}
+.sp-2 {
+  animation: sparkleBob 3.2s ease-in-out infinite alternate 0.8s;
+}
+
+@keyframes pedi-sway {
+  0%, 100% { transform: rotate(-3.5deg) translateY(0); }
+  50% { transform: rotate(3.5deg) translateY(-4px); }
+}
+@keyframes pedi-blink {
+  0%, 42%, 46%, 100% { transform: scaleY(1); }
+  44% { transform: scaleY(0.12); }
+}
+@keyframes earTwitchL {
+  0%, 82%, 100% { transform: rotate(0deg); }
+  86% { transform: rotate(-7deg); }
+  92% { transform: rotate(4deg); }
+}
+@keyframes earTwitchR {
+  0%, 82%, 100% { transform: rotate(0deg); }
+  86% { transform: rotate(7deg); }
+  92% { transform: rotate(-4deg); }
+}
+@keyframes blushGlow {
+  0% { opacity: 0.65; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1.1); filter: drop-shadow(0 0 3px #f87171); }
+}
+@keyframes starTwinkle {
+  0%, 100% { transform: scale(0.9) rotate(0deg); opacity: 0.8; }
+  50% { transform: scale(1.25) rotate(18deg); opacity: 1; filter: drop-shadow(0 0 6px #f59e0b); }
+}
+@keyframes sparkleBob {
+  0% { transform: translateY(0) scale(0.8); opacity: 0.5; }
+  100% { transform: translateY(-7px) scale(1.2); opacity: 1; }
+}
+
+.pedi-motion {
+  position: absolute;
+  right: 24px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #655088;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 28px;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 2px 10px;
+  border-radius: 99px;
+  backdrop-filter: blur(4px);
+}
+.pedi-motion input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.pedi-welcome:has(.pedi-motion input:not(:checked)) .pedi-bear,
+.pedi-welcome:has(.pedi-motion input:not(:checked)) .pedi-eyes,
+.pedi-welcome:has(.pedi-motion input:not(:checked)) .ear-l,
+.pedi-welcome:has(.pedi-motion input:not(:checked)) .ear-r,
+.pedi-welcome:has(.pedi-motion input:not(:checked)) .pedi-blush,
+.pedi-welcome:has(.pedi-motion input:not(:checked)) .star-1,
+.pedi-welcome:has(.pedi-motion input:not(:checked)) .star-2,
+.pedi-welcome:has(.pedi-motion input:not(:checked)) .sp-1,
+.pedi-welcome:has(.pedi-motion input:not(:checked)) .sp-2 {
+  animation: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Patient Demographics Card
+   -------------------------------------------------------------------------- */
+.patient {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 16px 0 12px;
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid #d5e6e1;
+  border-top: 5px solid #5ab8a6;
+  border-radius: 20px;
+  box-shadow: 0 4px 18px rgba(82, 123, 160, 0.06);
+  transition: all 0.3s ease;
+}
+.patient:hover {
+  box-shadow: 0 6px 22px rgba(82, 123, 160, 0.1);
+}
+.patient div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.patient label {
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10.5px;
+  color: #375d57;
+}
+.patient input {
+  background: #f6fbf9;
+  border: 1.5px solid #bcd8d0;
+  border-radius: 12px;
+  color: var(--ink);
+  padding: 10px 14px;
+  font-size: 14.5px;
+  font-weight: 600;
+  min-height: 44px;
+  transition: all 0.2s ease;
+}
+.patient input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #38b2ac;
+  box-shadow: 0 0 0 3px rgba(56, 178, 172, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   PICU Tools: Search, Category Tabs, and Drug Choice Pills
+   -------------------------------------------------------------------------- */
+.picu-tools {
+  margin-top: 20px;
+}
+.work-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.work-heading h1 {
+  font-family: "Archivo", sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #402f61;
+  margin: 0 0 3px;
+}
+.work-heading p {
+  font-size: 13px;
+  color: var(--ink2);
+  margin: 0;
+}
+.work-heading a {
+  text-decoration: none;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 2px solid #ded3f6;
+  border-radius: 16px;
+  padding: 2px 16px;
+  max-width: 100%;
+  box-shadow: 0 4px 16px rgba(100, 72, 190, 0.06);
+  transition: all 0.25s var(--spring);
+}
+.search-box:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 6px 24px rgba(100, 72, 190, 0.16), 0 0 0 3px rgba(100, 72, 190, 0.12);
+  transform: translateY(-1px);
+}
+.search-box span {
+  font-size: 20px;
+  color: var(--primary);
+  transition: transform 0.25s ease;
+}
+.search-box:focus-within span {
+  transform: scale(1.15) rotate(-12deg);
+}
+.search-box input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 12px 0;
+  color: var(--ink);
+  font-size: 14.5px;
+}
+.search-box input:focus {
+  outline: none;
+}
+
+/* Category Pills */
+.picu-categories {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin: 16px 0 14px;
+}
+.picu-categories button {
+  border: 1.5px solid #dcd3ee;
+  background: rgba(255, 255, 255, 0.85);
+  color: #554477;
+  border-radius: 30px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 42px;
+  box-shadow: 0 2px 6px rgba(100, 72, 190, 0.04);
+  transition: all 0.22s var(--spring);
+}
+.picu-categories button:hover {
+  transform: translateY(-2px);
+  background: #ffffff;
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 6px 16px rgba(100, 72, 190, 0.15);
+}
+.picu-categories button:active {
+  transform: translateY(1px) scale(0.97);
+}
+.picu-categories button[aria-pressed=true] {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 6px 18px rgba(100, 72, 190, 0.35);
+  animation: pillPop 0.3s var(--spring);
+}
+@keyframes pillPop {
+  0% { transform: scale(0.94); }
+  60% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+/* Category individual tones */
+.picu-categories button[data-group="sedasi"] { background: #e8f0fe; color: #1e40af; border-color: #bfdbfe; }
+.picu-categories button[data-group="vaso"]   { background: #fdf2f8; color: #9d174d; border-color: #fbcfe8; }
+.picu-categories button[data-group="relax"]  { background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe; }
+.picu-categories button[data-group="lain"]   { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+
+/* Drug Grid Selector */
+.drug-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 10px;
+}
+.drug-choice {
+  text-align: left;
+  min-height: 74px;
+  border: 1.5px solid #e1daf0;
+  border-left: 6px solid var(--drug-tone, var(--primary));
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--drug-tone, #5142dc) 7%, #ffffff);
+  padding: 12px 14px;
+  cursor: pointer;
+  color: var(--ink);
+  box-shadow: 0 3px 10px rgba(23, 33, 55, 0.04);
+  transition: all 0.22s var(--spring);
+  position: relative;
+  overflow: hidden;
+}
+.drug-choice:hover {
+  background: color-mix(in srgb, var(--drug-tone, #5142dc) 16%, #ffffff);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(23, 33, 55, 0.08);
+}
+.drug-choice:active {
+  transform: translateY(1px) scale(0.98);
+}
+.drug-choice strong {
+  display: block;
+  font-family: "Archivo", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--drug-tone, var(--primary));
+  line-height: 1.25;
+}
+.drug-choice span {
+  display: block;
+  font-size: 11.5px;
+  color: var(--ink2);
+  margin-top: 4px;
+  line-height: 1.35;
+}
+.drug-choice[aria-pressed=true] {
+  background: color-mix(in srgb, var(--drug-tone, #5142dc) 22%, #ffffff);
+  outline: 2.5px solid var(--drug-tone, var(--primary));
+  outline-offset: 2px;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(100, 72, 190, 0.2);
+  animation: choicePop 0.3s var(--spring);
+}
+@keyframes choicePop {
+  0% { transform: scale(0.95); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+#search-status {
+  font-size: 12px;
+  color: var(--ink3);
+  margin: 12px 0 0;
+}
+
+/* --------------------------------------------------------------------------
+   Hints, Warnings & Empty State Notices
+   -------------------------------------------------------------------------- */
+.hint {
+  margin: 14px 0 10px;
+  padding: 14px 20px;
+  border: 1px solid #fed7aa;
+  border-left: 5px solid #f59e0b;
+  border-radius: 16px;
+  color: #7c2d12;
+  font-size: 13px;
+  background: #fffbeb;
+  box-shadow: 0 3px 12px rgba(245, 158, 11, 0.08);
+  line-height: 1.5;
+}
+.bbwarn {
+  color: #991b1b;
+  font-weight: 600;
+  border-left: 5px solid #ef4444;
+  background: #fee2e2;
+  padding: 14px 18px;
+  border-radius: 14px;
+  margin: 12px 0;
+  box-shadow: 0 3px 12px rgba(239, 68, 68, 0.1);
+  animation: warnSlideIn 0.3s ease-out;
+}
+.focus-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 34px 20px;
+  text-align: center;
+  border: 2px dashed #b9b0db;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  color: #554477;
+  font-size: 14px;
+  margin-top: 16px;
+  box-shadow: 0 6px 20px rgba(100, 72, 190, 0.05);
+}
+.focus-empty::before {
+  content: "☝️";
+  font-size: 32px;
+  display: block;
+  animation: bounceFinger 2s ease-in-out infinite;
+}
+@keyframes bounceFinger {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.focus-hidden {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Drug Calculation Cards
+   -------------------------------------------------------------------------- */
+.gjudul {
+  display: none;
+}
+#cards .grid {
+  display: block;
+}
+#cards .card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 2px solid color-mix(in srgb, var(--category-tone, var(--primary)) 30%, transparent);
+  border-top: 7px solid var(--category-tone, var(--band));
+  border-radius: 24px;
+  padding: 24px;
+  margin-top: 18px;
+  box-shadow: 0 12px 36px rgba(100, 72, 190, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+#cards .card:not(.focus-hidden) {
+  animation: cardEntrance 0.35s var(--spring);
+}
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
-/* Palet di bawah ini warna antarmuka, BUKAN kode warna label syringe.
-   Kode ISO 26825 punya petak warnanya sendiri di tiap kartu (lihat const ISO). */
-:root{
-  --benzo:var(--primary); --opioid:var(--pink); --induksi:var(--accent);
-  --alpha:var(--success); --vaso:var(--secondary); --diur:var(--ink2);
-  --relax:var(--danger);
+.card.idle {
+  opacity: 0.95;
 }
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{background:var(--paper);color:var(--ink);
-  font-family:"Public Sans",system-ui,-apple-system,sans-serif;
-  font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
-.wrap{max-width:1200px;margin:0 auto;padding:0 20px 64px}
-input,select,button{font-size:16px;font-family:inherit}
-
-.topbar{position:sticky;top:0;z-index:20;background:var(--surface);
-  border-bottom:2px solid var(--primary);box-shadow:var(--shadow)}
-.topbar .wrap{padding:14px 20px;display:flex;flex-wrap:wrap;gap:14px 22px;
-  align-items:flex-end;justify-content:space-between}
-.mark{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.mark .word{font-family:"Archivo",sans-serif;font-weight:800;font-size:40px;letter-spacing:-.045em;
-  line-height:.85;background:var(--gradient-primary);-webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;background-clip:text}
-.mark .exp{font-family:"Archivo",sans-serif;font-weight:600;font-size:11px;text-transform:uppercase;
-  letter-spacing:.2em;color:var(--ink3);border-left:2px solid var(--line);padding-left:12px;
-  max-width:180px;line-height:1.35}
-.brand p{margin:6px 0 0;color:var(--ink2);font-size:12.5px}
-.bbbox{display:flex;align-items:flex-end;gap:9px;flex-wrap:wrap}
-.bbbox label{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;
-  letter-spacing:.16em;font-size:10.5px;color:var(--ink3);display:block;margin-bottom:5px}
-#bb{width:124px;background:var(--paper);border:2px solid var(--line);border-radius:var(--r);
-  color:var(--ink);font-family:"JetBrains Mono",monospace;font-weight:700;font-size:28px;
-  padding:6px 11px;text-align:right;transition:border-color var(--transition)}
-#bb:focus,input:focus,select:focus,button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-.kg{font-family:"Archivo",sans-serif;font-weight:600;font-size:16px;color:var(--ink3);padding-bottom:11px}
-.btn{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.11em;
-  font-size:11.5px;background:var(--surface);color:var(--ink);border:2px solid var(--line);
-  border-radius:var(--r);padding:11px 14px;cursor:pointer;min-height:46px;transition:all var(--transition)}
-.btn:hover:not(:disabled){border-color:var(--primary);background:var(--primary-light)}
-.btn:disabled{opacity:.4;cursor:default}
-.btn-primary{background:var(--gradient-primary);color:#fff;border-color:transparent}
-.btn-primary:hover:not(:disabled){background:var(--primary-dark);color:#fff}
-.btn-danger{background:transparent;color:var(--danger);border-color:var(--danger)}
-.btn-danger:hover:not(:disabled){background:var(--danger-light);border-color:var(--danger)}
-
-.patient{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:14px;margin:24px 0 4px}
-.patient div{display:flex;flex-direction:column;gap:4px}
-.patient label{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;
-  letter-spacing:.16em;font-size:10.5px;color:var(--ink3)}
-.patient input{background:transparent;border:0;border-bottom:2px solid var(--line);
-  color:var(--ink);padding:8px 2px;transition:border-color var(--transition)}
-.patient input:focus{border-color:var(--primary)}
-.hint{margin:22px 0 4px;padding:14px 18px;border:2px solid var(--primary-light);border-radius:var(--r);
-  color:var(--ink2);font-size:13.5px;background:var(--primary-light)}
-
-.gjudul{font-family:"Archivo",sans-serif;font-weight:700;text-transform:uppercase;
-  letter-spacing:.2em;font-size:11.5px;color:var(--ink2);margin:38px 0 14px;
-  padding-bottom:9px;border-bottom:3px solid var(--primary)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:20px}
-.card{position:relative;background:var(--surface);border:2px solid var(--line);
-  border-radius:var(--r);padding:20px 20px 18px 24px;overflow:hidden;box-shadow:var(--shadow)}
-.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--band)}
-.card.idle{opacity:.6}
-.card.relax{border-color:var(--danger)}
-.card-error{background:var(--danger-light);border-color:var(--danger)}
-.chead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:15px}
-.chead h2{font-family:"Archivo",sans-serif;font-weight:700;font-size:21px;letter-spacing:-.02em;
-  margin:0 0 6px;line-height:1.05}
-.badge{font-family:"Archivo",sans-serif;font-size:9.5px;font-weight:700;padding:3px 9px;
-  border-radius:20px;text-transform:uppercase;letter-spacing:.1em;display:inline-block}
-.badge-benzo{background:var(--primary-light);color:var(--primary)}
-.badge-opioid{background:var(--pink-light);color:var(--pink)}
-.badge-induksi{background:var(--primary-light);color:var(--accent)}
-.badge-alpha{background:var(--success-light);color:var(--success)}
-.badge-vaso{background:var(--secondary-light);color:var(--secondary)}
-.badge-diur{background:var(--sunken);color:var(--ink2)}
-.badge-relax{background:var(--danger-light);color:var(--danger)}
-.tick{display:flex;align-items:center;gap:7px;font-size:10.5px;color:var(--ink3);
-  font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.11em;
-  cursor:pointer;white-space:nowrap;padding:8px 10px;min-height:44px;border-radius:8px}
-.tick:hover{background:var(--primary-light)}
-.tick input{accent-color:var(--primary);width:20px;height:20px;margin:0;cursor:pointer}
-.lbl{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.16em;
-  font-size:10px;color:var(--ink3);margin:0 0 6px}
-/* petak kode warna ISO 26825 — dipakai di kartu layar dan kartu titrasi cetak */
-.isoline{display:flex;align-items:center;gap:8px;margin:9px 0 0;font-size:11.5px;color:var(--ink2)}
-.isoline .sw{width:24px;height:13px;border:1px solid var(--ink3);border-radius:3px;flex:none}
-.isoline b{color:var(--ink);font-weight:700}
-.prep{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.prep input{width:88px;background:var(--paper);border:2px solid var(--line);border-radius:8px;
-  color:var(--ink);font-family:"JetBrains Mono",monospace;font-size:14px;padding:12px 8px;text-align:right}
-.prep input:focus{border-color:var(--primary)}
-.prep input:disabled{color:var(--ink3);opacity:1}
-.prep span{font-size:12.5px;color:var(--ink2)}
-select{width:100%;background:var(--paper);border:2px solid var(--line);border-radius:8px;
-  color:var(--ink);padding:12px 9px;margin-bottom:9px;min-height:46px}
-select:focus{border-color:var(--primary)}
-.conc{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink3);margin-top:8px}
-.dosebar{display:flex;align-items:center;gap:10px;margin-top:6px}
-.dosebar input{width:104px;background:var(--paper);border:2px solid var(--line);border-radius:8px;
-  color:var(--ink);font-family:"JetBrains Mono",monospace;font-weight:700;font-size:17px;
-  padding:12px 8px;text-align:right}
-.dosebar input:focus{border-color:var(--primary)}
-.dosebar .u{font-size:11.5px;color:var(--ink2);font-family:"JetBrains Mono",monospace}
-input[type=range]{width:100%;accent-color:var(--primary);margin:14px 0 4px;height:30px;touch-action:pan-y;cursor:pointer}
-.gauge{position:relative;height:6px;background:var(--sunken);border-radius:99px;margin:2px 0 7px}
-.gauge .band{position:absolute;top:0;bottom:0;background:var(--band);opacity:.4;border-radius:99px}
-.gauge .pin{position:absolute;top:-4px;width:3px;height:14px;background:var(--ink);border-radius:2px}
-/* Peringatan laju di bawah 0,3 mL/jam: di kartu obat, sebagai penanda pada laju
-   di lembar terapi (yang dicek sebelum obat diberikan), dan baris tabel titrasi
-   di atas rentang lazim diarsir seperti di kartu cetak. */
-.slow-warn{margin:8px 0 0;background:var(--warning-light);border-left:4px solid var(--warning);
-           border-radius:8px;padding:9px 11px;font-size:11.5px;line-height:1.45;
-           color:var(--warning);font-weight:500}
-.rate-pelan{color:var(--warning)!important}
-.slow-note{margin:12px 0 0;font-size:11.5px;line-height:1.45;color:var(--warning);font-weight:500}
-.tstep-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:10px 0 4px}
-.tstep-lbl{font-size:11.5px;color:var(--ink3)}
-.tstep-btn{border:1.5px solid var(--line);border-radius:8px;padding:5px 11px;background:transparent;
-  font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12.5px;color:var(--ink2);cursor:pointer}
-.tstep-btn.on{border-color:var(--primary);background:var(--primary-light);color:var(--primary);font-weight:700}
-@media print{ .tstep-row{display:none} }
-tr.atas-lazim td{background:var(--warning-light)}
-@media print{ tr.atas-lazim td{background:#fff8e1} }
-.range-note{font-size:11.5px}
-.range-note.in,.range-note.low{color:var(--ink3)}
-.range-note.high{color:var(--warning);font-weight:600}
-.range-note.over{color:var(--danger);font-weight:700}
-.readbox{margin:15px 0 2px;background:var(--gradient-primary);border-radius:var(--r);
-  padding:15px 18px;display:flex;align-items:baseline;justify-content:space-between;gap:8px;color:#fff}
-.readout{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:38px;color:#fff;
-  line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
-.readunit{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;
-  letter-spacing:.17em;font-size:11px;color:rgba(255,255,255,.85)}
-.meta{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink3);line-height:1.8;margin-top:9px}
-.meta b{color:var(--ink);font-weight:700}
-details{margin-top:13px;border-top:2px solid var(--line2);padding-top:8px}
-summary{cursor:pointer;font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;
-  letter-spacing:.15em;font-size:10px;color:var(--primary);padding:8px 0;min-height:34px}
-.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;margin-top:8px;
-  font-family:"JetBrains Mono",monospace;font-size:11.5px;font-variant-numeric:tabular-nums}
-th{font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.11em;
-  font-size:9.5px;color:var(--ink3);text-align:right;padding:5px 6px;
-  border-bottom:2px solid var(--line);white-space:nowrap}
-th:first-child,td:first-child{text-align:left}
-td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line2);white-space:nowrap}
-tfoot td{border-bottom:0;border-top:3px solid var(--primary);padding-top:9px;font-weight:700}
-.note{font-size:12px;color:var(--ink2);margin-top:11px;line-height:1.6;padding:10px 12px;
-  background:var(--sunken);border-radius:8px;border-left:4px solid var(--band)}
-.sum{margin-top:40px;border:3px solid var(--primary);border-radius:var(--r);padding:24px 26px;
-  background:var(--surface);box-shadow:var(--shadow-lg)}
-.sum h3{font-family:"Archivo",sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.14em;
-  font-size:17px;margin:0 0 4px;color:var(--ink)}
-.sum p.sub{color:var(--ink3);font-size:12px;margin:0 0 15px}
-.sum table td:first-child{text-align:left;font-family:"Public Sans",sans-serif;font-weight:600;white-space:normal}
-.sum .rate{font-weight:700;color:var(--primary)}
-.empty{color:var(--ink3);font-size:13.5px}
-.sign{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:26px;margin-top:28px}
-.sign div{border-top:2px solid var(--line);padding-top:8px;font-size:11px;color:var(--ink3);
-  font-family:"Archivo",sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.13em}
-footer{margin-top:36px;color:var(--ink2);font-size:12px;line-height:1.75;
-  border-top:2px solid var(--line);padding-top:18px}
-footer b{color:var(--ink)}
-footer .tabel-versi{margin-top:16px;font-size:11.5px;color:var(--ink3);text-align:center;
-  font-family:"JetBrains Mono",ui-monospace,monospace}
-footer .credit{margin-top:8px;font-size:10.5px;letter-spacing:.08em;color:var(--ink3);
-  text-align:center;text-transform:uppercase}
-.pasang{margin-top:18px;padding:16px;border:2px dashed var(--primary);border-radius:var(--r);
-  background:var(--primary-light);text-align:center}
-.pasang p{margin:0 0 12px;color:var(--ink2)}
-.relaxwarn{color:var(--danger);font-weight:600;border-left:4px solid var(--danger);
-  background:var(--danger-light);padding:12px 16px;border-radius:8px}
-.bbwarn{color:var(--warning);font-weight:600;border-left:4px solid var(--warning);
-  background:var(--warning-light);padding:12px 16px;border-radius:8px;margin:12px 0}
-.noscript{background:var(--warning-light);border:3px solid var(--warning);padding:20px;margin:20px;
-  text-align:center;border-radius:var(--r)}
-.error-boundary{margin:12px 0;padding:16px;border:2px solid var(--danger);border-radius:8px;
-  background:var(--danger-light);color:var(--danger)}
-.error-boundary pre{white-space:pre-wrap;word-break:break-word;font-size:12px;margin:0 0 10px}
-.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;
-  flex-direction:column;gap:10px;max-width:380px;width:90%}
-.toast{padding:14px 18px;border-radius:var(--r);background:var(--surface);border:2px solid var(--line);
-  box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:12px;animation:slideIn .3s ease-out}
-.toast.success{border-color:var(--success);background:var(--success-light)}
-.toast.error{border-color:var(--danger);background:var(--danger-light)}
-.toast.warning{border-color:var(--warning);background:var(--warning-light)}
-.toast.info{border-color:var(--primary);background:var(--primary-light)}
-.toast .msg{flex:1;font-size:13px;color:var(--ink)}
-.toast .close-btn{background:transparent;border:0;cursor:pointer;font-size:18px;color:var(--ink2);padding:0 4px}
-@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
-@media (max-width:640px){
-  .wrap{padding:0 14px 56px}
-  .mark .word{font-size:32px}
-  .mark .exp{font-size:9.5px;letter-spacing:.14em;max-width:130px;padding-left:10px}
-  #bb{font-size:25px;width:112px;min-height:50px}
-  .grid{grid-template-columns:1fr}
-  .prep input,.dosebar input{min-height:48px}
-  .btn,select{min-height:48px}
-  .topbar .wrap{padding:10px 14px;gap:10px}
-  .chead h2{font-size:19px}
-  .readbox{padding:13px 15px}
-  .readout{font-size:30px}
-  .sum{padding:18px 16px}
-  .toast-container{width:94%;right:3%;bottom:12px}
+.card-error {
+  background: var(--danger-light);
+  border-color: var(--danger);
 }
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-/* ==== kartu titrasi untuk ditempel di syringe — hanya tampil saat cetak ====
-   Kelasnya .tcard, bukan .lbl: .lbl dipakai label kecil di kartu obat dan
-   memaksa HURUF BESAR SEMUA, yang ikut terbawa ke kartu titrasi saat dicetak. */
-#labels{display:none}
-@media print{
-  /* Margin di @page, bukan di grid: kalau dipasang di grid hanya halaman
-     pertama yang dapat jarak atas, dan tanda potong sudut atas di halaman
-     berikutnya ikut terpotong tepi kertas. */
-  @page{size:A4;margin:6mm}
 
-  /* Tiga kolom, tinggi kartu DIKUNCI 90 mm supaya setiap kartu keluar dengan
-     ukuran yang sama persis. Tanpa penguncian ini, obat berdaftar panjang
-     (epinefrin, norepinefrin, vasopresin: 10 baris) mencetak kartu jauh lebih
-     tinggi daripada fentanil atau midazolam, dan hasil guntingan jadi
-     bermacam-macam ukuran di satu pasien.
-     Konsekuensinya deret titrasi yang menyerap selisih: tabel dibuat melar
-     mengisi ruang sisa, jadi kartu berbaris sedikit justru berbaris lebih
-     lega, bukan menyisakan ruang kosong di bawah. */
-
-  /* Pembungkus halaman menyisakan padding bawah saat mencetak, dan sisa
-     ~17 mm itu cukup untuk melahirkan satu halaman kosong di akhir setiap
-     cetakan. */
-  body{margin:0}
-  .wrap{padding:0!important;margin:0!important;max-width:none!important}
-  #labels{display:grid!important;grid-template-columns:repeat(3,1fr);grid-auto-rows:90mm;align-content:start;gap:5mm;margin:0;padding:0}
-  .tcard{position:relative;display:flex;flex-direction:column;
-         /* JANGAN pasang overflow:hidden di sini — tanda potong sudut duduk
-            1,6 mm DI LUAR kartu, jadi overflow:hidden akan menggunting justru
-            panduan guntingnya. Ketinggian dijaga dengan memastikan isinya
-            memang muat, bukan dengan memotong yang lebih. */
-         height:90mm;
-         /* Bingkai golongan, bukan garis tepi biasa: 3,2pt penuh keliling
-            dengan warna ISO obatnya, supaya setumpuk kartu yang sudah
-            digunting bisa dipilah tanpa dibaca satu per satu.
-            Warnanya diambil dari --tcframe, terpisah dari --tcband (pita
-            kepala), karena obat di luar ISO 26825 tidak boleh diberi warna
-            karangan sendiri: kepalanya tetap kelabu polos, tapi bingkainya
-            hitam PUTUS-PUTUS. Bingkai putus-putus itu yang membedakannya:
-            ia terlihat jelas — #eee yang dipakai sebelumnya praktis tidak
-            terlihat, sehingga deksmedetomidin, furosemide, insulin, dan
-            aminofilin tercetak seperti kartu tanpa tepi — tanpa ikut
-            berlagak sebagai salah satu warna golongan ISO. */
-         border:3.2pt var(--tcgaris,solid) var(--tcframe,#000);
-         border-radius:2mm;padding:2.4mm;
-         page-break-inside:avoid;break-inside:avoid;
-         font-family:"Public Sans",sans-serif;font-size:8pt;line-height:1.28;color:#000;
-         -webkit-print-color-adjust:exact;print-color-adjust:exact}
-
-  .tcard .crop{position:absolute;width:3mm;height:3mm}
-  .tcard .crop.tl{top:-1.6mm;left:-1.6mm;border-top:0.75pt solid #000;border-left:0.75pt solid #000}
-  .tcard .crop.tr{top:-1.6mm;right:-1.6mm;border-top:0.75pt solid #000;border-right:0.75pt solid #000}
-  .tcard .crop.bl{bottom:-1.6mm;left:-1.6mm;border-bottom:0.75pt solid #000;border-left:0.75pt solid #000}
-  .tcard .crop.br{bottom:-1.6mm;right:-1.6mm;border-bottom:0.75pt solid #000;border-right:0.75pt solid #000}
-
-  /* Pita warna ISO 26825 selebar kartu — dikenali sebelum tulisan apa pun.
-     Nama golongan obat dibuang di cetakan: warna dan nama obat sudah
-     menyampaikan hal yang sama, dan ruang itu lebih berguna untuk nama
-     obatnya sendiri.
-     Nama terpanjang (DEKSMEDETOMIDIN) bersama nama warna terpanjang
-     (TIDAK DIATUR) tetap tidak muat satu baris di kartu 60 mm; dibiarkan
-     melipat, bukan dipotong, karena nama warna itulah satu-satunya penanda
-     golongan yang tersisa bila kartu dicetak hitam-putih. */
-  .tcard h4{flex:none;display:flex;align-items:center;flex-wrap:wrap;gap:0.8mm 1.2mm;
-            margin:-2.4mm -2.4mm 1.6mm -2.4mm;padding:1.6mm 2.4mm;
-            font-size:11.8pt;font-weight:800;line-height:1.12;
-            text-transform:uppercase;letter-spacing:-.015em;
-            border-radius:1.2mm 1.2mm 0 0;
-            background:var(--tcband,#eee);color:var(--tctext,#000);
-            -webkit-print-color-adjust:exact;print-color-adjust:exact}
-  /* Nama obat adalah satu-satunya hal di kartu ini yang harus terbaca dari
-     jarak satu langkah. Ia dibesarkan dan dinaikkan ke bobot 900 — bobot
-     yang baru sekarang benar-benar ikut dimuat — sementara nama warna ISO
-     di sebelahnya tetap 6,8pt. Keduanya sebelumnya sama-sama 800, dan mata
-     jadi harus memilih sendiri mana yang nama obat.
-     Yang mengalah saat sempit adalah nama warna, bukan nama obat: petak
-     ISO turun ke baris kedua dan nama obat tetap 14pt. Nama obat sendiri
-     baru dikecilkan kalau satu baris penuh pun tidak muat — ambangnya
-     diletakkan di luar jangkauan seluruh 16 obat sekarang (terpanjang
-     DEKSMEDETOMIDIN, 15 huruf), jadi ia murni jaring pengaman untuk obat
-     yang ditambahkan kemudian, bukan aturan yang berlaku hari ini. */
-  .tcard h4 .nm{flex:1 1 auto;min-width:0;
-                font-size:14pt;font-weight:900;line-height:1.04;
-                letter-spacing:-.02em;white-space:nowrap}
-  .tcard h4 .nm.nm-sedang{font-size:11.6pt;letter-spacing:-.025em}
-  .tcard h4 .nm.nm-panjang{font-size:9.6pt;letter-spacing:-.03em}
-  .tcard h4 .iso{flex:none;display:flex;align-items:center;gap:1.2mm}
-  .tcard h4 .sw{width:5.5mm;height:3.2mm;border:0.75pt solid #000;border-radius:0.8mm;flex:none;
-                background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .tcard h4 .warna{font-size:6.8pt;font-weight:800;letter-spacing:.02em;flex:none}
-  .tcard h4 .klass{display:none}
-
-  /* Identitas dinaikkan, bukan diturunkan: kartu yang sudah digunting harus
-     tetap jelas miliknya siapa. */
-  .tcard .tid{flex:none;display:flex;gap:2mm;border-bottom:1.2pt solid #000;
-              padding-bottom:1.1mm;margin-bottom:1.3mm}
-  .tcard .tid-nm{flex:1.6 1 0;min-width:0}
-  .tcard .tid-rm{flex:1 1 0;min-width:0}
-  .tcard .tid-k{display:block;font-family:"Archivo",sans-serif;font-weight:700;font-size:5.8pt;
-                text-transform:uppercase;letter-spacing:.1em;color:#000}
-  /* Nama pasien boleh turun ke baris kedua. Memotongnya dengan elipsis lebih
-     rapi di layar tapi salah di bangsal: kartu yang sudah digunting harus bisa
-     dicocokkan dengan pasiennya, dan "Muhammad Rasyid A…" bukan identifikasi. */
-  .tcard .tid-v{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-                font-size:9.6pt;font-weight:800;line-height:1.14;
-                min-height:4.1mm;overflow:hidden;word-break:break-word}
-  .tcard .tid-v.nm-sedang{font-size:8.4pt;line-height:1.1}
-  .tcard .tid-v.nm-kecil{font-size:7pt;line-height:1.08}
-  .tcard .tid-v.nm-mini{font-size:5.9pt;line-height:1.06;letter-spacing:-.01em}
-  /* Nomor RM tidak boleh patah di tengah; kalau tetap tidak muat, biar
-     melebar keluar kolomnya daripada terbaca sebagai dua nomor. */
-  .tcard .tid-rm .tid-v{word-break:normal;overflow-wrap:normal}
-  .tcard .tid-v.kosong{border-bottom:1.2pt solid #000}
-
-  /* Satu baris, tidak boleh patah — baris ini yang mengunci kartu ke sediaan
-     dan berat badan tertentu. */
-  .tcard .cx{flex:none;margin:0 0 1.2mm;font-size:6.6pt;color:#333;
-             white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tcard .cx-bold{font-size:9.5pt;font-weight:800;color:#000}
-
-  /* Deret titrasi adalah alasan kartu ini ada: dibuat melar mengisi sisa
-     tinggi, dengan angka setebal dan sebesar yang masih memuat 10 baris. */
-  .tcard table{flex:1 1 auto;width:100%;border-collapse:collapse}
-  .tcard th{font-family:"Archivo",sans-serif;font-size:6.2pt;font-weight:700;text-align:left;
-            text-transform:uppercase;letter-spacing:.06em;
-            border-bottom:1.2pt solid #000;padding:0.4mm 0.8mm;height:4mm}
-  /* Padding baris 0,18 mm, bukan 0,3 mm. Bukan soal selera: tinggi minimum
-     tabel = jumlah baris x (tinggi huruf + padding), dan pada kartu terpadat
-     selisih 0,12 mm per sisi itu 2,4 mm untuk sepuluh baris — persis sebanyak
-     yang selama ini membuat catatan kaki epinefrin, norepinefrin, dan
-     vasopresin tercetak MELEWATI garis tepi kartu, jadi kalimat "hanya atas
-     instruksi DPJP" dan nomor versi tabel terpotong tepat pada obat yang
-     paling tidak boleh salah baca.
-     Kartu berbaris sedikit tidak ikut memadat: tabelnya melar mengisi sisa
-     tinggi, jadi yang berubah hanya kartu yang memang sesak. */
-  .tcard td{padding:0.18mm 0.8mm;border-bottom:0.5pt solid #bbb;
-            font-size:9.2pt;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.12}
-  .tcard td:last-child{text-align:right;font-weight:800}
-  .tcard tr.tcard-ext td{background:#fff8e1}
-  .tcard tr.tcard-pelan td{background:#ededed;color:#333}
-  .tcard tbody tr:last-child td{border-bottom:none}
-
-  .tcard .dc{flex:none;margin:0.7mm 0 0;font-size:6pt;line-height:1.12;color:#000}
-  .tcard .dc:last-child{margin-bottom:0.4mm}
+/* Card Header */
+.chead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  background: color-mix(in srgb, var(--category-tone, var(--primary)) 10%, #ffffff);
+  margin: -12px -12px 18px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--category-tone, var(--primary)) 20%, transparent);
 }
-@media print{
-  :root{--paper:#fff;--surface:#fff;--sunken:#fff;--ink:#000;--ink2:#333;--ink3:#555;
-        --line:#999;--line2:#ccc;--primary:#000}
-  #cards,.hint,.btn,.toast-container,noscript,
-  .topbar,.patient,.sum,footer{display:none!important}
+.chead h2 {
+  font-family: "Archivo", sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+  margin: 0 0 6px;
+  line-height: 1.1;
+  color: var(--category-tone, var(--ink));
+}
+.badge {
+  font-family: "Archivo", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+  display: inline-block;
+  background: color-mix(in srgb, var(--category-tone, var(--primary)) 14%, #ffffff);
+  color: var(--category-tone, var(--primary));
+}
+.tick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--ink);
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 8px 14px;
+  min-height: 44px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1.5px solid #dcd3ee;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s var(--spring);
+}
+.tick:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+.tick input[type=checkbox] {
+  accent-color: var(--primary);
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+  transition: transform 0.2s var(--spring);
+}
+.tick input[type=checkbox]:checked {
+  animation: checkBounce 0.3s var(--spring);
+}
+@keyframes checkBounce {
+  0% { transform: scale(0.7); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.lbl {
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 11px;
+  color: var(--ink3);
+  margin: 0 0 6px;
+}
+
+/* ISO swatch */
+.isoline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 9px 0 0;
+  font-size: 12px;
+  color: var(--ink2);
+  background: rgba(255, 255, 255, 0.65);
+  padding: 6px 10px;
+  border-radius: 8px;
+  width: fit-content;
+}
+.isoline .sw {
+  width: 22px;
+  height: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  flex: none;
+}
+
+/* Sediaan & Concentration */
+.card select {
+  width: 100%;
+  max-width: 620px;
+  background: #fdfcff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  min-height: 48px;
+  font-weight: 600;
+  transition: border-color 0.2s ease;
+}
+.card select:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(100, 72, 190, 0.15);
+}
+
+.prep {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.prep input {
+  width: 96px;
+  background: #fdfcff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 10px 10px;
+  text-align: right;
+  min-height: 44px;
+  transition: all 0.2s ease;
+}
+.prep input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(100, 72, 190, 0.15);
+}
+.prep input:disabled {
+  background: #f1f3f7;
+  color: var(--ink3);
+  opacity: 0.85;
+}
+.conc {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink3);
+  margin-top: 6px;
+}
+
+/* Dose Input & Sliders */
+.dosebar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+.dosebar input {
+  width: 115px;
+  background: #fdfcff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 800;
+  font-size: 20px;
+  padding: 10px 10px;
+  text-align: right;
+  min-height: 46px;
+  transition: all 0.2s ease;
+}
+.dosebar input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(100, 72, 190, 0.15);
+}
+.dosebar .u {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  font-family: "JetBrains Mono", monospace;
+}
+
+input[type=range] {
+  width: 100%;
+  max-width: 620px;
+  accent-color: var(--category-tone, var(--primary));
+  margin: 16px 0 6px;
+  height: 28px;
+  touch-action: pan-y;
+  cursor: pointer;
+}
+.gauge {
+  position: relative;
+  max-width: 620px;
+  height: 8px;
+  background: #e9e4f3;
+  border-radius: 99px;
+  margin: 4px 0 10px;
+  overflow: visible;
+}
+.gauge .band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--category-tone, var(--primary));
+  opacity: 0.45;
+  border-radius: 99px;
+}
+.gauge .pin {
+  position: absolute;
+  top: -5px;
+  width: 5px;
+  height: 18px;
+  background: var(--ink);
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: left 0.3s var(--spring);
+}
+
+.range-note {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 6px 0 0;
+}
+.range-note.in, .range-note.low { color: var(--ink3); }
+.range-note.high { color: var(--warning); font-weight: 700; }
+.range-note.over { color: var(--danger); font-weight: 800; }
+
+/* --------------------------------------------------------------------------
+   Animated Readout Box with Authentic Infusion Drip Chamber
+   -------------------------------------------------------------------------- */
+.readbox {
+  position: relative;
+  overflow: hidden;
+  margin: 18px 0 4px;
+  background: linear-gradient(135deg, var(--category-tone, #5640b2) 0%, color-mix(in srgb, var(--category-tone, #5640b2) 80%, #7c3aed) 100%);
+  border-radius: 20px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #ffffff;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--category-tone, #5640b2) 32%, transparent);
+  transition: all 0.3s var(--spring);
+}
+.readbox::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 75%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.22) 50%, transparent 100%);
+  transform: skewX(-25deg);
+  animation: readboxSheen 5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes readboxSheen {
+  0%, 70% { left: -130%; }
+  100% { left: 200%; }
+}
+
+/* Animated Pediatric Drip Chamber inside Readbox */
+.drip-chamber {
+  position: relative;
+  width: 28px;
+  height: 52px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 6px 6px 14px 14px;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(4px);
+  overflow: hidden;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.25);
+}
+.drip-stem {
+  width: 4px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 0 0 2px 2px;
+}
+.drip-drop {
+  width: 6px;
+  height: 9px;
+  background: #ffffff;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: dripFall 1.8s cubic-bezier(0.55, 0, 1, 0.45) infinite;
+}
+.drip-pool {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 0 0 12px 12px;
+  animation: dripRipple 1.8s ease-in-out infinite;
+}
+@keyframes dripFall {
+  0% { transform: translateY(-4px) scale(0.6); opacity: 0; }
+  25% { transform: translateY(0px) scale(0.9); opacity: 0.95; }
+  70% { transform: translateY(22px) scale(1, 1.25); opacity: 1; }
+  85% { transform: translateY(27px) scale(1.4, 0.4); opacity: 0.9; }
+  100% { transform: translateY(30px) scale(1.6, 0.1); opacity: 0; }
+}
+@keyframes dripRipple {
+  0%, 75% { height: 9px; transform: scaleY(1); }
+  85% { height: 13px; transform: scaleY(1.25); }
+  100% { height: 9px; transform: scaleY(1); }
+}
+
+.card.idle .drip-drop {
+  animation: none;
+  opacity: 0.4;
+  transform: translateY(2px) scale(0.7);
+}
+.card.idle .drip-pool {
+  animation: none;
+}
+
+.readbox-data {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+.readout {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 800;
+  font-size: 46px;
+  color: #ffffff;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.readunit {
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+}
+.slow-warn {
+  margin: 10px 0 0;
+  background: var(--warning-light);
+  border-left: 4px solid var(--warning);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--warning);
+  font-weight: 600;
+  animation: warnSlideIn 0.3s ease-out;
+}
+@keyframes warnSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rate-pelan { color: var(--warning) !important; }
+.slow-note { margin: 12px 0 0; font-size: 12px; line-height: 1.45; color: var(--warning); font-weight: 600; }
+
+.meta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--ink2);
+  line-height: 1.8;
+  margin-top: 12px;
+}
+.meta b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Titration Table Accordion */
+details {
+  margin-top: 16px;
+  border-top: 1.5px solid var(--line2);
+  padding-top: 12px;
+}
+summary {
+  cursor: pointer;
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  color: var(--primary);
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+summary:hover {
+  color: var(--primary-dark);
+}
+summary::after {
+  content: "▸";
+  display: inline-block;
+  font-size: 14px;
+  transition: transform 0.25s var(--spring);
+}
+details[open] summary::after {
+  transform: rotate(90deg);
+}
+
+.tstep-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0 6px;
+}
+.tstep-lbl {
+  font-size: 12px;
+  color: var(--ink3);
+}
+.tstep-btn {
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 6px 12px;
+  background: #ffffff;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12.5px;
+  color: var(--ink2);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s var(--spring);
+}
+.tstep-btn:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+.tstep-btn.on {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 800;
+  box-shadow: 0 3px 8px rgba(100, 72, 190, 0.15);
+}
+
+.tscroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+th {
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10px;
+  color: var(--ink3);
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--line);
+  white-space: nowrap;
+}
+th:first-child, td:first-child { text-align: left; }
+td {
+  padding: 7px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--line2);
+  white-space: nowrap;
+}
+table tbody tr {
+  transition: background-color 0.15s ease;
+}
+table tbody tr:hover td {
+  background: rgba(100, 72, 190, 0.04);
+}
+tr.atas-lazim td { background: var(--warning-light); }
+
+.note {
+  font-size: 12.5px;
+  color: var(--ink2);
+  margin-top: 14px;
+  line-height: 1.6;
+  padding: 12px 16px;
+  background: #f8f6fd;
+  border-radius: 12px;
+  border-left: 4px solid var(--category-tone, var(--primary));
+}
+
+/* --------------------------------------------------------------------------
+   Continuous Infusion Therapy Summary Sheet (.sum)
+   -------------------------------------------------------------------------- */
+.sum {
+  margin-top: 36px;
+  border: 2px solid #dccdf1;
+  border-top: 6px solid var(--primary);
+  border-radius: 24px;
+  padding: 26px 30px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-lg);
+  scroll-margin-top: 110px;
+  transition: all 0.3s ease;
+}
+.sum h3 {
+  font-family: "Archivo", sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+  color: #3b2b5a;
+}
+.sum p.sub {
+  color: var(--ink3);
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+.sum table td:first-child {
+  text-align: left;
+  font-family: "Public Sans", sans-serif;
+  font-weight: 700;
+  white-space: normal;
+}
+.sum .rate {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--primary);
+}
+tfoot td {
+  border-bottom: 0;
+  border-top: 3px solid var(--primary);
+  padding-top: 12px;
+  font-weight: 800;
+}
+tfoot td.rate {
+  font-size: 18px;
+}
+.empty {
+  color: var(--ink3);
+  font-size: 14px;
+  font-style: italic;
+}
+.sign {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 26px;
+  margin-top: 32px;
+}
+.sign div {
+  border-top: 2px solid var(--line);
+  padding-top: 8px;
+  font-size: 11px;
+  color: var(--ink3);
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* --------------------------------------------------------------------------
+   Floating Quick Summary Action Bar
+   -------------------------------------------------------------------------- */
+.floating-quick-bar {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 50;
+  animation: floatBarEntrance 0.35s var(--spring);
+}
+@keyframes floatBarEntrance {
+  from { opacity: 0; transform: translateY(20px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.quick-summary-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #6448be 0%, #8b5cf6 100%);
+  color: #ffffff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 99px;
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(100, 72, 190, 0.38), 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.25s var(--spring);
+}
+.quick-summary-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 12px 30px rgba(100, 72, 190, 0.48);
+}
+.quick-summary-btn:active {
+  transform: translateY(1px) scale(0.97);
+}
+.quick-summary-btn .quick-icon {
+  font-size: 16px;
+  animation: pulseQuickIcon 2s infinite ease-in-out;
+}
+@keyframes pulseQuickIcon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
+/* --------------------------------------------------------------------------
+   Validation Errors & Toast Messages
+   -------------------------------------------------------------------------- */
+.input-error {
+  display: block;
+  color: #c53030;
+  font-size: 12px;
+  font-weight: 600;
+  max-width: 340px;
+  margin: 5px 0;
+}
+.input-error[hidden] {
+  display: none;
+}
+input[aria-invalid=true] {
+  border: 2px solid #e53e3e !important;
+  background: #fff5f5 !important;
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+  width: 90%;
+}
+.toast {
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 2px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideInToast 0.3s var(--spring);
+}
+@keyframes slideInToast {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.toast.success { border-color: var(--success); background: var(--success-light); }
+.toast.error   { border-color: var(--danger); background: var(--danger-light); }
+.toast.warning { border-color: var(--warning); background: var(--warning-light); }
+.toast.info    { border-color: var(--primary); background: var(--primary-light); }
+.toast .msg { flex: 1; font-size: 13px; color: var(--ink); font-weight: 600; }
+.toast .close-btn { background: transparent; border: 0; cursor: pointer; font-size: 18px; color: var(--ink2); padding: 0 4px; }
+
+/* --------------------------------------------------------------------------
+   Footer Styles
+   -------------------------------------------------------------------------- */
+footer {
+  margin-top: 40px;
+  color: var(--ink2);
+  font-size: 12.5px;
+  line-height: 1.75;
+  border-top: 2px dashed #d8c9e2;
+  padding-top: 24px;
+}
+footer b { color: var(--ink); }
+.relaxwarn {
+  color: var(--danger);
+  font-weight: 600;
+  border-left: 4px solid var(--danger);
+  background: var(--danger-light);
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+.pasang {
+  margin-top: 18px;
+  padding: 18px;
+  border: 2px dashed var(--primary);
+  border-radius: 18px;
+  background: var(--primary-light);
+  text-align: center;
+}
+.pasang p { margin: 0 0 12px; color: var(--ink); font-weight: 600; }
+footer .tabel-versi {
+  margin-top: 16px;
+  font-size: 11.5px;
+  color: var(--ink3);
+  text-align: center;
+  font-family: "JetBrains Mono", monospace;
+}
+footer .credit {
+  margin-top: 8px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink3);
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Rules
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .wrap { padding: 0 16px 56px; }
+  .topbar .wrap { padding: 10px 16px; gap: 8px; }
+  .mark .word { font-size: 24px; }
+  .mark .exp { display: none; }
+  .pedi-welcome { padding: 20px 20px 42px; flex-wrap: wrap; gap: 12px; }
+  .pedi-welcome h1 { font-size: 26px; }
+  .pedi-art { width: 140px; height: 95px; flex: 0 0 140px; margin-left: auto; }
+  .patient { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .patient > div:last-child { grid-column: 1 / -1; }
+  .drug-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .readout { font-size: 38px; }
+}
+
+@media (max-width: 640px) {
+  .bbbox { flex-wrap: nowrap; gap: 6px; }
+  .bbbox .btn { padding: 9px 8px; font-size: 11px; white-space: nowrap; flex: none; }
+  #bb { width: 80px; font-size: 20px; }
+}
+
+@media (max-width: 400px) {
+  #bb { width: 68px; font-size: 18px; }
+  .kg { font-size: 13px; }
+  .bbbox .btn { padding: 8px 6px; font-size: 10px; }
+}
+
+/* Accessibility: Motion Reduction */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ambient-orb, .ambient-bubble, .drip-drop, .drip-pool,
+  .pedi-bear, .pedi-eyes, .ear-l, .ear-r, .pedi-blush,
+  .star-1, .star-2, .sp-1, .sp-2, .pedi-brand-logo,
+  .quick-summary-btn, .quick-icon {
+    animation: none !important;
+    transform: none !important;
+  }
+  .pedi-motion { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   Print Styles — Cute Pediatric Design & Automatic Timestamp
+   Supports: Mode 1 (Cute Syringe Labels) & Mode 2 (Cute Lembar Periksa)
+   -------------------------------------------------------------------------- */
+#labels { display: none; }
+#lembar-periksa-print { display: none; }
+#print-warning { display: none; }
+
+@media print {
+  @page { size: A4; margin: 6mm; }
+  body { margin: 0; background: #fff !important; color: #000 !important; }
+  .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+
+  /* Hide screen elements on print */
+  #cards, .hint, .btn, .toast-container, noscript,
+  .topbar, .patient, .sum, footer, .picu-tools, .focus-empty,
+  .pedi-welcome, .ambient-bg, .floating-quick-bar, .input-error {
+    display: none !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     MODE 1: Cute Syringe Labels (#labels)
+     ------------------------------------------------------------------------ */
+  body:not(.print-mode-periksa) #labels {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: auto !important;
+    align-items: start;
+    gap: 4.5mm;
+    margin: 0;
+    padding: 0;
+  }
+  body.print-mode-periksa #labels {
+    display: none !important;
+  }
+
+  .tcard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
+    min-height: 89mm;
+    break-inside: avoid;
+    border: 3pt var(--tcgaris, solid) var(--tcframe, #000);
+    border-radius: 3mm;
+    padding: 2.2mm 2.4mm;
+    page-break-inside: avoid;
+    font-family: "Public Sans", Arial, sans-serif;
+    font-size: 7.8pt;
+    line-height: 1.22;
+    color: #000;
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Corner Crop Marks */
+  .tcard .crop { position: absolute; width: 3mm; height: 3mm; }
+  .tcard .crop.tl { top: -1.6mm; left: -1.6mm; border-top: 0.75pt solid #000; border-left: 0.75pt solid #000; }
+  .tcard .crop.tr { top: -1.6mm; right: -1.6mm; border-top: 0.75pt solid #000; border-right: 0.75pt solid #000; }
+  .tcard .crop.bl { bottom: -1.6mm; left: -1.6mm; border-bottom: 0.75pt solid #000; border-left: 0.75pt solid #000; }
+  .tcard .crop.br { bottom: -1.6mm; right: -1.6mm; border-bottom: 0.75pt solid #000; border-right: 0.75pt solid #000; }
+
+  /* Header with cute bear mascot & ISO ribbon */
+  .tcard h4 {
+    flex: none;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.8mm 1.2mm;
+    margin: -2.2mm -2.4mm 1.4mm -2.4mm;
+    padding: 1.5mm 2.2mm;
+    font-size: 11pt;
+    font-weight: 800;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: -0.015em;
+    border-radius: 2mm 2mm 0 0;
+    background: var(--tcband, #eee);
+    color: var(--tctext, #000);
+    border-bottom: 1pt solid rgba(0,0,0,0.15);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .tcard-mascot {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.8mm;
+    color: #000;
+  }
+  .tcard h4 .nm {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 13pt;
+    font-weight: 900;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+  .tcard h4 .nm.nm-sedang { font-size: 11pt; letter-spacing: -0.025em; }
+  .tcard h4 .nm.nm-panjang { font-size: 9.2pt; letter-spacing: -0.03em; }
+  .tcard h4 .iso { flex: none; display: flex; align-items: center; gap: 1mm; }
+  .tcard h4 .sw {
+    width: 5mm;
+    height: 3mm;
+    border: 0.75pt solid #000;
+    border-radius: 0.8mm;
+    flex: none;
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .tcard h4 .warna { font-size: 6.5pt; font-weight: 800; letter-spacing: 0.02em; flex: none; }
+  .tcard h4 .klass { display: none; }
+
+  /* Patient identity row */
+  .tcard .tid {
+    flex: none;
+    border-bottom: 1pt solid #000;
+    padding-bottom: 1mm;
+    margin-bottom: 1.2mm;
+    background: #fbfbfe;
+    border-radius: 1mm;
+    padding: 0.8mm 1mm;
+  }
+  .tcard .tid-row {
+    display: flex;
+    gap: 2mm;
+  }
+  .tcard .tid-nm { flex: 1.6 1 0; min-width: 0; }
+  .tcard .tid-rm { flex: 1 1 0; min-width: 0; }
+  .tcard .tid-k {
+    display: block;
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: 5.6pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #333;
+  }
+  .tcard .tid-v {
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    overflow: visible !important;
+    overflow-wrap: anywhere;
+    font-size: 9pt;
+    font-weight: 800;
+    line-height: 1.1;
+    min-height: 3.8mm;
+  }
+  .tcard .tid-v.nm-sedang { font-size: 8pt; }
+  .tcard .tid-v.nm-kecil  { font-size: 6.8pt; }
+  .tcard .tid-v.nm-mini   { font-size: 5.8pt; }
+  .tcard .tid-rm .tid-v   { overflow-wrap: anywhere; word-break: normal; }
+  .tcard .tid-v.kosong    { border-bottom: 1pt dashed #999; }
+  .tcard .tid-time-row {
+    font-size: 6.2pt;
+    color: #222;
+    margin-top: 0.6mm;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .tcard .cx {
+    flex: none;
+    margin: 0 0 1mm;
+    font-size: 6.4pt;
+    color: #222;
+    white-space: normal !important;
+    overflow: visible !important;
+    line-height: 1.2;
+  }
+  .tcard .cx-bold { font-size: 9pt; font-weight: 800; color: #000; }
+
+  /* Titration Table */
+  .tcard table { flex: 1 1 auto; width: 100%; border-collapse: collapse; }
+  .tcard th {
+    font-family: "Archivo", sans-serif;
+    font-size: 6pt;
+    font-weight: 700;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1pt solid #000;
+    padding: 0.3mm 0.6mm;
+    height: 3.8mm;
+  }
+  .tcard td {
+    padding: 0.16mm 0.6mm;
+    border-bottom: 0.5pt solid #ccc;
+    font-size: 8.8pt;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .tcard td:last-child { text-align: right; font-weight: 800; }
+  .tcard tr.tcard-ext td { background: #fff8e1; }
+  .tcard tr.tcard-pelan td { background: #ededed; color: #333; }
+  .tcard tbody tr:last-child td { border-bottom: none; }
+
+  /* Cute Verification Checklist on label */
+  .tcard-periksa {
+    flex: none;
+    margin-top: 0.8mm;
+    border-top: 0.75pt dashed #777;
+    padding-top: 0.6mm;
+    font-size: 6.2pt;
+    line-height: 1.2;
+  }
+  .tcard-chk-title {
+    font-weight: 800;
+    font-size: 6pt;
+    letter-spacing: 0.04em;
+    display: inline-block;
+    margin-right: 1mm;
+  }
+  .tcard-chk-items {
+    display: inline-flex;
+    gap: 1.8mm;
+    font-weight: 600;
+  }
+
+  .tcard .dc {
+    flex: none;
+    margin: 0.6mm 0 0;
+    font-size: 5.6pt;
+    line-height: 1.15;
+    color: #222;
+  }
+
+  /* ------------------------------------------------------------------------
+     MODE 2: Cute Full-Page Inspection Sheet (#lembar-periksa-print)
+     ------------------------------------------------------------------------ */
+  body.print-mode-periksa #lembar-periksa-print {
+    display: block !important;
+    font-family: "Public Sans", Arial, sans-serif;
+    color: #111;
+    line-height: 1.35;
+  }
+  .pk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2pt solid #4a3587;
+    padding-bottom: 3mm;
+    margin-bottom: 3.5mm;
+  }
+  .pk-brand {
+    display: flex;
+    align-items: center;
+    gap: 3mm;
+  }
+  .pk-logo {
+    flex: none;
+  }
+  .pk-title {
+    font-family: "Archivo", sans-serif;
+    font-size: 14pt;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: #3b2774;
+    line-height: 1.1;
+  }
+  .pk-subtitle {
+    font-size: 8.5pt;
+    color: #555;
+    margin: 1mm 0 0;
+    font-weight: 600;
+  }
+  .pk-stamp-box {
+    border: 1.5pt solid #4a3587;
+    background: #f8f6fe;
+    border-radius: 2mm;
+    padding: 1.5mm 3mm;
+    text-align: right;
+  }
+  .pk-stamp-lbl {
+    display: block;
+    font-size: 6pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+  }
+  .pk-stamp-time {
+    display: block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5pt;
+    font-weight: 800;
+    color: #3b2774;
+  }
+  .pk-stamp-unit {
+    display: block;
+    font-size: 6.5pt;
+    font-weight: 700;
+    color: #059669;
+  }
+
+  /* Cute Patient Card */
+  .pk-patient-card {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2.5mm;
+    background: #fdfbf7;
+    border: 1.2pt solid #d9cdb8;
+    border-left: 4pt solid #e69d24;
+    border-radius: 2mm;
+    padding: 2.5mm 3.5mm;
+    margin-bottom: 4mm;
+  }
+  .pk-pcol {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5mm;
+  }
+  .pk-plbl {
+    font-size: 6.8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #666;
+    letter-spacing: 0.05em;
+  }
+  .pk-pval {
+    font-size: 10pt;
+    font-weight: 800;
+    color: #000;
+  }
+
+  /* Verification Table */
+  .pk-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 4.5mm;
+    font-size: 8.5pt;
+  }
+  .pk-table th {
+    background: #f1ecf9;
+    color: #2e1d5e;
+    font-family: "Archivo", sans-serif;
+    font-weight: 800;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border: 0.75pt solid #c5b6e3;
+    padding: 1.8mm 2mm;
+    text-align: left;
+  }
+  .pk-table td {
+    border: 0.75pt solid #dcd1f0;
+    padding: 1.8mm 2mm;
+    vertical-align: middle;
+  }
+  .pk-table tbody tr:nth-child(even) {
+    background: #fcfbfe;
+  }
+  .pk-table td.num {
+    text-align: right;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 700;
+  }
+  .pk-table td.rate-col {
+    text-align: right;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 800;
+    font-size: 10pt;
+    color: #3b2774;
+  }
+  .pk-table tfoot td {
+    background: #f3edfc;
+    border-top: 1.5pt solid #4a3587;
+    font-weight: 800;
+    padding: 2.2mm 2mm;
+  }
+  .pk-table tfoot td.total-rate {
+    font-size: 11pt;
+    color: #3b2774;
+    text-align: right;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .pk-check-boxes {
+    display: flex;
+    gap: 2mm;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 8pt;
+  }
+
+  /* 5 Benar Safety Checklist */
+  .pk-checklist-box {
+    border: 1.2pt solid #a7d7c5;
+    background: #f4faf7;
+    border-radius: 2mm;
+    padding: 2.5mm 3.5mm;
+    margin-bottom: 4.5mm;
+  }
+  .pk-check-title {
+    font-family: "Archivo", sans-serif;
+    font-weight: 800;
+    font-size: 8pt;
+    color: #1b6348;
+    margin-bottom: 1.5mm;
+    letter-spacing: 0.04em;
+  }
+  .pk-check-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2mm 4mm;
+    font-size: 7.5pt;
+    color: #222;
+  }
+
+  /* Signatures */
+  .pk-signatures {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5mm;
+    margin-top: 4mm;
+  }
+  .pk-sign-box {
+    border: 1pt solid #ccc;
+    border-radius: 1.5mm;
+    padding: 2mm 2.5mm;
+    text-align: center;
+    background: #fff;
+  }
+  .pk-sign-role {
+    display: block;
+    font-family: "Archivo", sans-serif;
+    font-weight: 800;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    color: #333;
+    margin-bottom: 14mm;
+  }
+  .pk-sign-line {
+    border-bottom: 1pt solid #444;
+    margin: 0 4mm 1mm;
+  }
+  .pk-sign-hint {
+    display: block;
+    font-size: 6.5pt;
+    color: #666;
+  }
+
+  /* Footer */
+  .pk-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4mm;
+    padding-top: 1.5mm;
+    border-top: 0.5pt solid #aaa;
+    font-size: 6.5pt;
+    color: #555;
+  }
+
+  /* Print Blocking */
+  body.print-blocked > * { display: none !important; }
+  body.print-blocked > #print-warning {
+    display: block !important;
+    font: 16pt Arial, sans-serif;
+    color: #000;
+    padding: 15mm;
+  }
 }
 </style>
-<style>
-/* Navigation colors are decorative; existing clinical label colors are unchanged. */
-@media screen {
-:root{color-scheme:light;--paper:#f3f5f9;--surface:#fff;--sunken:#f3f5f9;--ink:#172137;--ink2:#526079;--ink3:#64748b;--line:#dce3ef;--line2:#edf0f6;--primary:#5142dc;--primary-dark:#4031bb;--primary-light:#eeebff;--secondary:#7954de;--r:18px;--shadow:0 6px 28px #182b5010}
-body{background:radial-gradient(ellipse at 95% 15%,#e8e3ff 0,transparent 40%),var(--paper)}
-.wrap{max-width:1440px;padding-left:36px;padding-right:36px}
-.topbar{border-bottom:1px solid var(--line);box-shadow:none;background:#ffffffed;backdrop-filter:blur(16px)}
-.topbar .wrap{align-items:center;padding-top:20px;padding-bottom:20px}
-.mark .word{font-size:32px;background:none;-webkit-text-fill-color:#3426a0;color:#3426a0}.mark .exp{color:#626780}.brand p{font-size:11px}
-#bb{font-size:22px;width:100px;background:#f5f3ff;border-color:#ded8ff}.btn{letter-spacing:.02em;text-transform:none;border-width:1px;border-radius:12px}.btn-primary{background:#5142dc}
-.explorer{padding:42px 0 8px}.eyebrow{font-weight:800;color:#6250b8;letter-spacing:.15em;font-size:11px;text-transform:uppercase}.explorer h1{font-family:Archivo,system-ui,sans-serif;font-size:clamp(32px,4vw,52px);line-height:1.13;letter-spacing:-.05em;margin:12px 0;color:#172137}.explorer h1 span{color:#6250db}.intro-row{display:flex;align-items:center;justify-content:space-between;gap:24px}.intro-row p{max-width:580px;color:#526079;margin:12px 0 22px}.catalog-mark{flex:none;border:1px solid #d9d2f3;border-radius:22px;padding:20px 25px;background:#ffffffa8;color:#6757b4;font-size:12px}.catalog-mark strong{display:block;font-size:32px;color:#40328f}
-.category-list{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:12px 0 24px}.category{position:relative;text-align:left;border:2px solid transparent;border-radius:18px;padding:19px 16px;background:var(--tint);color:var(--tone);cursor:pointer;min-height:118px;transition:transform .18s,border-color .18s}.category:hover{transform:translateY(-3px)}.category[aria-pressed=true]{border-color:var(--tone);box-shadow:0 4px 16px #17213712}.category .cat-icon{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#ffffffa8;font-size:20px;margin-bottom:12px}.category b{display:block;font-size:14px}.category small{position:absolute;right:15px;top:20px;font-weight:700;font-size:12px}.category[aria-pressed=true]:after{content:'✓';position:absolute;right:16px;bottom:17px}
-.catalog-tools{display:flex;gap:16px;align-items:center;justify-content:space-between;margin:12px 0}.search-box{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #dce3ef;border-radius:14px;padding:0 16px;max-width:620px;width:100%;color:#6c768b}.search-box input{min-width:0;width:100%;border:0;background:transparent;padding:16px 0;color:#172137}.search-box input:focus{outline:none}.search-box:focus-within{outline:2px solid #5142dc;outline-offset:2px}#catalog-count{font-size:12px;color:#526079;white-space:nowrap}.design-note{font-size:11px!important;color:#68758a!important;margin:12px 0}
-.patient{padding:22px;background:white;border:1px solid var(--line);border-radius:18px;margin-top:24px}.patient input{background:#f6f7fb;border:1px solid #dce3ef;border-radius:9px;padding:10px}.hint{border:0;border-left:4px solid #6552db;background:#edeafb;padding:16px 20px;font-size:13px}.gjudul{font-size:13px;letter-spacing:.08em;border-bottom:1px solid #d8deeb;padding-bottom:14px;margin-top:30px}.grid{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px}.card{border:1px solid #dce3ef;border-top:4px solid var(--band);padding:24px;border-radius:18px}.card:before{display:none}.card.idle{opacity:1}.chead h2{font-size:24px}.badge{font-size:10px;letter-spacing:.03em;text-transform:none}.card.relax{border-color:#dc7373}.lbl{letter-spacing:.08em}.card input,.card select{border-width:1px}.card .isoline{background:#f6f7fa;padding:8px;border-radius:8px}.catalog-hidden{display:none!important}.empty-catalog{padding:44px;text-align:center;background:white;border:1px dashed #b9b0db;border-radius:18px;color:#526079}
-@media(min-width:1100px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:900px){.category-list{grid-template-columns:repeat(3,1fr)}.catalog-mark{display:none}.wrap{padding-left:20px;padding-right:20px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar{position:relative}}
-@media(max-width:600px){.category-list{grid-template-columns:repeat(2,minmax(0,1fr))}.category:first-child{grid-column:1/-1;min-height:82px}.category:first-child .cat-icon{float:left;margin-right:12px}.grid{grid-template-columns:minmax(0,1fr)}.catalog-tools{align-items:stretch;flex-direction:column;gap:8px}.explorer{padding-top:28px}.bbbox{gap:8px}.card{padding:18px}.catalog-mark{display:none}}
-}
-@media print{.explorer,.empty-catalog{display:none!important}}
-
-
-</style><style>
-@media screen{
-.topbar{position:sticky;top:0;z-index:20}.topbar .wrap{padding-top:12px;padding-bottom:12px}.mark .word{font-size:27px}.mark .exp{font-size:9px}.brand p{max-width:420px}.wrap{max-width:1280px}
-.patient{margin:16px 0 12px;padding:14px 18px;gap:12px}.patient label{font-size:10px;letter-spacing:.05em}.patient input{padding:8px;font-size:14px}.patient div{min-width:0}.patient{grid-template-columns:repeat(4,minmax(0,1fr))}
-.picu-tools{padding:12px 0}.work-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.work-heading h1{font-family:Archivo,system-ui,sans-serif;font-size:23px;margin:4px 0;letter-spacing:-.035em}.work-heading a{text-decoration:none;white-space:nowrap}.eyebrow{font-size:10px}.search-box{max-width:100%}.search-box input{padding:12px 0}.picu-categories{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.picu-categories button{border:1px solid #cdd5e5;background:white;color:#526079;border-radius:30px;padding:8px 15px;font-size:13px;cursor:pointer;min-height:40px}.picu-categories button[aria-pressed=true]{background:#5142dc;color:white;border-color:#5142dc}.drug-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}.drug-choice{text-align:left;min-height:65px;border:1px solid #dce3ef;border-left:4px solid var(--drug-tone);border-radius:11px;background:white;padding:10px 12px;cursor:pointer;color:#172137}.drug-choice strong{display:block;font-size:14px}.drug-choice span{display:block;font-size:10px;color:#526079;margin-top:3px}.drug-choice[aria-pressed=true]{background:#eeebff;outline:2px solid #5142dc;outline-offset:1px}.drug-choice:hover{box-shadow:0 3px 12px #17213712}#search-status{font-size:12px;color:#526079;margin:10px 0 0}.hint{margin:8px 0;font-size:12px;padding:10px 14px}.focus-hidden{display:none!important}.focus-empty{padding:26px;text-align:center;border:1px dashed #b9b0db;background:white;border-radius:14px;color:#526079;margin-top:14px}.gjudul{display:none}#cards .grid{display:block}#cards .card{margin-top:15px;padding:22px;max-width:none}.chead{margin-bottom:16px}.chead h2{font-size:28px}.card .readout{font-size:46px}.card select{max-width:600px}.card .prep{margin-bottom:10px}.card input[type=range]{max-width:600px}.card .gauge{max-width:600px}.card .isoline{max-width:600px}.card details{margin-top:16px}#sumbody{scroll-margin-top:140px}
-@media(max-width:650px){.topbar{position:relative}.patient{grid-template-columns:repeat(2,minmax(0,1fr))}.work-heading{align-items:flex-start}.work-heading h1{font-size:19px}.work-heading a{font-size:10px;padding:9px;min-height:38px}.drug-list{grid-template-columns:repeat(2,minmax(0,1fr))}.picu-categories{gap:6px}.picu-categories button{padding:7px 10px;font-size:11px}.card .readout{font-size:38px}}
-}
-@media print{.picu-tools,.focus-empty{display:none!important}}
-
-
-/* Brighter PICU workspace */
-@media screen {
-body{background:linear-gradient(125deg,#e8f8ff 0%,#f5efff 48%,#fff2e6 100%);background-attachment:fixed}
-.topbar{background:#fff;border-bottom:3px solid #a695f4;box-shadow:0 5px 22px #7759c414}
-.mark .word{-webkit-text-fill-color:#6543d8;color:#6543d8}
-.patient{background:linear-gradient(110deg,#e0f7ff,#eeebff);border-color:#b8daed;box-shadow:0 4px 18px #527ba00a}
-.patient input{background:#ffffffed;border-color:#bbcfdf}.patient label{color:#425b78}
-.work-heading h1{color:#4d3693}.eyebrow{color:#7850b8}
-.search-box{border:2px solid #cec1f5;box-shadow:0 4px 14px #7850b80c}
-.picu-categories button{border-color:#ded4f4;background:#fff8ff;color:#644593;font-weight:700}
-.picu-categories button:nth-child(2){background:#d9f5ff;color:#11657b;border-color:#9ed9ed}
-.picu-categories button:nth-child(3){background:#ffe0ee;color:#92345f;border-color:#edb5cf}
-.picu-categories button:nth-child(4){background:#ffe7cc;color:#914016;border-color:#efc097}
-.picu-categories button:nth-child(5){background:#d9f8e7;color:#246248;border-color:#a7dec1}
-.picu-categories button[aria-pressed=true]{background:#7450d8;border-color:#7450d8;color:#fff;box-shadow:0 3px 12px #7450d82b}
-.drug-choice{background:color-mix(in srgb,var(--drug-tone) 12%,white);border-color:color-mix(in srgb,var(--drug-tone) 25%,white);border-left-color:var(--drug-tone);border-left-width:5px;box-shadow:0 3px 9px #24325906}
-.drug-choice strong{color:var(--drug-tone)}.drug-choice span{color:#45556a}
-.drug-choice:hover{background:color-mix(in srgb,var(--drug-tone) 20%,white);transform:translateY(-1px)}
-.drug-choice[aria-pressed=true]{background:#eee2ff;outline-color:#8550d9;box-shadow:0 5px 15px #8550d925}
-#cards .card{border-top-width:6px;background:#fff;box-shadow:0 8px 30px #725fa015}
-.chead{background:#f4efff;margin:-10px -10px 18px;padding:16px;border-radius:13px}
-.card .readbox{background:linear-gradient(115deg,#5640b2,#7651cf);box-shadow:0 4px 15px #6345bd25;border-radius:14px}
-.hint{background:#fff7db;border-left-color:#db9b16;color:#655018}
-.focus-empty{background:linear-gradient(110deg,#ffffffcc,#f2eaff);border-color:#c4afe8;color:#66528b}
-.btn-primary{background:#7250ce}.btn-danger{background:#fff0f1;color:#ac3049;border-color:#efb5bf}
-}
-@media screen{
-.input-error{display:block;color:#a32136;font-size:12px;max-width:340px;margin:5px 0}.input-error[hidden]{display:none}input[aria-invalid=true]{border:2px solid #c32f49!important;background:#fff0f1!important}.card .chead{position:relative}.patient{position:sticky;top:102px;z-index:19}.hint{display:block!important}
-@media(max-width:650px){.patient{top:0}}
-}
-@media print{
-#labels{grid-auto-rows:auto!important;align-items:start}.tcard{height:auto!important;min-height:90mm;break-inside:avoid}.tcard .tid-v{display:block!important;-webkit-line-clamp:unset!important;overflow:visible!important;overflow-wrap:anywhere}.tcard .cx{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}.tcard .tid-rm .tid-v{overflow-wrap:anywhere}.input-error{display:none}
-}
-@media screen {
-body{background:#f7f9fc}
-.patient{background:#edf6fc;box-shadow:none}
-.work-heading{justify-content:flex-end;margin-bottom:10px}
-.focus-empty{background:#fff}
-.card .readbox{background:#6546bc;box-shadow:none}
-}
-@media screen{.work-heading{justify-content:space-between}.work-heading h1{font-size:22px;margin:0 0 4px}.work-heading p{font-size:13px;color:#526079;margin:0}.picu-tools{padding-top:10px}}
-
-/* Transparent glass treatment */
-@media screen {
-body{background:radial-gradient(ellipse at 8% 12%,#d6efff 0,transparent 48%),radial-gradient(ellipse at 92% 38%,#eee0ff 0,transparent 48%),linear-gradient(145deg,#f4faff,#f5f2fc 65%,#eefaf5);background-attachment:fixed}
-.topbar{background:rgba(255,255,255,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(137,112,206,.3);box-shadow:0 4px 20px #5f65900a}
-.patient{background:rgba(224,242,252,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(150,189,217,.42)}
-.patient input,#bb{background:rgba(255,255,255,.65)}
-.search-box{background:rgba(255,255,255,.62);border-color:rgba(171,151,217,.42);box-shadow:none}
-.picu-categories button{background:rgba(244,232,255,.45)}
-.picu-categories button:nth-child(2){background:rgba(167,227,246,.35)}
-.picu-categories button:nth-child(3){background:rgba(250,185,214,.32)}
-.picu-categories button:nth-child(4){background:rgba(250,203,156,.34)}
-.picu-categories button:nth-child(5){background:rgba(164,230,192,.34)}
-.picu-categories button[aria-pressed=true]{background:rgba(104,69,191,.85);color:#fff;border-color:#7857c3}
-.drug-choice{background:color-mix(in srgb,var(--drug-tone) 8%,transparent);border-color:color-mix(in srgb,var(--drug-tone) 24%,transparent);border-left-color:var(--drug-tone);box-shadow:none}
-.drug-choice:hover{background:color-mix(in srgb,var(--drug-tone) 17%,transparent)}
-.drug-choice[aria-pressed=true]{background:rgba(215,193,249,.42);outline-color:#8550d9}
-#cards .card{background:rgba(255,255,255,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:rgba(163,178,203,.4);border-top-color:var(--band)}
-.chead{background:rgba(228,215,252,.38)}
-.card input,.card select{background:rgba(255,255,255,.72)}
-.card .isoline{background:rgba(237,240,248,.52)}
-.card .readbox{background:rgba(85,58,167,.9)}
-.focus-empty{background:rgba(255,255,255,.42)}
-.btn{background:rgba(255,255,255,.55)}
-.btn-primary{background:rgba(103,70,193,.9);color:#fff}
-.btn-danger{background:rgba(255,230,235,.55)}
-.hint{background:rgba(255,245,203,.65)}
-}
-@media(prefers-reduced-transparency:reduce){
-.topbar,.patient,#cards .card,.search-box,.focus-empty{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none}
-}
-
-/* Familiar, restrained typography */
-@media screen {
-body,input,select,button,textarea{font-family:"Segoe UI",Arial,sans-serif}
-body{font-size:14px;line-height:1.5}
-.mark .word{font-family:"Segoe UI",Arial,sans-serif;font-weight:700;font-size:29px;letter-spacing:-.8px;line-height:1.15}
-.mark .exp{font-family:inherit;font-size:12px;font-weight:500;letter-spacing:0;text-transform:none;line-height:1.4;color:#526079}
-.brand p{font-size:12px;line-height:1.5;font-weight:400;letter-spacing:0}
-.work-heading h1{font-family:inherit;font-size:21px;font-weight:600;letter-spacing:-.3px;line-height:1.3}
-.work-heading p{font-size:13px;font-weight:400;line-height:1.5}
-.patient label,.bbbox label,.lbl{font-family:inherit;text-transform:none;letter-spacing:0;font-weight:600;font-size:12px;line-height:1.4;color:#45546a}
-.btn,.tick,.badge,.gjudul,summary{font-family:inherit;text-transform:none;letter-spacing:0}
-.btn{font-size:13px;font-weight:600}
-.picu-categories button{font-size:13px;font-weight:500;letter-spacing:0}
-.picu-categories button[aria-pressed=true]{font-weight:600}
-.drug-choice strong{font-family:inherit;font-size:15px;font-weight:600;line-height:1.35;letter-spacing:0}
-.drug-choice span{font-size:12px;line-height:1.4;margin-top:4px}
-.chead h2{font-family:inherit;font-size:26px;font-weight:600;line-height:1.2;letter-spacing:-.4px}
-.badge{font-size:12px;font-weight:500;line-height:1.4}
-.tick{font-size:12px;font-weight:500}
-#bb,.prep input,.dosebar input,.card .readout,.conc,.dosebar .u,.tstep-btn{font-family:"Segoe UI",Arial,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:0}
-#bb{font-weight:600}.dosebar input{font-size:19px;font-weight:600}
-.card .readout{font-size:44px;font-weight:650;line-height:1.15}
-.conc,.dosebar .u{font-size:13px;line-height:1.5}
-summary{font-size:13px;font-weight:600}
-#search-status,.hint,.design-note{font-size:12px;line-height:1.5}
-@media(max-width:650px){.work-heading h1{font-size:20px}.card .readout{font-size:38px}.drug-choice span{font-size:11px}}
-}
-@media screen{.patient{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media screen and (max-width:650px){.patient{grid-template-columns:repeat(2,minmax(0,1fr))}.patient>div:last-child{grid-column:1/-1}}
-#print-warning{display:none}
-@media print{
-body.print-blocked>*{display:none!important}
-body.print-blocked>#print-warning{display:block!important;font:16pt Arial,sans-serif;color:#000;padding:15mm}
-}
-
-/* Short interaction feedback; clinical values remain immediate. */
-@media screen and (prefers-reduced-motion:no-preference){
-.picu-categories button,.drug-choice,.btn{transition:background-color 150ms ease,border-color 150ms ease,box-shadow 150ms ease,transform 150ms ease}
-.picu-categories button:active,.drug-choice:active,.btn:active{transform:translateY(1px)}
-#cards .card:not(.focus-hidden){animation:picu-card-enter 150ms ease-out}
-@keyframes picu-card-enter{from{transform:translateY(4px)}to{transform:translateY(0)}}
-}
-@media screen and (prefers-reduced-motion:reduce){
-*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-.drug-choice:hover,.drug-choice:active,.btn:active,.picu-categories button:active{transform:none!important}
-}
-
-/* Match active cards to the category navigation palette. Screen only. */
-@media screen{
-#cards .card{border-top-color:var(--category-tone);border-left-color:color-mix(in srgb,var(--category-tone) 25%,transparent);border-right-color:color-mix(in srgb,var(--category-tone) 25%,transparent);border-bottom-color:color-mix(in srgb,var(--category-tone) 25%,transparent)}
-#cards .chead{background:color-mix(in srgb,var(--category-tone) 10%,transparent)}
-#cards .chead h2{color:var(--category-tone)}
-#cards .badge{background:color-mix(in srgb,var(--category-tone) 12%,white);color:var(--category-tone)}
-#cards .readbox{background:var(--category-tone);box-shadow:none}
-#cards .readout,#cards .readunit{color:#fff}
-#cards input[type=range],#cards input[type=checkbox]{accent-color:var(--category-tone)}
-#cards .gauge .band{background:var(--category-tone)}
-}
-@media screen{
-.picu-categories button[data-group="sedasi"]{background:rgba(175,204,255,.48);color:#2457b5;border-color:#8caee9}
-.picu-categories button[data-group="lain"]{background:rgba(255,224,127,.52);color:#805b08;border-color:#d5b24b}
-.picu-categories button[data-group="sedasi"][aria-pressed=true]{background:#2457b5;color:#fff;border-color:#2457b5}
-.picu-categories button[data-group="lain"][aria-pressed=true]{background:#805b08;color:#fff;border-color:#805b08}
-}
-
-/* Pastel category surfaces, with dark text and unchanged print labels. */
-@media screen{
-.picu-categories button[data-group="relax"]{background:rgba(224,210,249,.68);color:#6943a6;border-color:#b9a0de}
-.picu-categories button[data-group="relax"][aria-pressed=true]{background:#e0d2f9;color:#553184;border-color:#6943a6;box-shadow:0 0 0 1px #6943a6}
-.picu-categories button[data-group="sedasi"][aria-pressed=true]{background:#d9e8ff;color:#2457b5;border-color:#2457b5}
-.picu-categories button[data-group="vaso"][aria-pressed=true]{background:#f9dfed;color:#943767;border-color:#943767}
-.picu-categories button[data-group="lain"][aria-pressed=true]{background:#fff0bf;color:#805b08;border-color:#805b08}
-.drug-choice{background:color-mix(in srgb,var(--drug-tone) 12%,#fff)}
-.drug-choice:hover{background:color-mix(in srgb,var(--drug-tone) 18%,#fff)}
-.drug-choice[aria-pressed=true]{background:color-mix(in srgb,var(--drug-tone) 20%,#fff);outline-color:var(--drug-tone);box-shadow:none}
-#cards .chead{background:color-mix(in srgb,var(--category-tone) 12%,#fff)}
-#cards .readbox{background:color-mix(in srgb,var(--category-tone) 14%,#fff);border:1px solid color-mix(in srgb,var(--category-tone) 30%,#fff)}
-#cards .readout,#cards .readunit{color:var(--category-tone)}
-}
-
-</style></head>
+</head>
 <body>
-<noscript><div class="noscript"><h2>JavaScript diperlukan</h2>
-<p>Kalkulator ini memerlukan JavaScript. Mohon aktifkan JavaScript di browser Anda.</p></div></noscript>
+<noscript>
+  <div style="background:#fef3c7;border:3px solid #b45309;padding:20px;margin:20px;text-align:center;border-radius:16px;">
+    <h2>JavaScript diperlukan</h2>
+    <p>Kalkulator ini memerlukan JavaScript. Mohon aktifkan JavaScript di browser Anda.</p>
+  </div>
+</noscript>
+
+<!-- Ambient Background Motion (Drifting lights & bubbles) -->
+<div class="ambient-bg" aria-hidden="true">
+  <div class="ambient-orb orb-1"></div>
+  <div class="ambient-orb orb-2"></div>
+  <div class="ambient-orb orb-3"></div>
+  <div class="ambient-bubble b1"></div>
+  <div class="ambient-bubble b2"></div>
+  <div class="ambient-bubble b3"></div>
+  <div class="ambient-bubble b4"></div>
+</div>
 
 <div class="toast-container" id="toastContainer"></div>
 <div id="global-error" style="display:none"></div>
 
+<!-- Topbar Navigation -->
 <header class="topbar">
   <div class="wrap">
     <div class="brand">
       <div class="mark">
-        <span class="word">PediDrip</span>
+        <span class="word">
+          <svg class="pedi-brand-logo" viewBox="0 0 56 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+            <path d="M28 3C24 10 5 27 5 39a23 23 0 0 0 46 0C51 27 32 10 28 3Z" fill="#79cfc3"/>
+            <path d="M28 3C32 10 51 27 51 39a23 23 0 0 1-23 23c14-6 18-16 15-28C39 22 33 13 28 3Z" fill="#4eaca4"/>
+            <circle cx="17" cy="29" r="7" fill="#aa7f68"/>
+            <circle cx="39" cy="29" r="7" fill="#aa7f68"/>
+            <circle cx="17" cy="29" r="3.5" fill="#f0c6ac"/>
+            <circle cx="39" cy="29" r="3.5" fill="#f0c6ac"/>
+            <ellipse cx="28" cy="39" rx="17" ry="16" fill="#e9bf9e"/>
+            <ellipse cx="28" cy="45" rx="9" ry="7" fill="#fff0db"/>
+            <circle cx="22" cy="37" r="2" fill="#49364d"/>
+            <circle cx="34" cy="37" r="2" fill="#49364d"/>
+            <ellipse cx="28" cy="42" rx="2.7" ry="2" fill="#795445"/>
+            <path d="M25 47q3 3 6 0" fill="none" stroke="#795445" stroke-width="1.7" stroke-linecap="round"/>
+            <circle cx="17" cy="42" r="2.8" fill="#e89fa4"/>
+            <circle cx="39" cy="42" r="2.8" fill="#e89fa4"/>
+          </svg>
+          PediDrip
+        </span>
         <span class="exp">Kalkulator Infus Pediatrik</span>
       </div>
       <p>Laju syringe berbasis berat badan</p>
@@ -618,28 +2204,74 @@ body.print-blocked>#print-warning{display:block!important;font:16pt Arial,sans-s
       </div>
       <span class="kg">kg</span>
       <button class="btn" id="filter">Hanya yang dicentang (0)</button>
-      <button class="btn btn-primary" id="cetak">Cetak</button>
+      <button class="btn btn-primary" id="cetak" title="Cetak label syringe ISO 26825">🏷️ Cetak label</button>
+      <button class="btn" id="cetak-periksa" style="background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;box-shadow:0 4px 14px rgba(14,165,233,0.35);" title="Cetak lembar periksa terapi infus">📋 Cetak lembar periksa</button>
       <button class="btn btn-danger" id="reset">Pasien baru</button>
     </div>
   </div>
 </header>
 
 <div class="wrap">
+  <!-- Welcome Hero Section with Animated Mascot -->
+  <section class="pedi-welcome noprint" aria-label="Selamat datang di PediDrip">
+    <div class="pedi-copy">
+      <div class="pedi-kicker">Teman hitung perawatan si kecil</div>
+      <h1>Perhatian besar.<br><span>Untuk langkah kecil.</span></h1>
+      <p>Ruang hitung infus pediatrik yang lebih hangat. Mulai dari berat badan, pilih obat, lalu periksa kembali hasilnya.</p>
+    </div>
+    <svg class="pedi-art" viewBox="0 0 270 180" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 102a74 74 0 0 1 148 0" fill="none" stroke="#eaa8b5" stroke-width="14"/>
+      <path d="M42 102a56 56 0 0 1 112 0" fill="none" stroke="#efcb72" stroke-width="12"/>
+      <path d="M59 102a39 39 0 0 1 78 0" fill="none" stroke="#8acdc0" stroke-width="12"/>
+      <g fill="#fff"><ellipse cx="44" cy="118" rx="35" ry="19"/><circle cx="40" cy="102" r="20"/><circle cx="61" cy="111" r="16"/></g>
+      <ellipse cx="173" cy="158" rx="65" ry="10" fill="#dccde9"/>
+      <g class="pedi-bear">
+        <circle cx="146" cy="67" r="22" fill="#bd987e" class="ear-l"/>
+        <circle cx="217" cy="67" r="22" fill="#bd987e" class="ear-r"/>
+        <circle cx="146" cy="67" r="12" fill="#edc4ac"/>
+        <circle cx="217" cy="67" r="12" fill="#edc4ac"/>
+        <rect x="146" y="109" width="72" height="47" rx="23" fill="#86c7bb"/>
+        <circle cx="181" cy="93" r="46" fill="#dfb699"/>
+        <ellipse cx="182" cy="111" rx="25" ry="19" fill="#f9e4ce"/>
+        <g class="pedi-eyes">
+          <circle cx="166" cy="89" r="4" fill="#473b48"/>
+          <circle cx="199" cy="89" r="4" fill="#473b48"/>
+        </g>
+        <ellipse cx="181" cy="104" rx="6" ry="4" fill="#705044"/>
+        <path d="M175 115q7 7 14 0" fill="none" stroke="#705044" stroke-width="2.5" stroke-linecap="round"/>
+        <ellipse cx="154" cy="104" rx="8" ry="5" fill="#e9969d" class="pedi-blush"/>
+        <ellipse cx="209" cy="104" rx="8" ry="5" fill="#e9969d" class="pedi-blush"/>
+      </g>
+      <path d="m234 23 4 10 11 1-9 7 3 11-9-6-9 6 3-11-9-7 11-1z" fill="#eac55f" class="star-1"/>
+      <circle cx="110" cy="140" r="5" fill="#b39bd7" class="sp-1"/>
+      <circle cx="250" cy="109" r="4" fill="#83b9d9" class="sp-2"/>
+      <path d="m80 27 3-7 3 7 7 3-7 3-3 7-3-7-7-3z" fill="#a791ce" class="star-2"/>
+    </svg>
+    <label class="pedi-motion"><input type="checkbox" checked aria-label="Aktifkan animasi beruang"> Animasi beruang</label>
+  </section>
+
+  <!-- Patient Details -->
   <div class="patient">
-    <div><label for="pn">Nama pasien</label><input id="pn" type="text" autocomplete="off"></div>
-    <div><label for="prm">No. rekam medis</label><input id="prm" type="text" autocomplete="off"></div>
-    <div><label for="pt">Tanggal / jam</label><input id="pt" type="text" autocomplete="off"></div>
+    <div><label for="pn">Nama pasien</label><input id="pn" type="text" autocomplete="off" placeholder="Nama lengkap"></div>
+    <div><label for="prm">No. rekam medis</label><input id="prm" type="text" autocomplete="off" placeholder="No. RM"></div>
+    <div><label for="pt">Tanggal / jam</label><input id="pt" type="text" autocomplete="off" placeholder="DD/MM/YYYY HH:mm"></div>
   </div>
 
-  <p class="hint" id="hint">Isi berat badan untuk mengaktifkan perhitungan. Setiap kartu bisa diatur sediaan dan dosisnya; centang <em>Ringkasan</em> untuk memasukkan obat ke lembar terapi di bawah.</p>
+  <p class="hint" id="hint">Isi berat badan, lalu pilih obat. Nilai awal sediaan dan dosis berasal dari tabel; periksa kesesuaiannya sebelum menggunakan hasil.</p>
 
   <p class="bbwarn noprint" id="bbwarn" hidden></p>
 
+  <!-- Drug Cards Container -->
   <div id="cards"></div>
 
+  <!-- Summary Sheet -->
   <section class="sum">
-    <h3>Lembar terapi infus kontinu</h3>
-    <p class="sub" id="sumsub">Belum ada obat yang dicentang.</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+      <div>
+        <h3 style="margin:0;">Lembar terapi infus kontinu</h3>
+        <p class="sub" id="sumsub" style="margin:4px 0 0;">Belum ada obat yang dicentang.</p>
+      </div>
+    </div>
     <div id="sumbody"><p class="empty">Centang <em>Ringkasan</em> pada kartu obat untuk menampilkannya di sini.</p></div>
     <div class="sign">
       <div>Disiapkan oleh</div>
@@ -648,7 +2280,95 @@ body.print-blocked>#print-warning{display:block!important;font:16pt Arial,sans-s
     </div>
   </section>
 
+  <!-- Syringe Labels (Print Only) -->
   <div id="labels"></div>
+
+  <!-- Lembar Periksa Terapi Infus (Print Only) -->
+  <div id="lembar-periksa-print">
+    <div class="pk-header">
+      <div class="pk-brand">
+        <svg class="pk-logo" viewBox="0 0 56 64" width="38" height="44" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M28 3C24 10 5 27 5 39a23 23 0 0 0 46 0C51 27 32 10 28 3Z" fill="#79cfc3"/>
+          <path d="M28 3C32 10 51 27 51 39a23 23 0 0 1-23 23c14-6 18-16 15-28C39 22 33 13 28 3Z" fill="#4eaca4"/>
+          <circle cx="17" cy="29" r="7" fill="#aa7f68"/><circle cx="39" cy="29" r="7" fill="#aa7f68"/>
+          <circle cx="17" cy="29" r="3.5" fill="#f0c6ac"/><circle cx="39" cy="29" r="3.5" fill="#f0c6ac"/>
+          <ellipse cx="28" cy="39" rx="17" ry="16" fill="#e9bf9e"/><ellipse cx="28" cy="45" rx="9" ry="7" fill="#fff0db"/>
+          <circle cx="22" cy="37" r="2" fill="#49364d"/><circle cx="34" cy="37" r="2" fill="#49364d"/>
+          <ellipse cx="28" cy="42" rx="2.7" ry="2" fill="#795445"/>
+          <path d="M25 47q3 3 6 0" fill="none" stroke="#795445" stroke-width="1.7" stroke-linecap="round"/>
+          <circle cx="17" cy="42" r="2.8" fill="#e89fa4"/><circle cx="39" cy="42" r="2.8" fill="#e89fa4"/>
+        </svg>
+        <div>
+          <h1 class="pk-title">PediDrip · LEMBAR PERIKSA INFUS KONTINU</h1>
+          <p class="pk-subtitle">Verifikasi Keselamatan Terapi Cairan &amp; Syringe Pump Pediatrik (PICU / NICU)</p>
+        </div>
+      </div>
+      <div class="pk-stamp-box">
+        <span class="pk-stamp-lbl">TIMESTAMP VERIFIKASI</span>
+        <strong class="pk-stamp-time" id="pk-timestamp-val">—</strong>
+        <span class="pk-stamp-unit">Double Check 2 Perawat</span>
+      </div>
+    </div>
+
+    <div class="pk-patient-card">
+      <div class="pk-pcol"><span class="pk-plbl">👤 Nama Pasien</span><strong class="pk-pval" id="pk-pn-val">—</strong></div>
+      <div class="pk-pcol"><span class="pk-plbl">🏷️ No. Rekam Medis</span><strong class="pk-pval" id="pk-prm-val">—</strong></div>
+      <div class="pk-pcol"><span class="pk-plbl">⚖️ Berat Badan</span><strong class="pk-pval" id="pk-bb-val">— kg</strong></div>
+      <div class="pk-pcol"><span class="pk-plbl">⏱️ Waktu Terapi</span><strong class="pk-pval" id="pk-pt-val">—</strong></div>
+    </div>
+
+    <table class="pk-table">
+      <thead>
+        <tr>
+          <th style="width: 24%;">Obat &amp; Golongan</th>
+          <th style="width: 22%;">Sediaan Syringe</th>
+          <th style="width: 14%;">Konsentrasi</th>
+          <th style="width: 16%;">Dosis Terprogram</th>
+          <th style="width: 12%;">Laju Pump</th>
+          <th style="width: 12%;">Paraf Cek (1 / 2)</th>
+        </tr>
+      </thead>
+      <tbody id="pk-tbody">
+      </tbody>
+      <tfoot id="pk-tfoot">
+      </tfoot>
+    </table>
+
+    <div class="pk-checklist-box">
+      <div class="pk-check-title">🐾 VERIFIKASI KESELAMATAN 5 BENAR PEMBERIAN OBAT (WAJIB DOUBLE CHECK):</div>
+      <div class="pk-check-grid">
+        <span>[ ] <b>1. Benar Pasien</b> (Cek nama &amp; RM pada gelang)</span>
+        <span>[ ] <b>2. Benar Obat</b> (Sediaan &amp; ampul cocok)</span>
+        <span>[ ] <b>3. Benar Dosis</b> (Sesuai hitungan BB &amp; DPJP)</span>
+        <span>[ ] <b>4. Benar Rute</b> (Akses sentral/perifer aman)</span>
+        <span>[ ] <b>5. Benar Laju</b> (Kecepatan pump mL/jam cocok)</span>
+        <span>[ ] <b>Label Terpasang</b> (Warna ISO sesuai standar)</span>
+      </div>
+    </div>
+
+    <div class="pk-signatures">
+      <div class="pk-sign-box">
+        <span class="pk-sign-role">Perawat 1 (Penyiap Obat)</span>
+        <div class="pk-sign-line"></div>
+        <span class="pk-sign-hint">Nama Terang &amp; TTD</span>
+      </div>
+      <div class="pk-sign-box">
+        <span class="pk-sign-role">Perawat 2 (Pemeriksa Ulang)</span>
+        <div class="pk-sign-line"></div>
+        <span class="pk-sign-hint">Nama Terang &amp; TTD</span>
+      </div>
+      <div class="pk-sign-box">
+        <span class="pk-sign-role">Dokter DPJP / Konsultan</span>
+        <div class="pk-sign-line"></div>
+        <span class="pk-sign-hint">Nama Terang &amp; TTD</span>
+      </div>
+    </div>
+
+    <div class="pk-footer">
+      <span>🐾 PediDrip: Perhatian besar untuk langkah kecil si kecil · v2026.09.06c</span>
+      <span id="pk-foot-ts">Dicetak otomatis: —</span>
+    </div>
+  </div>
 
   <footer>
     <p><b>Alat bantu hitung, bukan pengganti verifikasi.</b> Rentang dosis yang ditampilkan adalah rentang lazim pediatrik untuk infus kontinu dan bisa berbeda dari protokol unit. Selalu cocokkan dengan instruksi DPJP dan panduan dosis yang berlaku di unit, dan lakukan <i>double check</i> oleh dua perawat sebelum obat diberikan.</p>
@@ -660,16 +2380,23 @@ body.print-blocked>#print-warning{display:block!important;font:16pt Arial,sans-s
       <p>Pasang PediDrip di layar utama supaya bisa dibuka tanpa peramban dan tetap jalan saat ruangan tidak ada sinyal.</p>
       <button class="btn btn-primary" id="btn-pasang" type="button">Pasang aplikasi</button>
     </div>
-    <p class="tabel-versi noprint" id="tabel-versi"></p>
     <p class="credit noprint">CREATED BY THE URBAN MAMA-2026</p>
   </footer>
 </div>
+
+<!-- Floating Quick Summary Bar -->
+<aside class="floating-quick-bar noprint" id="quickSummaryBar" hidden>
+  <button type="button" class="quick-summary-btn" id="btnQuickSummary">
+    <span class="quick-icon">💧</span>
+    <span class="quick-text" id="quickSummaryText">0 obat di ringkasan</span>
+    <span>↓</span>
+  </button>
+</aside>
+
 <script>
-/* ==== definisi obat: satuan dibuat generik supaya mcg/kg/jam, mcg/kg/menit, dan unit/kg/jam ikut tertampung ==== */
-/* Revisi tabel dosis. Naikkan versi ini DAN salinannya di
-   frontend/src/data/drugs.js setiap kali ada lo/hi/cap/preset/note yang berubah,
-   supaya perawat yang membuka halaman ter-cache dan yang memakai build terpasang
-   bisa tahu apakah angkanya sama. Dicetak di tiap label titrasi. */
+/* ==========================================================================
+   Core Clinical Engine & Drug Catalog — PediDrip
+   ========================================================================== */
 const TABEL = { versi:"2026.09.06c", ditinjau:"6 September 2026" };
 
 const DRUGS = [
@@ -706,9 +2433,6 @@ const DRUGS = [
 
   { id:"deksmedetomidin", badge:"alpha", nama:"Deksmedetomidin", klass:"Agonis alfa-2 — sedasi", band:"var(--alpha)", grup:"sedasi",
     amtUnit:"mcg", numer:"mcg", perMin:false, conv:1,
-    /* noSetara: deksmedetomidin dipakai dalam mcg/kg/jam saja — ekuivalensi
-       per-menitnya bukan bentuk yang dipakai siapa pun, dan angkanya terlalu
-       kecil sampai butuh nanogram agar terbaca. Barisnya dihilangkan. */
     lo:0.2, hi:1, cap:1.5, step:0.05, start:0.4, tstep:0.1, noSetara:true,
     presets:[
       {t:"2 mcg/mL — 100 mcg dalam 50 mL", amt:100, ml:50},
@@ -827,13 +2551,8 @@ const DRUGS = [
 
   { id:"aminofilin", badge:"resp", nama:"Aminofilin", klass:"Bronkodilator — metilxantin", band:"var(--diur)", grup:"lain",
     amtUnit:"mg", numer:"mg", perMin:false, conv:1,
-    /* tsteps: note-nya menyebut kenaikan 0,25–0,5 sesuai respons, jadi kartu
-       memberi pilihan; tstep adalah default di antara keduanya. */
     lo:0.5, hi:1.75, cap:2, step:0.05, start:0.5, tstep:0.25, tsteps:[0.25,0.5],
     presets:[
-      /* Semua kelipatan ampul utuh 240 mg/10 mL — bisa ditakar tanpa membuka
-         ampul kedua. Farmasi: ampul memang dioplos sesuai kebutuhan; untuk bayi
-         lazim 12 atau ~5 mg/mL. */
       {t:"4,8 mg/mL — 240 mg (1 ampul) dalam 50 mL", amt:240, ml:50},
       {t:"12 mg/mL — 240 mg (1 ampul) dalam 20 mL", amt:240, ml:20},
       {t:"Tanpa pengenceran — 24 mg/mL (ampul 240 mg/10 mL)", amt:240, ml:10, dflt:true}],
@@ -849,9 +2568,6 @@ const DRUGS = [
     note:"Mulai 0,5 mcg/kg/menit, titrasi sesuai target tekanan darah. Pada bayi pengenceran 1:400 atau 1:500 mcg/mL lazim dipakai agar laju infus lebih terukur. Utamakan akses sentral bila memungkinkan; ekstravasasi berisiko iritasi jaringan." }
 ];
 
-/* Kode warna label syringe ISO 26825. Golongan yang tidak diatur standar
-   sengaja tidak diberi warna karangan sendiri — lebih baik kosong daripada
-   mengarahkan petugas ke warna yang keliru. */
 const ISO = {
   induksi:{ warna:"Kuning", hex:"#F5E14B", gol:"Agen induksi" },
   benzo:  { warna:"Oranye", hex:"#FF8200", gol:"Benzodiazepin" },
@@ -866,20 +2582,17 @@ const GRUP = [
   { id:"vaso",   judul:"Vasoaktif & inotropik" },
   { id:"lain",   judul:"Diuretik & lainnya" }
 ];
-/* ============================================================
-   Aturan yang dipegang berkas ini:
-   1. Tidak ada data pasien yang disimpan di perangkat.
-   2. Dosis yang diketik tidak pernah diubah diam-diam.
-   3. Kolom kosong tampil sebagai kosong, bukan sebagai angka lama.
-   ============================================================ */
+
 const byId = id => DRUGS.find(d => d.id === id);
 const el   = id => document.getElementById(id);
 
+function waktuSekarang(){
+  const d = new Date();
+  const p2 = n => String(n).padStart(2, "0");
+  return `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+}
+
 const state = {};
-/* Sediaan diurutkan encer -> pekat, jadi yang dipakai saat kartu dibuka adalah
-   yang ditandai dflt, bukan indeks 0. Sediaan paling encer bukan pilihan yang
-   tepat untuk dibuka: vasopresin 0,1 unit/mL akan menjalankan remaja 40 kg di
-   20 mL/jam. Pilihan encer ada untuk pasien kecil yang memang membutuhkannya. */
 const defaultPreset = d => { const i = d.presets.findIndex(p => p.dflt); return i < 0 ? 0 : i; };
 
 DRUGS.forEach(d => {
@@ -888,7 +2601,7 @@ DRUGS.forEach(d => {
 });
 let hanyaDicentang = false, rafId = null, sedangUpdate = false;
 
-/* ---------- pesan singkat ---------- */
+/* ---------- Pesan Singkat (Toast) ---------- */
 const Toast = {
   box(){ return el("toastContainer"); },
   show(pesan, jenis = "info", lama = 4000){
@@ -907,7 +2620,7 @@ const Toast = {
   galat(m){ this.show(m, "error", 7000); }
 };
 
-/* ---------- angka ---------- */
+/* ---------- Utilitas Angka & Format ---------- */
 function num(v){
   if (v === null || v === undefined) return NaN;
   const t = String(v).trim().replace(",", ".");
@@ -915,22 +2628,17 @@ function num(v){
   const n = parseFloat(t);
   return isFinite(n) ? n : NaN;
 }
-/* saring ketikan: hanya angka, satu koma, tanpa tanda minus */
 function saring(v){ return String(v).trim(); }
 const dosisTeks = v => Number.isFinite(Number(v)) ? String(v).replace(".", ",") : "—";
 const fmt = (v, dec) => isFinite(v) ? v.toFixed(dec).replace(".", ",") : "—";
-/* untuk jumlah sediaan: 50 tetap "50", bukan "50,000" yang mudah terbaca keliru */
 function rapi(v){
   if (!isFinite(v) || v <= 0) return "";
   return String(Math.round(v * 1000) / 1000).replace(".", ",");
 }
-/* isian pasien masuk ke innerHTML — selalu disaring dulu */
 function esc(v){
   return String(v).replace(/[&<>"']/g, c =>
     ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 }
-/* konsentrasi tanpa nol di belakang koma: "1 mg/mL", bukan "1,000 mg/mL" yang
-   mudah terbaca sebagai seribu. Aturan ISMP: jangan pakai trailing zero. */
 function konsen(v){
   if (!isFinite(v) || v <= 0) return "—";
   const b = Math.round(v * 1000) / 1000;
@@ -938,17 +2646,6 @@ function konsen(v){
 }
 const bbVal = () => { const v = num(el("bb").value); return isFinite(v) && v > 0 ? v : 0; };
 
-/* Kewajaran berat badan.
-   Salah ketik koma adalah satu-satunya kesalahan masukan di alat ini yang bisa
-   lolos tanpa jejak: pada sediaan berbasis berat ("Rule of 6" / "Rule of 0,6")
-   jumlah obat ikut berskala dengan berat, jadi laju pump tetap terbaca 1 mL/jam
-   untuk dosis yang sama — angka yang paling sering dilirik justru tidak berubah.
-   Yang bergeser hanya jumlah obat yang harus dioplos.
-   Karena itu peringatannya MEMPERINGATKAN, tidak memblokir: menolak menghitung
-   akan menghambat pasien remaja yang memang berat, dan alat yang menghalangi
-   akan dicari jalan pintasnya. Ambang 0,3 dan 100 kg sengaja dipasang jauh di
-   luar rentang pasien PICU/ICU mana pun supaya nyaris tidak pernah berbunyi
-   palsu — sesuaikan dengan kebijakan unit bila perlu. */
 const BB_MIN_WAJAR = 0.3, BB_MAKS_WAJAR = 100;
 function cekKewajaranBB(){
   const w = document.getElementById("bbwarn"), v = bbVal();
@@ -965,12 +2662,7 @@ const nd = v => { const t = String(v); return t.includes(".") ? t.split(".")[1].
 const tdec = d => d.doses
   ? Math.min(3, Math.max(...d.doses.map(nd)))
   : Math.min(3, Math.max(nd(d.tstep || d.step), nd(d.lo), nd(d.hi)));
-/* Tabel titrasi tampilan layar/ringkasan berhenti di d.hi (rentang lazim).
-   Untuk kartu cetak, beberapa obat (mis. norepinefrin) punya d.tblHi supaya
-   opsi dosis di atas rentang lazim — yang memang dipakai pada syok refrakter —
-   ikut tercetak, tanpa mengubah definisi "rentang lazim" itu sendiri. */
-/* `langkah` menimpa langkah bawaan obat, untuk obat yang menawarkan pilihan lewat
-   d.tsteps. Tanpa argumen itu, perilakunya persis seperti sebelumnya. */
+
 function titrasiDoses(d, sampai, langkah){
   const batas = sampai ?? d.hi;
   if (d.doses) return d.doses.slice().sort((a,b) => a - b);
@@ -986,24 +2678,11 @@ function titrasiDoses(d, sampai, langkah){
 }
 const doseUnit = d => `${d.numer}/kg/${d.perMin ? "menit" : "jam"}`;
 
-/* Baris "Setara" membalik basis waktu dosis. Dosis per jam dibagi 60, yang untuk
-   obat-obat kecil jatuh ke angka dengan terlalu banyak nol di depan — vasopresin
-   dulu tampil "0,00033 unit/kg/menit". Obat seperti itu turun satu prefiks metrik.
-   Pilihannya diambil per obat dari `lo`-nya, bukan dari dosis yang diketik, supaya
-   satuan di kartu tidak berubah di tengah titrasi. */
 const SUB_PREFIX = { unit:"mU", mg:"mcg", mcg:"ng" };
 const setaraSub   = d => (!d.perMin && d.lo / 60 < 0.01) ? SUB_PREFIX[d.numer] : undefined;
 const setaraUnit  = d => `${setaraSub(d) || d.numer}/kg/${d.perMin ? "jam" : "menit"}`;
 const setaraValue = (d, setara) => setaraSub(d) ? setara * 1000 : setara;
 
-/* Laju terendah yang masih dipegang andal oleh syringe pump di unit. Dosis yang
-   jatuh di bawahnya butuh pengenceran lebih encer — bukan pump yang lebih pelan.
-
-   0,1 mL/jam adalah kemampuan pump yang dipakai. Angka 0,3 sebelumnya cuma asumsi,
-   dan menandai empat obat pada bayi 3 kg padahal tiga di antaranya sudah punya
-   pengenceran yang lolos batas sebenarnya — ketamin 1 mg/mL, rokuronium 2 mg/mL,
-   nicardipin 1:400. Peringatan yang terlalu sering muncul akan diabaikan, dan itu
-   lebih buruk daripada tidak ada peringatan. */
 const LAJU_MIN = 0.1;
 const lajuTerlaluPelan = laju => isFinite(laju) && laju > 0 && laju < LAJU_MIN;
 
@@ -1029,9 +2708,6 @@ function status(d, dose){
   return ["over", "Melebihi batas kalkulator"];
 }
 
-/* Konsentrasi adalah jumlah obat dibagi volume — tidak bergantung berat badan.
-   Dulu baris ini ikut menunggu BB, padahal perawat sudah butuh angkanya saat
-   mengoplos syringe, sebelum BB diketik. */
 function concText(d, s, bb){
   const a = num(s.amt), v = num(s.ml);
   const conc = a > 0 && v > 0 ? a / v : NaN;
@@ -1048,7 +2724,6 @@ function concText(d, s, bb){
   return s2;
 }
 
-/* Satu sumber untuk layar dan cetak supaya keduanya tidak pernah berbeda. */
 function isoLine(d, cetak){
   const i = isoOf(d);
   const kelas = cetak ? "iso" : "isoline";
@@ -1073,7 +2748,9 @@ function cardHTML(d){
         <span class="badge badge-${d.badge}">${d.klass}</span>
         ${isoLine(d, false)}
       </div>
-      <label class="tick"><input type="checkbox" data-on="${d.id}"> Ringkasan</label>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <label class="tick"><input type="checkbox" data-on="${d.id}"> Ringkasan</label>
+      </div>
     </div>
 
     <p class="lbl">Sediaan dalam syringe</p>
@@ -1102,8 +2779,15 @@ function cardHTML(d){
     <p class="range-note" id="note-${d.id}"></p>
 
     <div class="readbox">
-      <span class="readout" id="read-${d.id}">––,––</span>
-      <span class="readunit">mL / jam</span>
+      <div class="drip-chamber" aria-hidden="true">
+        <div class="drip-stem"></div>
+        <div class="drip-drop"></div>
+        <div class="drip-pool"></div>
+      </div>
+      <div class="readbox-data">
+        <span class="readout" id="read-${d.id}">––,––</span>
+        <span class="readunit">mL / jam</span>
+      </div>
     </div>
     <p class="slow-warn" id="slow-${d.id}" hidden></p>
     <p class="meta" id="meta-${d.id}"></p>
@@ -1141,10 +2825,6 @@ function update(d){
     }
 
     const r = hitung(d, s, bb), D = dec(d);
-    /* Dropdown sediaan harus selalu menunjuk state, bukan sekadar item pertama.
-       Selama default selalu indeks 0 hal ini kebetulan benar; begitu urutan
-       sediaan dirapikan, dropdown bisa menampilkan sediaan yang berbeda dari
-       jumlah obat & volume di bawahnya. */
     const sel = el(`sel-${d.id}`);
     if (sel && Number(sel.value) !== s.preset) sel.value = String(s.preset);
     el(`card-${d.id}`).classList.toggle("idle", !bb);
@@ -1177,9 +2857,6 @@ function update(d){
 
     let rows = "";
     const TD = tdec(d);
-    /* d.tblHi dulu diabaikan di sini padahal kartu cetak memakainya, sehingga
-       tabel norepinefrin di layar berhenti di 0,30 sementara label yang ditempel
-       di pump berlanjut sampai 0,50. Keduanya kini memakai batas yang sama. */
     if (d.tsteps){
       const aktif = s.tstep ?? d.tstep;
       document.querySelectorAll(`[data-tstep="${d.id}"]`).forEach(b => {
@@ -1202,59 +2879,83 @@ function update(d){
   }
 }
 
-function sumHTML(){
+function getObatUntukCetak(){
+  const bb = bbVal();
+  if (!bb) return [];
+  let chosen = DRUGS.filter(d => state[d.id].on);
+  if (chosen.length > 0) return chosen;
+  if (window.activeDrugId){
+    const act = DRUGS.find(d => d.id === window.activeDrugId);
+    if (act && hitung(act, state[act.id], bb)) return [act];
+  }
+  const visibleCard = document.querySelector('#cards .card:not(.focus-hidden)');
+  if (visibleCard){
+    const cid = visibleCard.id.replace('card-', '');
+    const cd = DRUGS.find(x => x.id === cid);
+    if (cd && hitung(cd, state[cd.id], bb)) return [cd];
+  }
+  return [];
+}
+
+function sumHTML(ts){
   const bb = bbVal();
   const aktif = DRUGS.filter(d => state[d.id].on);
   const sub = el("sumsub"), body = el("sumbody");
+  const qBar = el("quickSummaryBar");
+  const curTs = ts || getTimestampOtomatis();
+
   if (!aktif.length){
     sub.textContent = "Belum ada obat yang dicentang.";
     body.innerHTML = `<p class="empty">Centang <em>Ringkasan</em> pada kartu obat untuk menampilkannya di sini.</p>`;
-    const lb = el("labels"); if (lb) lb.innerHTML = "";
-    return;
+    if (qBar) qBar.hidden = true;
+  } else {
+    sub.textContent = `Berat badan ${bb ? rapi(bb) : "—"} kg · ${aktif.length} obat`;
+    let rows = "", total = 0;
+    aktif.forEach(d => {
+      const s = state[d.id], r = hitung(d, s, bb);
+      if (r) total += r.laju;
+      rows += `<tr><td>${d.nama}</td>`
+            + `<td>${rapi(s.amt) || "—"} ${d.amtUnit} / ${rapi(s.ml) || "—"} mL</td>`
+            + `<td>${r ? konsen(r.conc) : "—"} ${d.amtUnit}/mL</td>`
+            + `<td>${isFinite(s.dose) ? dosisTeks(s.dose) : "—"} ${doseUnit(d)}</td>`
+            + `<td class="rate${r && lajuTerlaluPelan(r.laju) ? " rate-pelan" : ""}">`
+            + `${r ? fmt(r.laju, 2) : "—"} mL/jam${r && lajuTerlaluPelan(r.laju) ? " ⚠" : ""}</td></tr>`;
+    });
+    const adaPelan = aktif.some(d => { const rr = hitung(d, state[d.id], bb); return rr && lajuTerlaluPelan(rr.laju); });
+    body.innerHTML = `<div class="tscroll"><table>`
+      + `<thead><tr><th>Obat</th><th>Sediaan</th><th>Konsentrasi</th><th>Dosis</th><th>Laju pump</th></tr></thead>`
+      + `<tbody>${rows}</tbody>`
+      + `<tfoot><tr><td colspan="4">Total cairan dari infus kontinu</td>`
+      + `<td class="rate">${fmt(total, 2)} mL/jam</td></tr></tfoot></table></div>`
+      + (adaPelan ? `<p class="slow-note">⚠ Laju bertanda di bawah ${fmt(LAJU_MIN, 1)} mL/jam — syringe pump sulit menjaga akurasi. Pakai pengenceran yang lebih encer.</p>` : "");
+
+    if (qBar) {
+      qBar.hidden = false;
+      const qTxt = el("quickSummaryText");
+      if (qTxt) qTxt.textContent = `${aktif.length} obat (${fmt(total, 2)} mL/jam)`;
+    }
   }
-  /* rapi() menampilkan berat apa adanya; fmt(bb,1) dulu menulis "3,3 kg" untuk
-     bayi 3,25 kg — lembar terapi mendokumentasikan berat yang bukan berat yang
-     dipakai menghitung. */
-  sub.textContent = `Berat badan ${bb ? rapi(bb) : "—"} kg · ${aktif.length} obat`;
-  let rows = "", total = 0;
-  aktif.forEach(d => {
-    const s = state[d.id], r = hitung(d, s, bb);
-    if (r) total += r.laju;
-    rows += `<tr><td>${d.nama}</td>`
-          + `<td>${rapi(s.amt) || "—"} ${d.amtUnit} / ${rapi(s.ml) || "—"} mL</td>`
-          + `<td>${r ? konsen(r.conc) : "—"} ${d.amtUnit}/mL</td>`
-          + `<td>${isFinite(s.dose) ? dosisTeks(s.dose) : "—"} ${doseUnit(d)}</td>`
-          + `<td class="rate${r && lajuTerlaluPelan(r.laju) ? " rate-pelan" : ""}">`
-          + `${r ? fmt(r.laju, 2) : "—"} mL/jam${r && lajuTerlaluPelan(r.laju) ? " ⚠" : ""}</td></tr>`;
-  });
-  const adaPelan = aktif.some(d => { const rr = hitung(d, state[d.id], bb); return rr && lajuTerlaluPelan(rr.laju); });
-  body.innerHTML = `<div class="tscroll"><table>`
-    + `<thead><tr><th>Obat</th><th>Sediaan</th><th>Konsentrasi</th><th>Dosis</th><th>Laju pump</th></tr></thead>`
-    + `<tbody>${rows}</tbody>`
-    + `<tfoot><tr><td colspan="4">Total cairan dari infus kontinu</td>`
-    + `<td class="rate">${fmt(total, 2)} mL/jam</td></tr></tfoot></table></div>`
-    + (adaPelan ? `<p class="slow-note">⚠ Laju bertanda di bawah ${fmt(LAJU_MIN, 1)} mL/jam — syringe pump sulit menjaga akurasi. Pakai pengenceran yang lebih encer.</p>` : "");
-  labelHTML(aktif, bb);
+
+  const daftarCetak = getObatUntukCetak();
+  labelHTML(daftarCetak, bb, curTs);
+  renderLembarPeriksaPrint(curTs, daftarCetak);
 }
 
-/* Identitas pasien di kepala tiap kartu titrasi. Kartu ini digunting dan
-   ditempel di syringe, terpisah dari lembar terapi, jadi harus bisa berdiri
-   sendiri. Kolom yang belum diisi dicetak sebagai garis kosong supaya tetap
-   bisa ditulis tangan — bukan dibiarkan hilang. */
-/* Nama panjang dikecilkan hurufnya, bukan dipotong. Kartu cetak hanya punya
-   ruang dua baris untuk nama, dan ruang itu tidak bisa ditambah tanpa membuat
-   kartu terpadat (vasopresin: sepuluh baris ditambah catatan rentang atas)
-   meluber melewati garis bawah. Jadi yang mengalah ukuran hurufnya — kartu yang
-   sudah digunting tetap membawa nama yang utuh. */
+function getTimestampOtomatis(){
+  const d = new Date();
+  const p2 = n => String(n).padStart(2, "0");
+  const tgl = `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()}`;
+  const jam = `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+  return `${tgl} ${jam} WIB`;
+}
+
 const kelasNama = n => n.length <= 24 ? "" : n.length <= 34 ? " nm-sedang"
   : n.length <= 44 ? " nm-kecil" : " nm-mini";
-/* Nomor rekam medis dapat perlakuan sendiri, dan lebih ketat. Kolomnya lebih
-   sempit daripada kolom nama, dan nomor yang patah di tengah ("RM-01-99-88-"
-   lalu "77" di baris berikutnya) lebih buruk daripada nama yang patah: nomor
-   dibaca sebagai satu satuan, dan patahannya bisa terbaca sebagai nomor lain. */
 const kelasRM = n => n.length <= 9 ? "" : n.length <= 13 ? " nm-sedang"
   : n.length <= 18 ? " nm-kecil" : " nm-mini";
-function idPasien(){
+
+function idPasien(ts){
+  const ptVal = el("pt").value.trim() || ts;
   const isi = (judul, nilai, kelas) => {
     const kecil = !nilai ? "" : kelas === "tid-nm" ? kelasNama(nilai) : kelasRM(nilai);
     return `<span class="${kelas}"><span class="tid-k">${judul}</span>`
@@ -1262,41 +2963,29 @@ function idPasien(){
       + `${nilai ? esc(nilai) : ""}</span></span>`;
   };
   return `<div class="tid">`
-    + isi("Nama pasien", el("pn").value.trim(), "tid-nm")
+    + `<div class="tid-row">`
+    + isi("Nama Pasien", el("pn").value.trim(), "tid-nm")
     + isi("No. RM", el("prm").value.trim(), "tid-rm")
+    + `</div>`
+    + `<div class="tid-time-row"><span>⏱️ <b>Waktu:</b> ${esc(ptVal)}</span><span>🐾 <b>PICU/NICU</b></span></div>`
     + `</div>`;
 }
 
-/* label titrasi per obat — dicetak, digunting, ditempel di syringe.
-   Header (h4) dijadikan pita warna penuh + border kartu ikut mengikuti
-   warna ISO obatnya, supaya kartu bisa dibedakan sekilas dari kejauhan —
-   bukan hanya lewat petak kecil. Nama warna tetap ditulis untuk cetakan
-   hitam-putih / tanpa background graphics. */
-function labelHTML(aktif, bb){
+function labelHTML(aktif, bb, ts){
   const box = el("labels");
   if (!box) return;
-  if (!aktif.length || !bb){ box.innerHTML = ""; return; }
-  box.innerHTML = aktif.map(d => {
+  const daftar = (aktif && aktif.length) ? aktif : getObatUntukCetak();
+  if (!daftar.length || !bb){ box.innerHTML = ""; return; }
+  const timeStr = ts || getTimestampOtomatis();
+  box.innerHTML = daftar.map(d => {
     const s = state[d.id], r0 = hitung(d, s, bb);
     const TD = tdec(d);
     const batasTabel = d.tblHi ?? d.hi;
-    /* Dua penandaan, dua arah, dan keduanya harus ikut tercetak.
-       Yang di ATAS rentang lazim sudah lama ditandai. Yang di BAWAH kemampuan
-       pump belum: di layar perawat diperingatkan kalau laju turun di bawah
-       0,1 mL/jam, tapi kartu yang digunting dan ditempel di pump — satu-satunya
-       lembar yang benar-benar dibaca jam tiga pagi — mencetak angka itu seolah
-       bisa dijalankan. Pada bayi 3,25 kg, lima dari tujuh baris morfin dan lima
-       dari enam baris ketamin jatuh di bawah ambang itu. */
     let adaPelan = false;
     const baris = titrasiDoses(d, batasTabel, s.tstep).map(dose => {
       const rr = hitung(d, { ...s, dose }, bb);
       const pelan = !!(rr && lajuTerlaluPelan(rr.laju));
       if (pelan) adaPelan = true;
-      /* Penandanya BUKAN sekadar warna latar. Kartu ini memang dirancang tetap
-         terbaca kalau dicetak hitam-putih atau tanpa "background graphics" —
-         itu sebabnya nama warna ISO ikut ditulis. Latar krem dan kelabu sama
-         saja hilangnya dalam keadaan itu, jadi tiap baris bertanda diberi
-         segitiga: ▲ di atas rentang lazim, ▼ di bawah kemampuan pump. */
       const kelas = dose > d.hi ? "tcard-ext" : pelan ? "tcard-pelan" : "";
       const tanda = dose > d.hi ? "▲ " : pelan ? "▼ " : "";
       return `<tr${kelas ? ` class="${kelas}"` : ""}><td>${tanda}${fmt(dose, TD)}</td>`
@@ -1305,42 +2994,100 @@ function labelHTML(aktif, bb){
     const ratio = r0 ? r0.conc / d.conv : null;
     const ratioTD = ratio !== null && ratio < 10 ? 1 : 0;
     const i = isoOf(d);
-    /* Dua warna, dua tugas. --tcband mewarnai pita kepala dan hanya boleh
-       memakai warna ISO 26825 yang sah; --tcframe mewarnai bingkai kartu.
-       Untuk obat di luar ISO keduanya berpisah: pita tetap kelabu polos —
-       tidak mengaku punya warna golongan yang tidak ada — dan bingkainya
-       hitam putus-putus, bukan warna. Garis putus-putus itu sendiri yang
-       memberi tahu: golongan ini memang tidak diatur ISO 26825. Kelabu
-       #eee yang dipakai sebelumnya sama saja dengan tanpa bingkai. */
     const bandStyle = i
       ? `--tcband:${i.hex};--tcframe:${i.hex};--tcgaris:solid;--tctext:#000;`
       : `--tcband:#eee;--tcframe:#000;--tcgaris:dashed;--tctext:#000;`;
     const swatch = i
       ? `<span class="sw"></span><span class="warna">${i.warna.toUpperCase()}</span>`
       : `<span class="sw"></span><span class="warna">TIDAK DIATUR</span>`;
-    /* Diukur dari panjang nama, bukan dari daftar nama tertentu: obat yang
-       ditambahkan nanti ikut aturan yang sama tanpa perlu diingat. */
     const nk = d.nama.length >= 20 ? " nm-panjang" : d.nama.length >= 17 ? " nm-sedang" : "";
     return `<div class="tcard" style="${bandStyle}">`
       + `<span class="crop tl"></span><span class="crop tr"></span>`
       + `<span class="crop bl"></span><span class="crop br"></span>`
-      + `<h4><span class="nm${nk}">${d.nama}</span>`
+      + `<h4>`
+      + `<span class="tcard-mascot" aria-hidden="true"><svg viewBox="0 0 36 32" width="15" height="13" fill="currentColor"><circle cx="9" cy="8" r="6"/><circle cx="27" cy="8" r="6"/><circle cx="9" cy="8" r="3" fill="#fff"/><circle cx="27" cy="8" r="3" fill="#fff"/><ellipse cx="18" cy="18" rx="14" ry="12"/><ellipse cx="18" cy="21" rx="7" ry="5.5" fill="#fff"/><circle cx="13" cy="17" r="1.6" fill="#000"/><circle cx="23" cy="17" r="1.6" fill="#000"/><ellipse cx="18" cy="20" rx="2.2" ry="1.5" fill="#000"/><path d="M15.5 23q2.5 2 5 0" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/></svg></span>`
+      + `<span class="nm${nk}">${d.nama}</span>`
       + `<span class="iso">${swatch}</span>`
       + `<span class="klass">${d.klass}</span></h4>`
-      + idPasien()
+      + idPasien(timeStr)
       + `<p class="cx cx-bold">BB : ${rapi(bb)} kg`
       + ` &middot; Titrasi 1 mL : ${ratio !== null ? fmt(ratio, ratioTD) : "—"} ${d.numer}</p>`
       + `<table><thead><tr><th>Dosis (${doseUnit(d)})</th><th style="text-align:right">mL/jam</th></tr></thead>`
       + `<tbody>${baris}</tbody></table>`
+      + `<div class="tcard-periksa">`
+      + `<span class="tcard-chk-title">🐾 PERIKSA:</span>`
+      + `<span class="tcard-chk-items"><span>[ ] Dosis</span><span>[ ] Pasien</span><span>[ ] Jalur</span></span>`
+      + `</div>`
       + `<p class="dc">`
         + (batasTabel > d.hi ? `Baris ▲ di atas ${fmt(d.hi, TD)}: hanya atas instruksi DPJP. ` : "")
         + (adaPelan ? `Baris ▼ di bawah ${fmt(LAJU_MIN, 1)} mL/jam: pump sulit akurat, encerkan lagi. ` : "")
-        + `<b>Double check 2 perawat.</b> Sesuai sediaan &amp; BB di atas. v${TABEL.versi}</p>`
+        + `<b>Double check 2 perawat.</b> v${TABEL.versi}</p>`
       + `</div>`;
   }).join("");
 }
 
-function updateAll(){
+function renderLembarPeriksaPrint(ts, daftar){
+  const box = el("lembar-periksa-print");
+  if (!box) return;
+  const bb = bbVal();
+  const aktif = daftar || getObatUntukCetak();
+  const pn = el("pn").value.trim() || "— (Tulis Tangan)";
+  const prm = el("prm").value.trim() || "—";
+  const pt = el("pt").value.trim() || ts;
+
+  const stampVal = el("pk-timestamp-val");
+  if (stampVal) stampVal.textContent = ts;
+  const footTs = el("pk-foot-ts");
+  if (footTs) footTs.textContent = `Dicetak otomatis: ${ts}`;
+  const pnVal = el("pk-pn-val");
+  if (pnVal) pnVal.textContent = pn;
+  const prmVal = el("pk-prm-val");
+  if (prmVal) prmVal.textContent = prm;
+  const bbValEl = el("pk-bb-val");
+  if (bbValEl) bbValEl.textContent = `${bb ? rapi(bb) : "—"} kg`;
+  const ptVal = el("pk-pt-val");
+  if (ptVal) ptVal.textContent = pt;
+
+  let rows = "", totalRate = 0;
+  aktif.forEach(d => {
+    const s = state[d.id], r = hitung(d, s, bb);
+    if (r) totalRate += r.laju;
+    const i = isoOf(d);
+    const badgeColor = i ? i.hex : "#ccc";
+    const badgeWarna = i ? i.warna : "TIDAK DIATUR";
+    rows += `<tr>
+      <td>
+        <strong>${d.nama}</strong><br>
+        <span style="font-size:7pt;color:#555;">${d.klass} · <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${badgeColor};margin-right:2px;vertical-align:middle;"></span>${badgeWarna}</span>
+      </td>
+      <td>${rapi(s.amt) || "—"} ${d.amtUnit} dalam ${rapi(s.ml) || "—"} mL</td>
+      <td class="num">${r ? konsen(r.conc) : "—"} ${d.amtUnit}/mL</td>
+      <td><b>${isFinite(s.dose) ? dosisTeks(s.dose) : "—"}</b> ${doseUnit(d)}</td>
+      <td class="rate-col">${r ? fmt(r.laju, 2) : "—"} mL/jam</td>
+      <td>
+        <div class="pk-check-boxes">
+          <span>[ ] P1</span>
+          <span>[ ] P2</span>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  const tbody = el("pk-tbody");
+  if (tbody) {
+    tbody.innerHTML = rows || `<tr><td colspan="6" style="text-align:center;padding:15px;color:#777;">Pilih atau centang obat untuk menampilkan rincian di sini.</td></tr>`;
+  }
+  const tfoot = el("pk-tfoot");
+  if (tfoot) {
+    tfoot.innerHTML = `<tr>
+      <td colspan="4"><b>TOTAL LAJU CAIRAN DARI INFUS KONTINU:</b></td>
+      <td class="total-rate">${fmt(totalRate, 2)} mL/jam</td>
+      <td style="font-size:7pt;text-align:center;color:#444;">(${fmt(totalRate * 24, 1)} mL/24j)</td>
+    </tr>`;
+  }
+}
+
+function updateAll(ts){
   if (sedangUpdate) return;
   sedangUpdate = true;
   try{
@@ -1358,7 +3105,7 @@ function updateAll(){
     const f = el("filter");
     f.textContent = hanyaDicentang ? "Tampilkan semua obat" : `Hanya yang dicentang (${n})`;
     f.disabled = !hanyaDicentang && n === 0;
-    sumHTML();
+    sumHTML(ts);
   } catch(e){
     console.error(e);
     Toast.galat("Terjadi kesalahan saat menghitung. Muat ulang halaman dan periksa hasilnya secara manual.");
@@ -1372,18 +3119,17 @@ function jadwalkan(){
   rafId = requestAnimationFrame(() => { rafId = null; updateAll(); });
 }
 
-/* ---------- pasang kartu ---------- */
+/* Pasang kartu ke dalam DOM */
 el("cards").innerHTML = GRUP.map(g => `
   <section id="grup-${g.id}">
     <h2 class="gjudul">${g.judul}</h2>
     <div class="grid">${DRUGS.filter(d => d.grup === g.id).map(cardHTML).join("")}</div>
   </section>`).join("");
 
-/* ---------- kejadian ---------- */
+/* Event Listeners */
 document.addEventListener("input", e => {
   const t = e.target, ds = t.dataset;
   if (t.id === "bb"){ t.value = saring(t.value); jadwalkan(); return; }
-  /* nama & no. RM ikut tercetak di kartu titrasi — segarkan saat diketik */
   if (t.id === "pn" || t.id === "prm"){ jadwalkan(); return; }
   if (ds.amt !== undefined){
     t.value = saring(t.value);
@@ -1401,7 +3147,7 @@ document.addEventListener("input", e => {
   if (ds.dose !== undefined){
     t.value = saring(t.value);
     const d = byId(ds.dose), s = state[d.id], v = num(t.value);
-    s.dose = isFinite(v) && v >= 0 ? v : 0;          /* kolom dikosongkan = 0, bukan angka lama */
+    s.dose = isFinite(v) && v >= 0 ? v : 0;
     el(`sl-${d.id}`).value = Math.min(s.dose, d.cap);
     jadwalkan(); return;
   }
@@ -1424,9 +3170,6 @@ document.addEventListener("focusout", e => {
   }
   if (ds.amt !== undefined && !t.disabled){ t.value = rapi(state[ds.amt].amt); jadwalkan(); return; }
   if (ds.ml !== undefined){ t.value = rapi(state[ds.ml].ml); jadwalkan(); return; }
-  /* rapi() merapikan tanpa membulatkan. fmt(v,1) dulu menulis ulang setiap berat
-     jadi satu desimal begitu kolom ditinggalkan — 3,25 kg jadi 3,3 dan 0,85 kg
-     jadi 0,8, menggeser dosis neonatus sekitar 6% tanpa terlihat. */
   if (t.id === "bb"){ const v = bbVal(); t.value = v ? rapi(v) : ""; jadwalkan(); }
 });
 
@@ -1447,8 +3190,6 @@ document.addEventListener("change", e => {
   }
 });
 
-/* pilihan langkah titrasi — mengubah tabel di layar dan kartu cetak sekaligus,
-   supaya angka di label yang ditempel di pump persis yang dibaca di layar */
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-tstep]");
   if (!b) return;
@@ -1456,37 +3197,126 @@ document.addEventListener("click", e => {
   updateAll();
 });
 
+document.addEventListener("click", e => {
+  const btn = e.target.closest("[data-print-card]");
+  if (!btn) return;
+  const drugId = btn.dataset.printCard;
+  window.activeDrugId = drugId;
+  const d = byId(drugId);
+  if (!bbVal()) {
+    Toast.galat("Masukkan berat badan pasien terlebih dahulu.");
+    el("bb")?.focus();
+    return;
+  }
+  const ts = getTimestampOtomatis();
+  if (el("pt") && !el("pt").value.trim()) el("pt").value = waktuSekarang();
+  labelHTML([d], bbVal(), ts);
+  renderLembarPeriksaPrint(ts, [d]);
+  document.body.classList.remove("print-mode-periksa");
+  document.body.classList.add("print-mode-labels");
+  setTimeout(() => {
+    window.print();
+  }, 60);
+});
+
 el("filter").addEventListener("click", () => { hanyaDicentang = !hanyaDicentang; updateAll(); });
+
 function alasanCetak(){
- const chosen=DRUGS.filter(d=>state[d.id].on);
- if(!bbVal() || !chosen.length || !el("pn").value.trim() || !el("prm").value.trim())return "Lengkapi nama, nomor rekam medis, berat badan, dan pilih obat untuk label.";
- if(document.querySelector('[aria-invalid="true"]') || chosen.some(d=>!hitung(d,state[d.id],bbVal())))return "Perbaiki parameter yang belum valid sebelum mencetak.";
- return "";
+  const bb = bbVal();
+  if (!bb) return "Masukkan berat badan pasien terlebih dahulu (contoh: 10 kg).";
+  const chosen = getObatUntukCetak();
+  if (!chosen.length) return "Pilih minimal 1 obat untuk dicetak labelnya.";
+  /* BUG LAMA: cek ini sebelumnya document.querySelector('[aria-invalid="true"]')
+     tanpa syarat lain — mencari ke SELURUH halaman, padahal 17 kartu obat semua
+     selalu ada di DOM (yang tidak aktif cuma disembunyikan lewat .focus-hidden).
+     Akibatnya: isian tidak valid yang tertinggal di kartu obat LAIN yang bahkan
+     tidak sedang dilihat/dicetak — misalnya field jumlah obat yang sempat
+     dikosongkan lalu ditinggal pindah ke obat lain tanpa diperbaiki — membuat
+     SEMUA percetakan diblokir total (halaman cetak kosong, hanya menyisakan
+     pesan "TIDAK DAPAT DICETAK"), termasuk saat mencetak label obat lain yang
+     datanya sendiri sudah benar sepenuhnya. Diperbaiki dengan hanya memeriksa
+     validitas obat yang MEMANG akan dicetak (amt/ml/dose-nya, lewat state,
+     bukan atribut DOM yang bisa basi). */
+  const adaYangTakValid = chosen.some(d => {
+    const s = state[d.id];
+    return !Number.isFinite(s.amt) || !Number.isFinite(s.ml) || !Number.isFinite(s.dose);
+  });
+  if (adaYangTakValid) return "Perbaiki parameter dosis atau sediaan pada obat yang akan dicetak — ada isian yang belum valid.";
+  return "";
 }
-el("cetak").textContent="Cetak label";
-el("cetak").addEventListener("click",()=>{
- const reason=alasanCetak();if(reason){Toast.galat(reason);return;}
- const chosen=DRUGS.filter(d=>state[d.id].on);
- if(confirm("Periksa label sebelum cetak:\n"+el("pn").value+" · RM "+el("prm").value+" · "+rapi(bbVal())+" kg\n"+chosen.map(d=>d.nama).join(", ")+"\n\nPastikan sediaan dan dosis sesuai instruksi. Lanjutkan ke pratinjau cetak?"))window.print();
+
+function aksiCetakLabels(){
+  const reason = alasanCetak();
+  if (reason){
+    Toast.galat(reason);
+    if (!bbVal()) el("bb")?.focus();
+    return;
+  }
+  const chosen = getObatUntukCetak();
+  const ts = getTimestampOtomatis();
+  if (el("pt") && !el("pt").value.trim()) el("pt").value = waktuSekarang();
+  labelHTML(chosen, bbVal(), ts);
+  renderLembarPeriksaPrint(ts, chosen);
+  document.body.classList.remove("print-mode-periksa");
+  document.body.classList.add("print-mode-labels");
+  setTimeout(() => {
+    window.print();
+  }, 60);
+}
+
+function aksiCetakPeriksa(){
+  const reason = alasanCetak();
+  if (reason){
+    Toast.galat(reason);
+    if (!bbVal()) el("bb")?.focus();
+    return;
+  }
+  const chosen = getObatUntukCetak();
+  const ts = getTimestampOtomatis();
+  if (el("pt") && !el("pt").value.trim()) el("pt").value = waktuSekarang();
+  labelHTML(chosen, bbVal(), ts);
+  renderLembarPeriksaPrint(ts, chosen);
+  document.body.classList.remove("print-mode-labels");
+  document.body.classList.add("print-mode-periksa");
+  setTimeout(() => {
+    window.print();
+  }, 60);
+}
+
+el("cetak").addEventListener("click", aksiCetakLabels);
+el("cetak-periksa")?.addEventListener("click", aksiCetakPeriksa);
+
+window.addEventListener("beforeprint", () => {
+  const ts = getTimestampOtomatis();
+  if (el("pt") && !el("pt").value.trim()) el("pt").value = waktuSekarang();
+  const chosen = getObatUntukCetak();
+  const bb = bbVal();
+  if (chosen.length && bb) {
+    labelHTML(chosen, bb, ts);
+    renderLembarPeriksaPrint(ts, chosen);
+  }
+  const reason = alasanCetak();
+  document.body.classList.toggle("print-blocked", !!reason);
+  let warning = el("print-warning");
+  if (!warning){ warning = document.createElement("div"); warning.id = "print-warning"; document.body.append(warning); }
+  warning.textContent = reason ? "TIDAK DAPAT DICETAK — " + reason : "";
 });
-window.addEventListener("beforeprint",()=>{
- updateAll();
- const reason=alasanCetak();
- document.body.classList.toggle("print-blocked",!!reason);
- let warning=el("print-warning");
- if(!warning){warning=document.createElement("div");warning.id="print-warning";document.body.append(warning);}
- warning.textContent=reason?"LABEL TIDAK DICETAK — "+reason:"";
+
+window.addEventListener("afterprint", () => {
+  document.body.classList.remove("print-blocked");
+  document.body.classList.remove("print-mode-labels");
+  document.body.classList.remove("print-mode-periksa");
 });
-window.addEventListener("afterprint",()=>document.body.classList.remove("print-blocked"));
+
+window.addEventListener("afterprint", () => {
+  document.body.classList.remove("print-blocked");
+  document.body.classList.remove("print-mode-labels");
+  document.body.classList.remove("print-mode-periksa");
+});
 
 el("reset").addEventListener("click", () => {
   if (!confirm("Kosongkan semua isian untuk pasien baru?")) return;
   DRUGS.forEach(d => {
-    /* Harus lewat defaultPreset(), bukan presets[0]. Sejak sediaan diurutkan
-       encer -> pekat, indeks 0 berarti "paling encer", bukan "sediaan awal" —
-       menekan Pasien baru akan diam-diam memindahkan vasopresin ke 0,1 unit/mL
-       dan aminofilin ke 5 mg/mL. Objek state dibuat ulang tanpa tstep, sehingga
-       pilihan langkah titrasi pasien sebelumnya ikut hilang. */
     const i = defaultPreset(d), p = d.presets[i];
     state[d.id] = { preset:i, amt:p.amt ?? 0, ml:p.ml, dose:d.start, on:false };
     el(`sel-${d.id}`).value = String(i);
@@ -1501,6 +3331,7 @@ el("reset").addEventListener("click", () => {
   hanyaDicentang = false;
   document.dispatchEvent(new Event("picu-reset"));
   ["bb", "pn", "prm", "pt"].forEach(id => { el(id).value = ""; });
+  el("pt").value = waktuSekarang();
   updateAll();
   el("bb").focus();
   Toast.sukses("Semua isian dikosongkan. Masukkan berat badan pasien baru.");
@@ -1515,19 +3346,14 @@ window.addEventListener("error", ev => {
   Toast.galat("Terjadi kesalahan. Periksa hasil hitung secara manual sebelum dipakai.");
 });
 
-{ const v = el("tabel-versi");
-  if (v) v.textContent = `Tabel dosis v${TABEL.versi} · ditinjau ${TABEL.ditinjau}`; }
+if (el("pt") && !el("pt").value) el("pt").value = waktuSekarang();
 
-updateAll();
+/* Floating summary scroll handler */
+el("btnQuickSummary")?.addEventListener("click", () => {
+  el("sumbody")?.scrollIntoView({ behavior: "smooth", block: "center" });
+});
 
-/* ==== pemasangan di layar utama ====
-   Service worker hanya berjalan lewat https atau localhost. Dibuka dari
-   berkas lokal (file://) pendaftarannya gagal, dan itu bukan masalah:
-   kalkulatornya sendiri tidak bergantung padanya. */
-/* Chrome di Android menawarkan pemasangan lewat peristiwa ini. Kita tahan
-   tawaran bawaannya, lalu tampilkan tombol sendiri di kaki halaman supaya
-   perawat tidak melewatkannya. Peramban yang tidak mendukung (Safari iOS)
-   tidak pernah memicu ini, jadi kotaknya tetap tersembunyi. */
+/* PWA Installation */
 {
   let tawaran = null;
   const kotak = el("pasang"), tombol = el("btn-pasang");
@@ -1553,72 +3379,170 @@ updateAll();
 
   window.addEventListener("appinstalled", () => { if (kotak) kotak.hidden = true; });
 }
+
+updateAll();
 </script>
+
 <script>
+/* ==========================================================================
+   Real-Time Input Validation & Error Handling
+   ========================================================================== */
 (() => {
- const numeric=t=>t instanceof HTMLInputElement&&(t.id==='bb'||t.dataset.amt!==undefined||t.dataset.ml!==undefined||t.dataset.dose!==undefined);
- const message='Gunakan angka positif dengan satu koma atau titik desimal, tanpa satuan atau pemisah ribuan.';
- const clear=t=>{if(!t)return;t.removeAttribute('aria-invalid');t.setCustomValidity('');const err=document.getElementById(t.id+'-error');if(err)err.remove();};
- document.addEventListener('input',e=>{const id=e.target.dataset?.slider;if(id)clear(document.getElementById('dose-'+id));},true);
- document.addEventListener('change',e=>{const id=e.target.dataset?.preset;if(id&&Number(e.target.value)>=0){clear(document.getElementById('amt-'+id));clear(document.getElementById('ml-'+id));}},true);
- document.addEventListener('input',e=>{
-  const t=e.target;if(!numeric(t))return;
-  const raw=t.value.trim(),n=num(raw),over=t.dataset.dose!==undefined&&n>byId(t.dataset.dose).cap;
-  const valid=raw!==''&&Number.isFinite(n)&&(t.dataset.dose!==undefined?n>=0:n>0)&&!over;
-  const reason=over?'Dosis melebihi batas kalkulator. Periksa kembali instruksi; nilai tidak diubah otomatis.':message;
-  t.setAttribute('aria-invalid',String(!valid));t.setCustomValidity(valid?'':reason);
-  let error=document.getElementById(t.id+'-error');
-  if(!error){error=document.createElement('span');error.id=t.id+'-error';error.className='input-error';error.setAttribute('role','status');t.after(error);t.setAttribute('aria-describedby',error.id);}
-  error.textContent=valid?'':reason;error.hidden=valid;
-  if(valid)return;
-  e.stopImmediatePropagation();
-  const id=t.dataset.amt??t.dataset.ml??t.dataset.dose;
-  if(id){const key=t.dataset.amt!==undefined?'amt':t.dataset.ml!==undefined?'ml':'dose';state[id][key]=NaN;if(key==='amt'||key==='ml')state[id].preset=-1;}
-  jadwalkan();
- },true);
- document.addEventListener('focusout',e=>{if(numeric(e.target)&&e.target.getAttribute('aria-invalid')==='true')e.stopImmediatePropagation();},true);
- document.addEventListener('picu-reset',()=>{document.querySelectorAll('[aria-invalid]').forEach(t=>{t.removeAttribute('aria-invalid');t.setCustomValidity('');});document.querySelectorAll('.input-error').forEach(e=>e.remove());});
-})();
+  const numeric = t => t instanceof HTMLInputElement && (t.id === 'bb' || t.dataset.amt !== undefined || t.dataset.ml !== undefined || t.dataset.dose !== undefined);
+  const message = 'Gunakan angka positif dengan satu koma atau titik desimal, tanpa satuan atau pemisah ribuan.';
+  const clear = t => {
+    if (!t) return;
+    t.removeAttribute('aria-invalid');
+    t.setCustomValidity('');
+    const err = document.getElementById(t.id + '-error');
+    if (err) err.remove();
+  };
 
-</script><script>
+  document.addEventListener('input', e => {
+    const id = e.target.dataset?.slider;
+    if (id) clear(document.getElementById('dose-' + id));
+  }, true);
+
+  document.addEventListener('change', e => {
+    const id = e.target.dataset?.preset;
+    if (id && Number(e.target.value) >= 0){
+      clear(document.getElementById('amt-' + id));
+      clear(document.getElementById('ml-' + id));
+    }
+  }, true);
+
+  document.addEventListener('input', e => {
+    const t = e.target;
+    if (!numeric(t)) return;
+    const raw = t.value.trim(), n = num(raw), over = t.dataset.dose !== undefined && n > byId(t.dataset.dose).cap;
+    const valid = raw !== '' && Number.isFinite(n) && (t.dataset.dose !== undefined ? n >= 0 : n > 0) && !over;
+    const reason = over ? 'Dosis melebihi batas kalkulator. Periksa kembali instruksi; nilai tidak diubah otomatis.' : message;
+    t.setAttribute('aria-invalid', String(!valid));
+    t.setCustomValidity(valid ? '' : reason);
+    let error = document.getElementById(t.id + '-error');
+    if (!error){
+      error = document.createElement('span');
+      error.id = t.id + '-error';
+      error.className = 'input-error';
+      error.setAttribute('role', 'status');
+      t.after(error);
+      t.setAttribute('aria-describedby', error.id);
+    }
+    error.textContent = valid ? '' : reason;
+    error.hidden = valid;
+    if (valid) return;
+    e.stopImmediatePropagation();
+    const id = t.dataset.amt ?? t.dataset.ml ?? t.dataset.dose;
+    if (id){
+      const key = t.dataset.amt !== undefined ? 'amt' : t.dataset.ml !== undefined ? 'ml' : 'dose';
+      state[id][key] = NaN;
+      if (key === 'amt' || key === 'ml') state[id].preset = -1;
+    }
+    jadwalkan();
+  }, true);
+
+  document.addEventListener('focusout', e => {
+    if (numeric(e.target) && e.target.getAttribute('aria-invalid') === 'true') e.stopImmediatePropagation();
+  }, true);
+
+  document.addEventListener('picu-reset', () => {
+    document.querySelectorAll('[aria-invalid]').forEach(t => {
+      t.removeAttribute('aria-invalid');
+      t.setCustomValidity('');
+    });
+    document.querySelectorAll('.input-error').forEach(e => e.remove());
+  });
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   PICU Workspace Navigation: Drug Search & Category Filtering
+   ========================================================================== */
 (() => {
- const categories=[['all','Semua'],['sedasi','Sedasi & analgesia'],['vaso','Kardiovaskular'],['relax','Relaksan'],['lain','Lainnya']];
- let group='all',active=null;
- const patient=document.querySelector('.patient');
- const tools=document.createElement('section');tools.className='picu-tools noprint';
- tools.innerHTML='<div class="work-heading"><div><h1>Daftar obat infus</h1><p>Cari nama obat atau pilih golongan.</p></div><a class="btn" href="#sumbody">Obat terpilih ↓</a></div><label class="search-box"><span aria-hidden="true">⌕</span><input type="search" id="drug-search" aria-label="Cari obat" placeholder="Ketik nama obat atau golongan…" autocomplete="off"></label><div class="picu-categories" role="group" aria-label="Golongan obat"></div><div class="drug-list" role="group" aria-label="Pilih obat"></div><p id="search-status" role="status" aria-live="polite"></p>';
- patient.after(tools);
- document.querySelector('.brand p').textContent='Laju syringe berbasis berat badan';
- document.querySelector('.hint').textContent='Isi berat badan, lalu pilih obat. Nilai awal sediaan dan dosis berasal dari tabel; periksa kesesuaiannya sebelum menggunakan hasil.';
- document.getElementById('filter').hidden=true;
- const cats=tools.querySelector('.picu-categories'),list=tools.querySelector('.drug-list');
- const notice=document.createElement('div');notice.className='focus-empty noprint';notice.textContent='Pilih obat di atas untuk membuka perhitungan. Input obat lain tetap tersimpan selama halaman ini terbuka.';document.getElementById('cards').before(notice);
- const tone=d=>d.badge==='relax'?'#6943a6':d.grup==='sedasi'?'#2457b5':d.grup==='vaso'?'#943767':'#805b08';
- DRUGS.forEach(d=>document.getElementById('card-'+d.id).style.setProperty('--category-tone',tone(d)));
- categories.forEach(([id,label])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.group=id;b.onclick=()=>{group=id;active=null;render();};cats.append(b);});
- function render(){const query=document.getElementById('drug-search').value.trim().toLowerCase();const matches=DRUGS.filter(d=>(group==='all'||(group==='relax'?d.badge==='relax':d.grup===group&&(group!=='sedasi'||d.badge!=='relax')))&&`${d.nama} ${d.klass}`.toLowerCase().includes(query));
- list.replaceChildren();matches.forEach(d=>{const b=document.createElement('button');b.type='button';b.className='drug-choice';b.style.setProperty('--drug-tone',tone(d));b.setAttribute('aria-pressed',String(active===d.id));b.innerHTML=`<strong>${d.nama}</strong><span>${d.klass}</span>`;b.onclick=()=>{active=d.id;render();};list.append(b);});
- cats.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.group===group)));
- DRUGS.forEach(d=>document.getElementById('card-'+d.id).classList.toggle('focus-hidden',active!==d.id));
- document.querySelectorAll('#cards>section').forEach(s=>s.classList.toggle('focus-hidden',!s.querySelector('.card:not(.focus-hidden)')));
- notice.hidden=active!==null;
- const selected=DRUGS.find(d=>d.id===active);document.getElementById('search-status').textContent=`${matches.length} obat ditemukan${selected?' · Kartu aktif: '+selected.nama:''}${matches.length?'':'. Coba nama lain atau pilih Semua.'}`;
- }
- document.getElementById('drug-search').addEventListener('input',()=>{active=null;render();});
- document.getElementById('drug-search').addEventListener('keydown',e=>{if(e.key==='Escape'){e.target.value='';group='all';render();}});
- // The original reset handler retains its confirmation and clears clinical inputs.
- document.addEventListener('picu-reset',()=>{active=null;group='all';document.getElementById('drug-search').value='';render();});
- render();
+  const categories = [
+    ['all', 'Semua'],
+    ['sedasi', 'Sedasi & analgesia'],
+    ['vaso', 'Kardiovaskular'],
+    ['relax', 'Relaksan'],
+    ['lain', 'Lainnya']
+  ];
+  let group = 'all', active = null;
+  const patient = document.querySelector('.patient');
+  const tools = document.createElement('section');
+  tools.className = 'picu-tools noprint';
+  tools.innerHTML = `
+    <div class="work-heading">
+      <div>
+        <h1>Daftar obat infus</h1>
+        <p>Cari nama obat atau pilih golongan.</p>
+      </div>
+      <a class="btn" href="#sumbody">Obat terpilih ↓</a>
+    </div>
+    <label class="search-box">
+      <span aria-hidden="true">⌕</span>
+      <input type="search" id="drug-search" aria-label="Cari obat" placeholder="Ketik nama obat atau golongan…" autocomplete="off">
+    </label>
+    <div class="picu-categories" role="group" aria-label="Golongan obat"></div>
+    <div class="drug-list" role="group" aria-label="Pilih obat"></div>
+    <p id="search-status" role="status" aria-live="polite"></p>
+  `;
+  patient.after(tools);
+
+  document.querySelector('.brand p').textContent = 'Laju syringe berbasis berat badan';
+  document.querySelector('.hint').textContent = 'Isi berat badan, lalu pilih obat. Nilai awal sediaan dan dosis berasal dari tabel; periksa kesesuaiannya sebelum menggunakan hasil.';
+  document.getElementById('filter').hidden = true;
+
+  const cats = tools.querySelector('.picu-categories'), list = tools.querySelector('.drug-list');
+  const notice = document.createElement('div');
+  notice.className = 'focus-empty noprint';
+  notice.textContent = 'Pilih obat di atas untuk membuka perhitungan. Input obat lain tetap tersimpan selama halaman ini terbuka.';
+  document.getElementById('cards').before(notice);
+
+  const tone = d => d.badge === 'relax' ? '#6943a6' : d.grup === 'sedasi' ? '#2457b5' : d.grup === 'vaso' ? '#943767' : '#805b08';
+  DRUGS.forEach(d => document.getElementById('card-' + d.id).style.setProperty('--category-tone', tone(d)));
+
+  categories.forEach(([id, label]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.dataset.group = id;
+    b.onclick = () => { group = id; active = null; render(); };
+    cats.append(b);
+  });
+
+  function render(){
+    const query = document.getElementById('drug-search').value.trim().toLowerCase();
+    const matches = DRUGS.filter(d =>
+      (group === 'all' || (group === 'relax' ? d.badge === 'relax' : d.grup === group && (group !== 'sedasi' || d.badge !== 'relax'))) &&
+      `${d.nama} ${d.klass}`.toLowerCase().includes(query)
+    );
+    list.replaceChildren();
+    matches.forEach(d => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'drug-choice';
+      b.style.setProperty('--drug-tone', tone(d));
+      b.setAttribute('aria-pressed', String(active === d.id));
+      b.innerHTML = `<strong>${d.nama}</strong><span>${d.klass}</span>`;
+      b.onclick = () => { active = d.id; render(); };
+      list.append(b);
+    });
+    cats.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.group === group)));
+    DRUGS.forEach(d => document.getElementById('card-' + d.id).classList.toggle('focus-hidden', active !== d.id));
+    document.querySelectorAll('#cards>section').forEach(s => s.classList.toggle('focus-hidden', !s.querySelector('.card:not(.focus-hidden)')));
+    notice.hidden = active !== null;
+    const selected = DRUGS.find(d => d.id === active);
+    document.getElementById('search-status').textContent = `${matches.length} obat ditemukan${selected ? ' · Kartu aktif: ' + selected.nama : ''}${matches.length ? '' : '. Coba nama lain atau pilih Semua.'}`;
+  }
+
+  document.getElementById('drug-search').addEventListener('input', () => { active = null; render(); });
+  document.getElementById('drug-search').addEventListener('keydown', e => {
+    if (e.key === 'Escape'){ e.target.value = ''; group = 'all'; render(); }
+  });
+  document.addEventListener('picu-reset', () => { active = null; group = 'all'; document.getElementById('drug-search').value = ''; render(); });
+  render();
 })();
-
-
-
-
-
-
-
-</script></body>
+</script>
+</body>
 </html>
-
-
-

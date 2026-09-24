@@ -13,9 +13,44 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inconsolata:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Public+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
+/* --------------------------------------------------------------------------
+   Inconsolata di-hosting sendiri di repo (fonts/) — bukan dari Google Fonts.
+   Dipakai untuk semua angka (berat badan, dosis, tabel titrasi, label cetak)
+   supaya bentuk angka 0 selalu konsisten (oval polos, bukan titik/garis) di
+   semua perangkat dan tetap tampil sama saat aplikasi dipakai tanpa sinyal.
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: "Inconsolata";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("fonts/inconsolata-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inconsolata";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("fonts/inconsolata-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inconsolata";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/inconsolata-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inconsolata";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("fonts/inconsolata-latin-800-normal.woff2") format("woff2");
+}
+
 /* ==========================================================================
    PediDrip Design System — Modern Animated Pediatric Clinical Interface
    ========================================================================== */

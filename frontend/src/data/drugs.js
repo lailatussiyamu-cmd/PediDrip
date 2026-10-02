@@ -5,7 +5,7 @@
 // whenever any lo/hi/cap/preset/note changes, so a nurse on a cached web page and
 // a nurse on an installed build can tell whether they are looking at the same
 // numbers. It is printed on every titration label and shown in the app footer.
-export const TABEL = { versi: '2026.09.06c', ditinjau: '6 September 2026' };
+export const TABEL = { versi: '2026.10.02', ditinjau: '2 Oktober 2026' };
 
 // Presets are listed dilute -> concentrated on every drug, so the picker reads the
 // same way everywhere instead of each drug having its own arbitrary order.
@@ -190,10 +190,39 @@ export const DRUGS = [
     amtUnit: 'mg', numer: 'mcg', perMin: true, conv: 0.001,
     lo: 0.5, hi: 4, cap: 5, step: 0.05, start: 0.5, tstep: 0.5,
     presets: [
-      { t: '1:400 (bayi) — 400 mcg/mL, 20 mg dalam 50 mL', amt: 20, ml: 50 },
-      { t: '1:500 (bayi) — 500 mcg/mL, 25 mg dalam 50 mL', amt: 25, ml: 50 },
-      { t: 'Tanpa pengenceran — 1000 mcg/mL (ampul 25 mg/25 mL)', amt: 25, ml: 25, dflt: true }],
-    note: 'Mulai 0,5 mcg/kg/menit, titrasi sesuai target tekanan darah. Pada bayi pengenceran 1:400 atau 1:500 mcg/mL lazim dipakai agar laju infus lebih terukur. Utamakan akses sentral bila memungkinkan; ekstravasasi berisiko iritasi jaringan.' },
+      { t: '1:400 (bayi) — 400 mcg/mL, 10 mg (1 ampul) dalam 25 mL', amt: 10, ml: 25 },
+      { t: '1:500 (bayi) — 500 mcg/mL, 10 mg (1 ampul) dalam 20 mL', amt: 10, ml: 20 },
+      { t: 'Tanpa pengenceran — 1000 mcg/mL (ampul 10 mg/10 mL)', amt: 10, ml: 10, dflt: true }],
+    note: 'Mulai 0,5 mcg/kg/menit, titrasi sesuai target tekanan darah. Ampul 10 mg/10 mL (1 mg/mL). Pada bayi pengenceran 400 atau 500 mcg/mL lazim dipakai agar laju infus lebih terukur. Utamakan akses sentral bila memungkinkan; ekstravasasi berisiko iritasi jaringan.' },
+
+/* --- antikoagulan, antiaritmia, kortikosteroid --- */
+  { id: 'heparin', badge: 'antikoag', nama: 'Heparin', klass: 'Antikoagulan — UFH', band: 'var(--diur)', grup: 'lain',
+    amtUnit: 'unit', numer: 'unit', perMin: false, conv: 1,
+    lo: 10, hi: 28, cap: 50, step: 1, start: 20, tstep: 2, noSetara: true,
+    presets: [
+      { t: '50 unit/mL — 2500 unit dalam 50 mL (neonatus/bayi)', amt: 2500, ml: 50 },
+      { t: '100 unit/mL — 5000 unit dalam 50 mL', amt: 5000, ml: 50, dflt: true },
+      { t: '200 unit/mL — 10000 unit dalam 50 mL', amt: 10000, ml: 50 }],
+    note: 'Antikoagulasi terapeutik: mulai 28 unit/kg/jam (usia < 1 tahun) atau 20 unit/kg/jam (≥ 1 tahun), titrasi sesuai aPTT/anti-Xa menurut protokol unit. Dosis muat (75 unit/kg selama 10 menit) diberikan terpisah dan tidak dihitung di sini. Dosis patensi kateter berbeda. Obat kewaspadaan tinggi — double check 2 perawat; pantau tanda perdarahan dan trombosit (risiko HIT).' },
+
+  { id: 'amiodaron', badge: 'antiaritmia', nama: 'Amiodaron', klass: 'Antiaritmia kelas III', band: 'var(--diur)', grup: 'vaso',
+    amtUnit: 'mg', numer: 'mcg', perMin: true, conv: 0.001,
+    lo: 5, hi: 15, cap: 20, step: 0.5, start: 5, tstep: 2.5,
+    presets: [
+      { t: '1,5 mg/mL — 75 mg dalam 50 mL D5% (perifer)', amt: 75, ml: 50 },
+      { t: '3 mg/mL — 150 mg (1 ampul) dalam 50 mL D5% (sentral)', amt: 150, ml: 50, dflt: true },
+      { t: '6 mg/mL — 300 mg (2 ampul) dalam 50 mL D5% (sentral)', amt: 300, ml: 50 }],
+    note: 'Rumatan 5–15 mcg/kg/menit (setara 0,3–0,9 mg/kg/jam). Dosis muat (5 mg/kg selama 20–60 menit) diberikan terpisah dan tidak dihitung di sini. Encerkan dengan D5%; konsentrasi > 2 mg/mL sebaiknya lewat akses sentral (risiko flebitis). Awasi hipotensi, bradikardia, blok AV, dan pemanjangan QT; pantau EKG kontinu.' },
+
+  { id: 'hidrokortison', badge: 'horm', nama: 'Hidrokortison', klass: 'Kortikosteroid — syok', band: 'var(--diur)', grup: 'lain',
+    amtUnit: 'mg', numer: 'mg', perMin: false, conv: 1,
+    lo: 0.05, hi: 0.2, cap: 2, step: 0.01, start: 0.08, noSetara: true,
+    doses: [0.05, 0.08, 0.1, 0.12, 0.15, 0.18, 0.2],
+    presets: [
+      { t: '0,5 mg/mL — 25 mg dalam 50 mL (neonatus/bayi)', amt: 25, ml: 50 },
+      { t: '1 mg/mL — 50 mg dalam 50 mL', amt: 50, ml: 50, dflt: true },
+      { t: '2 mg/mL — 100 mg (1 vial) dalam 50 mL', amt: 100, ml: 50 }],
+    note: 'Infus kontinu untuk syok refrakter katekolamin / insufisiensi adrenal: lazim 0,05–0,2 mg/kg/jam (≈ 1–5 mg/kg/hari; banyak protokol memakai 50 mg/m²/hari). Pada syok berat sebagian protokol menaikkan sampai 50 mg/kg/hari (≈ 2 mg/kg/jam) atas instruksi konsultan. Bolus awal (2 mg/kg, maks 100 mg) diberikan terpisah. Pantau gula darah, natrium, dan tekanan darah.' }
 ];
 
 // ISO 26825 syringe-label colour code (only for classes the standard defines).

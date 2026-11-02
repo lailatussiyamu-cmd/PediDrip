@@ -2453,7 +2453,7 @@ footer .credit {
 /* ==========================================================================
    Core Clinical Engine & Drug Catalog — PediDrip
    ========================================================================== */
-const TABEL = { versi:"2026.10.02", ditinjau:"2 Oktober 2026" };
+const TABEL = { versi:"2026.11.02c", ditinjau:"2 November 2026" };
 
 const DRUGS = [
 /* --- sedasi, analgesia, relaksan --- */
@@ -2577,12 +2577,16 @@ const DRUGS = [
   { id:"vasopresin", badge:"vaso", nama:"Vasopresin", klass:"Vasopresor", band:"var(--vaso)", grup:"vaso",
     amtUnit:"unit", numer:"unit", perMin:false, conv:1,
     lo:0.01, hi:0.05, cap:0.12, step:0.01, start:0.02, tstep:0.01, tblHi:0.1,
+    /* Pilihan satuan kedua: mU/kg/menit (1 unit = 1000 mU). Rentang = padanan unit/kg/jam di atas. */
+    alt:{ numer:"mU", perMin:true, conv:0.001, lo:0.17, hi:0.83, cap:2, step:0.01, start:0.33, tstep:0.1, tblLo:0.1, tblHi:1,
+          setaraLbl:"unit/kg/jam", setaraMul:0.001 },
     presets:[
+      {t:"BB kecil — 0,3 unit × BB dalam 50 mL · 1 mL/jam = 0,1 mU/kg/menit", amtPerKg:0.3, ml:50},
       {t:"0,1 unit/mL — 5 unit dalam 50 mL (bayi)", amt:5, ml:50},
       {t:"0,4 unit/mL — 20 unit dalam 50 mL", amt:20, ml:50},
       {t:"1 unit/mL — 50 unit dalam 50 mL", amt:50, ml:50, dflt:true},
       {t:"2 unit/mL — 100 unit dalam 50 mL", amt:100, ml:50}],
-    note:"Dosis dinyatakan dalam unit/kg/jam: rentang lazim 0,01–0,05 unit/kg/jam (setara 0,17–0,83 mU/kg/menit); sebagian protokol menaikkan sampai 0,12 unit/kg/jam (2 mU/kg/menit) atas persetujuan konsultan. Dipakai sebagai tambahan pada syok vasodilatasi yang tidak responsif katekolamin. Pada bayi pakai pengenceran 0,1 unit/mL agar laju pump terukur. Pantau perfusi distal, natrium, dan keluaran urine; risiko iskemia jari dan kulit." },
+    note:"Dosis dinyatakan dalam unit/kg/jam: rentang lazim 0,01–0,05 unit/kg/jam (setara 0,17–0,83 mU/kg/menit); sebagian protokol menaikkan sampai 0,12 unit/kg/jam (2 mU/kg/menit) atas persetujuan konsultan. Dipakai sebagai tambahan pada syok vasodilatasi yang tidak responsif katekolamin. Untuk anak BB kecil pakai pengenceran berbasis BB (0,3 unit × BB dalam 50 mL): 1 mL/jam = 0,1 mU/kg/menit = 0,006 unit/kg/jam, sehingga dosis 0,01–0,05 unit/kg/jam menjadi 1,7–8,3 mL/jam dan laju selalu terukur. Pantau perfusi distal, natrium, dan keluaran urine; risiko iskemia jari dan kulit." },
 
 /* --- diuretik --- */
   { id:"furosemide", badge:"diur", nama:"Furosemide", klass:"Diuretik loop", band:"var(--diur)", grup:"lain",
@@ -2753,10 +2757,11 @@ function titrasiDoses(d, sampai, langkah){
   if (d.doses) return d.doses.slice().sort((a,b) => a - b);
   const t = langkah || d.tstep || d.step, out = [];
   const r = v => Math.round(v * 1000) / 1000;
-  if (d.lo % t !== 0) out.push(r(d.lo));
-  for (let v = Math.ceil(r(d.lo / t)) * t; r(v) <= r(batas) + 1e-9; v += t){
+  const awal = d.tblLo ?? d.lo;
+  if (awal % t !== 0) out.push(r(awal));
+  for (let v = Math.ceil(r(awal / t)) * t; r(v) <= r(batas) + 1e-9; v += t){
     const x = r(v);
-    if (x >= d.lo - 1e-9 && !out.includes(x)) out.push(x);
+    if (x >= awal - 1e-9 && !out.includes(x)) out.push(x);
   }
   if (!out.includes(r(batas))) out.push(r(batas));
   return out.sort((a,b) => a - b);
@@ -2765,8 +2770,35 @@ const doseUnit = d => `${d.numer}/kg/${d.perMin ? "menit" : "jam"}`;
 
 const SUB_PREFIX = { unit:"mU", mg:"mcg", mcg:"ng" };
 const setaraSub   = d => (!d.perMin && d.lo / 60 < 0.01) ? SUB_PREFIX[d.numer] : undefined;
-const setaraUnit  = d => `${setaraSub(d) || d.numer}/kg/${d.perMin ? "jam" : "menit"}`;
-const setaraValue = (d, setara) => setaraSub(d) ? setara * 1000 : setara;
+const setaraUnit  = d => d.setaraLbl || `${setaraSub(d) || d.numer}/kg/${d.perMin ? "jam" : "menit"}`;
+const setaraValue = (d, setara) => d.setaraMul ? setara * d.setaraMul : (setaraSub(d) ? setara * 1000 : setara);
+
+/* --- Pilihan satuan dosis (saat ini: vasopresin unit/kg/jam ⇄ mU/kg/menit) --- */
+const SATUAN_KEYS = ["numer","perMin","conv","lo","hi","cap","step","start","tstep","tblLo","tblHi","setaraLbl","setaraMul"];
+DRUGS.forEach(d => {
+  if (!d.alt) return;
+  d.base = {};
+  SATUAN_KEYS.forEach(k => { d.base[k] = d[k]; });
+});
+const unitLabel = cfg => `${cfg.numer}/kg/${cfg.perMin ? "menit" : "jam"}`;
+function gantiSatuan(d, mode){
+  if (!d.alt) return;
+  const s = state[d.id], ke = mode === "alt" ? d.alt : d.base;
+  if ((s.satuan || "base") === mode) return;
+  /* dosis per kg per jam dalam satuan obat, lalu ke satuan tujuan */
+  const kgJamUnit = v => v * (d.perMin ? 60 : 1) * d.conv;
+  const dariKgJamUnit = v => v / ((ke.perMin ? 60 : 1) * ke.conv);
+  if (Number.isFinite(s.dose)) s.dose = Math.round(dariKgJamUnit(kgJamUnit(s.dose)) * 1000) / 1000;
+  SATUAN_KEYS.forEach(k => { d[k] = ke[k]; });
+  s.satuan = mode;
+  s.tstep = undefined;
+  const lama = el(`card-${d.id}`);
+  if (lama){
+    const sembunyi = lama.classList.contains("focus-hidden");
+    lama.outerHTML = cardHTML(d);
+    if (sembunyi) el(`card-${d.id}`).classList.add("focus-hidden");
+  }
+}
 
 const LAJU_MIN = 0.1;
 const lajuTerlaluPelan = laju => isFinite(laju) && laju > 0 && laju < LAJU_MIN;
@@ -2834,7 +2866,7 @@ function cardHTML(d){
         ${isoLine(d, false)}
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <label class="tick"><input type="checkbox" data-on="${d.id}"> Ringkasan</label>
+        <label class="tick"><input type="checkbox" data-on="${d.id}"${s.on ? " checked" : ""}> Ringkasan</label>
       </div>
     </div>
 
@@ -2852,6 +2884,10 @@ function cardHTML(d){
     <p class="conc" id="conc-${d.id}">Konsentrasi — menunggu berat badan</p>
 
     <p class="lbl" style="margin-top:16px">Dosis</p>
+    ${d.alt ? `<div class="tstep-row satuan-row" role="group" aria-label="Satuan dosis ${d.nama}">
+      <span class="tstep-lbl">Satuan</span>
+      ${["base","alt"].map(m => `<button type="button" class="tstep-btn${(s.satuan || "base") === m ? " on" : ""}" data-satuan="${d.id}" data-mode="${m}" aria-pressed="${(s.satuan || "base") === m}">${unitLabel(m === "alt" ? d.alt : d.base)}</button>`).join("")}
+    </div>` : ""}
     <div class="dosebar">
       <input id="dose-${d.id}" type="text" inputmode="decimal" data-dose="${d.id}" value="${dosisTeks(s.dose)}" placeholder="0" aria-label="Dosis ${d.nama}">
       <span class="u">${doseUnit(d)}</span>
@@ -3276,6 +3312,13 @@ document.addEventListener("change", e => {
 });
 
 document.addEventListener("click", e => {
+  const b = e.target.closest("[data-satuan]");
+  if (!b) return;
+  gantiSatuan(byId(b.dataset.satuan), b.dataset.mode);
+  updateAll();
+});
+
+document.addEventListener("click", e => {
   const b = e.target.closest("[data-tstep]");
   if (!b) return;
   state[b.dataset.tstep].tstep = Number(b.dataset.val);
@@ -3402,6 +3445,8 @@ window.addEventListener("afterprint", () => {
 el("reset").addEventListener("click", () => {
   if (!confirm("Kosongkan semua isian untuk pasien baru?")) return;
   DRUGS.forEach(d => {
+    state[d.id].on = false;
+    gantiSatuan(d, "base");
     const i = defaultPreset(d), p = d.presets[i];
     state[d.id] = { preset:i, amt:p.amt ?? 0, ml:p.ml, dose:d.start, on:false };
     el(`sel-${d.id}`).value = String(i);

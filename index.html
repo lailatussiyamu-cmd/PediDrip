@@ -2421,7 +2421,7 @@ footer .credit {
     </div>
 
     <div class="pk-footer">
-      <span>🐾 PediDrip: Perhatian besar untuk langkah kecil si kecil · v2026.10.02</span>
+      <span>🐾 PediDrip: Perhatian besar untuk langkah kecil si kecil · v2026.11.09</span>
       <span id="pk-foot-ts">Dicetak otomatis: —</span>
     </div>
   </div>
@@ -2453,7 +2453,7 @@ footer .credit {
 /* ==========================================================================
    Core Clinical Engine & Drug Catalog — PediDrip
    ========================================================================== */
-const TABEL = { versi:"2026.11.02c", ditinjau:"2 November 2026" };
+const TABEL = { versi:"2026.11.09", ditinjau:"9 November 2026" };
 
 const DRUGS = [
 /* --- sedasi, analgesia, relaksan --- */
@@ -2603,10 +2603,16 @@ const DRUGS = [
   { id:"insulin", badge:"horm", nama:"Insulin", klass:"Hormon — kontrol glukosa", band:"var(--diur)", grup:"lain",
     amtUnit:"unit", numer:"unit", perMin:false, conv:1,
     lo:0.05, hi:0.1, cap:0.15, step:0.01, start:0.05, doses:[0.05,0.06,0.07,0.08,0.09,0.1],
+    label:"Standar", preset:2,
+    /* Pilihan rentang kedua (satuan sama): dosis tinggi / HIET untuk keracunan beta-bloker atau CCB. */
+    alt:{ rentang:true, label:"Dosis tinggi (HIET)", preset:3,
+          lo:0.5, hi:10, cap:10, step:0.5, start:1, doses:[1,2,3,4,5,6,7,8,9,10],
+          note:"MODE DOSIS TINGGI (HIET) — untuk keracunan beta-bloker / CCB, hanya atas instruksi DPJP. Infus mulai 1 unit/kg/jam (bolus awal 1 unit/kg diberikan terpisah, tidak dihitung di sini), naik 1–2 unit/kg/jam tiap 10–30 menit sesuai respons hemodinamik, umumnya sampai 10 unit/kg/jam. Pakai sediaan pekat 10 unit/mL supaya volume cairan tidak berlebihan. Wajib infus dekstrosa bersamaan; cek gula darah tiap 15–30 menit di awal dan kalium tiap 1 jam. Obat kewaspadaan tinggi, double check 2 perawat." },
     presets:[
       {t:"0,1 unit/mL — 5 unit dalam 50 mL", amt:5, ml:50},
       {t:"0,5 unit/mL — 25 unit dalam 50 mL", amt:25, ml:50},
-      {t:"1 unit/mL — 50 unit dalam 50 mL", amt:50, ml:50, dflt:true}],
+      {t:"1 unit/mL — 50 unit dalam 50 mL", amt:50, ml:50, dflt:true},
+      {t:"10 unit/mL — 500 unit dalam 50 mL (dosis tinggi/HIET)", amt:500, ml:50}],
     note:"Dosis dinyatakan dalam unit/kg/jam: mulai 0,05 unit/kg/jam, titrasi sesuai protokol dan target gula darah unit. Insulin melekat pada dinding selang plastik — bilas/priming set infus sebelum disambung ke pasien. Pantau gula darah berkala dan kalium; obat kewaspadaan tinggi, double check 2 perawat." },
 
   { id:"aminofilin", badge:"resp", nama:"Aminofilin", klass:"Bronkodilator — metilxantin", band:"var(--diur)", grup:"lain",
@@ -2773,14 +2779,14 @@ const setaraSub   = d => (!d.perMin && d.lo / 60 < 0.01) ? SUB_PREFIX[d.numer] :
 const setaraUnit  = d => d.setaraLbl || `${setaraSub(d) || d.numer}/kg/${d.perMin ? "jam" : "menit"}`;
 const setaraValue = (d, setara) => d.setaraMul ? setara * d.setaraMul : (setaraSub(d) ? setara * 1000 : setara);
 
-/* --- Pilihan satuan dosis (saat ini: vasopresin unit/kg/jam ⇄ mU/kg/menit) --- */
-const SATUAN_KEYS = ["numer","perMin","conv","lo","hi","cap","step","start","tstep","tblLo","tblHi","setaraLbl","setaraMul"];
+/* --- Pilihan satuan/rentang dosis (vasopresin unit/kg/jam ⇄ mU/kg/menit; insulin standar ⇄ dosis tinggi) --- */
+const SATUAN_KEYS = ["numer","perMin","conv","lo","hi","cap","step","start","tstep","tblLo","tblHi","setaraLbl","setaraMul","doses","note","label","preset"];
 DRUGS.forEach(d => {
   if (!d.alt) return;
   d.base = {};
   SATUAN_KEYS.forEach(k => { d.base[k] = d[k]; });
 });
-const unitLabel = cfg => `${cfg.numer}/kg/${cfg.perMin ? "menit" : "jam"}`;
+const unitLabel = cfg => cfg.label || `${cfg.numer}/kg/${cfg.perMin ? "menit" : "jam"}`;
 function gantiSatuan(d, mode){
   if (!d.alt) return;
   const s = state[d.id], ke = mode === "alt" ? d.alt : d.base;
@@ -2788,8 +2794,22 @@ function gantiSatuan(d, mode){
   /* dosis per kg per jam dalam satuan obat, lalu ke satuan tujuan */
   const kgJamUnit = v => v * (d.perMin ? 60 : 1) * d.conv;
   const dariKgJamUnit = v => v / ((ke.perMin ? 60 : 1) * ke.conv);
-  if (Number.isFinite(s.dose)) s.dose = Math.round(dariKgJamUnit(kgJamUnit(s.dose)) * 1000) / 1000;
-  SATUAN_KEYS.forEach(k => { d[k] = ke[k]; });
+  if (d.alt.rentang){
+    /* Ganti rentang (satuan sama): dosis kembali ke dosis awal mode tujuan dan sediaan ikut
+       pindah ke sediaan bawaan mode itu, supaya dosis tinggi tidak terbawa ke mode standar
+       (atau sebaliknya) tanpa sengaja. */
+    s.dose = ke.start;
+    if (ke.preset !== undefined && d.presets[ke.preset]){
+      const p = d.presets[ke.preset];
+      s.preset = ke.preset; s.ml = p.ml;
+      if (p.amt !== undefined) s.amt = p.amt;
+    }
+  } else if (Number.isFinite(s.dose)) s.dose = Math.round(dariKgJamUnit(kgJamUnit(s.dose)) * 1000) / 1000;
+  /* Kunci yang tidak diisi di mode tujuan: pada pilihan rentang (satuan sama) ikut mode dasar;
+     catatan obat selalu kembali ke catatan dasar bila mode tujuan tidak punya catatan sendiri. */
+  SATUAN_KEYS.forEach(k => {
+    d[k] = (ke[k] === undefined && (d.alt.rentang || k === "note")) ? d.base[k] : ke[k];
+  });
   s.satuan = mode;
   s.tstep = undefined;
   const lama = el(`card-${d.id}`);
@@ -2884,8 +2904,8 @@ function cardHTML(d){
     <p class="conc" id="conc-${d.id}">Konsentrasi — menunggu berat badan</p>
 
     <p class="lbl" style="margin-top:16px">Dosis</p>
-    ${d.alt ? `<div class="tstep-row satuan-row" role="group" aria-label="Satuan dosis ${d.nama}">
-      <span class="tstep-lbl">Satuan</span>
+    ${d.alt ? `<div class="tstep-row satuan-row" role="group" aria-label="${d.alt.rentang ? "Rentang" : "Satuan"} dosis ${d.nama}">
+      <span class="tstep-lbl">${d.alt.rentang ? "Rentang" : "Satuan"}</span>
       ${["base","alt"].map(m => `<button type="button" class="tstep-btn${(s.satuan || "base") === m ? " on" : ""}" data-satuan="${d.id}" data-mode="${m}" aria-pressed="${(s.satuan || "base") === m}">${unitLabel(m === "alt" ? d.alt : d.base)}</button>`).join("")}
     </div>` : ""}
     <div class="dosebar">
@@ -3140,6 +3160,7 @@ function labelHTML(aktif, bb, ts){
       + `<span class="tcard-chk-items"><span>[ ] Dosis</span><span>[ ] Pasien</span><span>[ ] Jalur</span></span>`
       + `</div>`
       + `<p class="dc">`
+        + (d.alt && d.alt.rentang && s.satuan === "alt" ? `<b>${d.alt.label.toUpperCase()} — instruksi DPJP.</b> ` : "")
         + (batasTabel > d.hi ? `Baris ▲ di atas ${fmt(d.hi, TD)}: hanya atas instruksi DPJP. ` : "")
         + (adaPelan ? `Baris ▼ di bawah ${fmt(LAJU_MIN, 1)} mL/jam: pump sulit akurat, encerkan lagi. ` : "")
         + `<b>Double check 2 perawat.</b> v${TABEL.versi}</p>`
